@@ -1,7 +1,6 @@
 # macOS Account Deletion (OpenCaptions)
 
 **Date:** 2026-07-14
-**Issue:** #253 (under epic #103)
 **Status:** Implemented
 
 ## Why
@@ -9,7 +8,7 @@
 Apple App Store Review Guideline **5.1.1(v)** requires any app that supports account
 creation to also offer **in-app account deletion**. Open Captions creates accounts (Google /
 email-password / Apple) but had no deletion path — a hard blocker for shipping to the Mac
-App Store. This was an explicit deferral under epic #103.
+App Store. This was an explicit pre-launch deferral.
 
 ## What ships
 
@@ -25,7 +24,7 @@ audio**. It does **not** touch Firestore. Database/backend cleanup is a Cloud Fu
 concern: the backend Cloud Functions project deploys an Auth `onDelete` trigger
 (`onUserDeleted`, region `asia-southeast1`, in `src/onUserDelelted.ts`) that fires when the
 Auth user is removed and deletes the user's **RevenueCat customer** (the shared "Min"
-balance). This mirrors iOS, which also deletes only Auth + local. Keeping the client simple
+balance). The client deliberately deletes only Auth + local. Keeping the client simple
 avoids duplicating cleanup logic and needing extra Firestore client-delete permissions.
 
 > **Follow-up (out of scope, backend Cloud Functions project):** `onUserDeleted` does **not** currently purge the
@@ -47,18 +46,18 @@ The password field / Google web flow / Apple sheet each double as the identity p
 destructive action. Order: reauth → **(Apple) `revokeToken` → `user.delete()`** → local wipe
 → `signOut()`.
 
-> **Revoke must precede delete** (diverges from the iOS reference). `Auth.revokeToken(...)`
-> authorizes its request with the **current user's ID token** (verified against
-> firebase-ios-sdk: it calls `currentUser?.internalGetToken`). After `user.delete()` there is
-> no `currentUser`, so a revoke *after* delete silently fails — the iOS reference's
-> delete-then-revoke never actually revokes the Apple token. Revoking first (and letting a
+> **Revoke must precede delete.** `Auth.revokeToken(...)`
+> authorizes its request with the **current user's ID token** (verified against the
+> firebase-ios-sdk source: it calls `currentUser?.internalGetToken`). After `user.delete()` there is
+> no `currentUser`, so a revoke *after* delete silently fails — a
+> delete-then-revoke order never actually revokes the Apple token. Revoking first (and letting a
 > revoke failure block deletion) guarantees the token is revoked whenever the account is
 > removed (App Review 5.1.1). For Google/email there is no token to revoke, so this step is
 > skipped and `delete()` is effectively first.
 
 **Apple is defensive today.** Its sign-in button is hidden because Firebase rejects the
 ID-token audience for the dev's custom bundle id; reauth hits the same audience check, so
-there are effectively no Apple-provider users on the current cross-team build. The branch is
+there are effectively no Apple-provider users on the current build. The branch is
 implemented for when the button is re-enabled under a proper team/bundle id.
 
 ### Anti-accident confirmation gate
@@ -97,4 +96,4 @@ flipping false to dismiss and close the Settings window (same idiom as Sign Out)
 
 ## Notes / deferrals
 - Strings are hardcoded English (Open Captions has no `LanguageManager`).
-- Password reset / email verification remain deferred under #103.
+- Password reset / email verification remain deferred.

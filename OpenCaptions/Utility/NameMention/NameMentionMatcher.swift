@@ -4,7 +4,7 @@
 //
 //  Word-boundary, case-insensitive matcher for the signed-in user's display name.
 //  The single source of truth for how a name becomes a regex, shared by the two
-//  places that need it (issue #255): the transcript highlight
+//  places that need it: the transcript highlight
 //  (`HighlightedMessageText`, which caches the compiled regex for per-line render
 //  speed) and the name-mention notifier (`MacNameMentionNotifier`, which only needs
 //  a yes/no per finalized sentence). Stateless, so it is safe to call from any actor

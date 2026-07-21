@@ -3,8 +3,8 @@
 //  OpenCaptions
 //
 //  Writes to the per-user profile doc (`users/{uid}`), kept apart from the
-//  session-sync writes. Covers the Offline Mode preference (#274) and the
-//  marketing-consent opt-in (#251). The email itself is NOT written here — it
+//  session-sync writes. Covers the Offline Mode preference and the
+//  marketing-consent opt-in. The email itself is NOT written here — it
 //  already lives in Firebase Auth; only consent (which Auth can't store) needs a
 //  home. The session helpers (`createDoc`/`updateDoc`) are deliberately NOT reused
 //  here: they're gated behind the `sessionSharing` feature flag and scoped to
@@ -25,7 +25,7 @@ extension FirestoreSyncService {
         mergeUserDoc([F.isOfflineModeEnabled: enabled])
     }
 
-    /// Persists the user's marketing-communications consent (#251). Opt-in: the UI
+    /// Persists the user's marketing-communications consent. Opt-in: the UI
     /// defaults to off and only flips this when the user explicitly toggles it.
     func syncMarketingOptIn(_ optIn: Bool) {
         mergeUserDoc([F.marketingOptIn: optIn])

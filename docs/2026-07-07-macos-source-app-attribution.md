@@ -1,7 +1,7 @@
 # macOS source-app attribution (OpenCaptions)
 
 **Date:** 2026-07-07
-**Target:** `OpenCaptions` only (not the iOS `unmute` target)
+**Target:** `OpenCaptions` only
 **Status:** v1 shipped behind no flag; live view + saved sessions + captions overlay.
 
 ## Goal

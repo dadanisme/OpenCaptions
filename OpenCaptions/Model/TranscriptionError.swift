@@ -1,6 +1,6 @@
 //
 //  TranscriptionError.swift
-//  unmute
+//  OpenCaptions
 //
 
 import Foundation

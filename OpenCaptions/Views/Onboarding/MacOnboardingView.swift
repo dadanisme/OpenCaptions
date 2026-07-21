@@ -53,7 +53,7 @@ struct MacOnboardingView: View {
 
             // Only the middle step content scrolls; the dots (above) and action bar
             // (below) are pinned OUTSIDE the scroll so they stay on-screen no matter
-            // how short the window is — the fix for #312, where a window shorter than
+            // how short the window is — the fix for when a window shorter than
             // the content clipped the fixed top/bottom chrome. The content is centered
             // when it fits (`minHeight: geo.height`) and scrolls only when it's taller
             // than the region (large app-text size, a short display, or a window macOS

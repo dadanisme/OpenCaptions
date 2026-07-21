@@ -4,9 +4,8 @@
 //
 //  AppKit bridge that detects USER-driven scrolling in a SwiftUI ScrollView so the
 //  live transcript and captions overlay can stop force-scrolling to the newest line
-//  while the user is reading earlier text (#314). The macOS counterpart of the iOS
-//  `ScrollStateObserver` (which uses UIScrollView KVO): here we key off
-//  `NSScrollView`'s live-scroll notifications, which fire ONLY for user-initiated
+//  while the user is reading earlier text. Keys off `NSScrollView`'s
+//  live-scroll notifications, which fire ONLY for user-initiated
 //  scrolling (trackpad / wheel / scroller drag, incl. momentum) — a programmatic
 //  `ScrollViewProxy.scrollTo` never posts them, so content-driven re-pins can never
 //  be mistaken for the user scrolling away.

@@ -2,7 +2,7 @@
 //  SessionPasswordService.swift
 //  OpenCaptions
 //
-//  Owner-side session password management (issue #116). Wraps the two
+//  Owner-side session password management. Wraps the two
 //  Firebase callable functions deployed in the backend Cloud Functions project:
 //
 //    setSessionPassword({sessionId, password}) → {ok: true}
@@ -14,7 +14,7 @@
 //  Auth is automatic: `HTTPSCallable.call` attaches the Firebase Auth ID
 //  token, so no API key or Secrets entry is needed.
 //
-//  Ported from the iOS `unmute` target. The Mac has no `LanguageManager`, so
+//  There is no `LanguageManager`, so
 //  error strings are plain English literals rather than `.localized` keys.
 //
 

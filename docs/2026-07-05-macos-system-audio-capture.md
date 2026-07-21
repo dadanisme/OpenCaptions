@@ -1,15 +1,15 @@
-# macOS System-Audio Capture (ScreenCaptureKit) — #176
+# macOS System-Audio Capture (ScreenCaptureKit)
 
-**Date:** 2026-07-05 · **Target:** OpenCaptions · **Epic:** #103 · **Depends on:** #171 (MVP)
+**Date:** 2026-07-05 · **Target:** OpenCaptions
 
 ## Problem
 
-On the desktop the highest-value transcription source is often *other apps'* audio (video calls, meetings, media) — which iOS can't capture but macOS can. #176 adds selectable system-audio capture to Open Captions, feeding the existing Soniox pipeline.
+On the desktop the highest-value transcription source is often *other apps'* audio (video calls, meetings, media) — which iOS can't capture but macOS can. This adds selectable system-audio capture to Open Captions, feeding the existing Soniox pipeline.
 
 ## Delivery (phased)
 
-- **Phase 1 (this work):** Microphone **or** whole-system audio as a selectable, live-switchable source. Satisfies the issue's core acceptance criteria at low risk.
-- **Phase 2 (#189):** Microphone **+** system audio *mixed*, with acoustic echo cancellation so the mic's speaker-bleed doesn't double the system audio. Higher risk (needs on-device verification), split out.
+- **Phase 1 (this work):** Microphone **or** whole-system audio as a selectable, live-switchable source. Satisfies the core acceptance criteria at low risk.
+- **Phase 2:** Microphone **+** system audio *mixed*, with acoustic echo cancellation so the mic's speaker-bleed doesn't double the system audio. Higher risk (needs on-device verification), split out.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Provider-agnostic capture behind `AudioCaptureSource` (`OpenCaptions/Services/Au
 - **Sandbox / App Store.** SCK ships in sandboxed MAS apps using only public API; the existing entitlements suffice (no `com.apple.security.screen-capture` — it doesn't exist). The orange recording indicator is always shown. **Highest risk: verify capture actually flows inside the App Sandbox on a stably-signed build** — dev/ad-hoc signing "forgets" the TCC grant each launch and looks like a bug.
 - **New files auto-compile.** `OpenCaptions` is a `PBXFileSystemSynchronizedRootGroup`, so new `.swift` files under `OpenCaptions/` need no pbxproj Sources edits.
 
-## Echo cancellation for Phase 2 (VPIO) — researched, recorded in #189
+## Echo cancellation for Phase 2 (VPIO) — researched
 
 macOS `AVAudioInputNode.setVoiceProcessingEnabled(true)` runs AEC against the **hardware output mix, including other apps' audio** (verified against a shipping mic+SCK transcription app), so it cancels the mic's speaker-bleed with no custom reference and no third-party library. Gotchas: **disable advanced ducking** (`voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: false, duckingLevel: .min)`) or the SCK system audio gets attenuated; **handle the multi-channel VP input format** (read live format / extract channel 0); optionally disable AGC. Mix in **software** (bounded ring buffers) — do NOT route SCK audio through the engine output (replays to speakers + doubles). Residual echo is possible on loud external speakers (acceptable for STT; headphones = no bleed).
 

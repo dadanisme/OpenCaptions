@@ -1,6 +1,6 @@
 //
 //  TranscriptionSession.swift
-//  unmute
+//  OpenCaptions
 //
 //  Created by Wentao Guo on 21/10/25.
 //

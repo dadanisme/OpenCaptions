@@ -3,7 +3,7 @@
 //  OpenCaptions
 //
 //  A slim, NON-blocking status pill shown while a batch pass runs over a session's
-//  audio in the background — either a re-transcription (#245) or a file import (#302).
+//  audio in the background — either a re-transcription or a file import.
 //  Both are `PostSessionProgress`-driven and mutually exclusive for a given session
 //  (import blocks re-transcribe), so a single component + a single overlay slot in the
 //  detail view render whichever is in flight. The user can keep reading/scrolling — or

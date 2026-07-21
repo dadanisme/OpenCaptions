@@ -2,7 +2,7 @@
 //  HotKeyManager.swift
 //  OpenCaptions
 //
-//  App-level owner of the system-wide transcription hotkeys (issue #249). Loads
+//  App-level owner of the system-wide transcription hotkeys. Loads
 //  and persists per-action bindings, registers them with Carbon (see
 //  `HotKeyManager+Carbon`), and dispatches each press to a state-respecting
 //  operation on `LiveSessionStore` — then shows a brief HUD confirming what

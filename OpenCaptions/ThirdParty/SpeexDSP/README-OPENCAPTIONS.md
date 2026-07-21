@@ -3,7 +3,7 @@
 Third-party code — **not** first-party OpenCaptions source. A minimal subset of
 [xiph/speexdsp](https://github.com/xiph/speexdsp) (BSD-3-Clause, see `COPYING`),
 vendored to back `OpenCaptions/AEC/OpenCaptionsAEC.mm`'s software acoustic echo canceller for
-the "Microphone + System Audio" mixed source (issue #205 Part C / #208).
+the "Microphone + System Audio" mixed source.
 
 ## Why vendored source (not a binary / SPM package)
 

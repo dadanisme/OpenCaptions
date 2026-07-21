@@ -4,8 +4,7 @@
 //
 //  Sign in with Apple → Firebase. The credential is delivered by SwiftUI's
 //  `SignInWithAppleButton` (see `MacSignInControls`), so there is no ASAuthorization
-//  controller/delegate or presentation-anchor plumbing to port — the biggest
-//  difference from the iOS AuthManager, which drives the controller manually.
+//  controller/delegate or presentation-anchor plumbing to manage.
 //  The token→Firebase exchange and the nonce helpers are copied ~verbatim.
 //
 
@@ -62,7 +61,7 @@ extension MacAuthManager {
         saveUserID(user.uid)
     }
 
-    // MARK: - Nonce (ported verbatim from iOS AuthManager+AccountDeletion)
+    // MARK: - Nonce
 
     static func randomNonceString(length: Int = 32) throws -> String {
         var randomBytes = [UInt8](repeating: 0, count: length)

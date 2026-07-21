@@ -7,9 +7,8 @@
 //  begins mirroring when the user taps Share (`shareLive()`), which mints a
 //  cloud session and backfills whatever is already on screen. After that, the
 //  line-commit and partial hooks below fire Firestore writes; every one is a
-//  no-op until `startSession` sets `currentSessionRef`. Mirrors the iOS
-//  `OnlineViewModel+Sharing`/`+Accumulator` paths, minus manual messages and
-//  Live Activity (neither exists on the Mac). See
+//  no-op until `startSession` sets `currentSessionRef`. There are no manual
+//  messages or Live Activity here. See
 //  docs/2026-07-06-macos-firestore-share.md.
 //
 

@@ -6,7 +6,7 @@
 //  as the unified 16 kHz / mono / Float32 `AudioFrame` stream (identical contract
 //  to the mic path), so it drops straight into `MacTranscriptionViewModel`.
 //
-//  Replaces the earlier ScreenCaptureKit source (#205): a process tap uses the
+//  Replaces the earlier ScreenCaptureKit source: a process tap uses the
 //  narrow "Audio Recording" TCC grant (`NSAudioCaptureUsageDescription`), NOT the
 //  full Screen Recording grant. It also doesn't touch the microphone, so it runs
 //  alongside a plain mic `AVAudioEngine`. There is no public preflight API — the
@@ -33,7 +33,7 @@ final class SystemAudioTapCaptureService: AudioCaptureSource {
     var converter: AVAudioConverter?
     /// The format used to wrap each no-copy `AudioBufferList`: the tap's channel
     /// layout / flags with the sample rate corrected to the AGGREGATE's delivered
-    /// rate (its main-sub-device/output clock), not the tap's own native rate (#304).
+    /// rate (its main-sub-device/output clock), not the tap's own native rate.
     var sourceFormat: AVAudioFormat?
     /// When true the IOProc early-returns before any conversion — our soft pause.
     var isPaused = false

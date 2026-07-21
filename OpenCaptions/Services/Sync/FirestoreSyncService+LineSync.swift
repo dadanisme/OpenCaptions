@@ -19,13 +19,13 @@ extension FirestoreSyncService {
     /// subcollection.
     ///
     /// The `accumulator` field is intentionally **not** touched here. The
-    /// iOS UI does not reset its in-flight `partialLine` string on commit;
+    /// live UI does not reset its in-flight `partialLine` string on commit;
     /// instead the next `updatePartialLine` callback either overwrites it
     /// with the new partial or empties it. We mirror that on Firestore so
-    /// the web client sees the same transition the iOS user does — no
+    /// the web client sees the same transition — no
     /// extra null-flicker between commit and the next partial frame.
     ///
-    /// All lines render identically on iOS and on the web. There is no
+    /// All lines render identically on the web. There is no
     /// per-line status — the most recent bubble's `text` may still grow on
     /// the next sentence commit when the speaker hasn't changed, and the
     /// web simply re-renders.
@@ -77,8 +77,7 @@ extension FirestoreSyncService {
     ///
     /// Callers should pass just the in-flight portion. The web client
     /// renders it as a standalone preview bubble below the lines list, not
-    /// joined to any line — mirrors how iOS renders `partialLine` via
-    /// `PartialSpeakerBubble`. Call `clearAccumulator()` when there is
+    /// joined to any line. Call `clearAccumulator()` when there is
     /// nothing pending.
     func updateAccumulator(text: String, speakerId: Int, startMs: Int, endMs: Int) {
         guard currentSessionRef != nil, currentUid() != nil else { return }

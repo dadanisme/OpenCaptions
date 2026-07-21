@@ -3,9 +3,9 @@
 //  OpenCaptions
 //
 //  Sentence-boundary scanner, name matcher, and segment cache backing
-//  `HighlightedMessageText`. Ported from the iOS implementation: question
-//  highlighting (background tint) plus name-mention highlighting (bold `@Name`,
-//  issue #255). Split out to keep each file under the 250-line limit.
+//  `HighlightedMessageText`: question
+//  highlighting (background tint) plus name-mention highlighting (bold `@Name`).
+//  Split out to keep each file under the 250-line limit.
 //
 
 import SwiftUI
@@ -81,7 +81,7 @@ extension HighlightedMessageText {
 
     /// Scans for sentence boundaries (`.`, `!`, `?`), skips decimals like `7.6`,
     /// tracks quotation boundaries, and returns the range of every sentence ending
-    /// in `?` (extending to a wrapping closing quote). Verbatim from iOS.
+    /// in `?` (extending to a wrapping closing quote).
     private func findQuestionRanges(in text: String) -> [Range<String.Index>] {
         var ranges: [Range<String.Index>] = []
         var sentenceStart = text.startIndex
@@ -174,8 +174,8 @@ extension HighlightedMessageText {
 
     /// Interleaves normal, question, and name spans. Ranges are walked as sorted
     /// start/end points with per-type depth counters; where the two overlap, the
-    /// name wins (a bold `@Name` reads clearer than a tint). Adapted from iOS, but
-    /// uses depth counters rather than iOS's booleans so nested same-type ranges
+    /// name wins (a bold `@Name` reads clearer than a tint). Uses depth counters
+    /// rather than booleans so nested same-type ranges
     /// keep their highlight (see the counter comment below).
     private func buildSegments(
         text: String,
@@ -213,7 +213,7 @@ extension HighlightedMessageText {
         // range's end while the outer range is still open, dropping the tint on the
         // tail. Counters stay > 0 until every open range of that type closes. Also
         // robust to same-index start/end ordering: no chunk is emitted at a shared
-        // index, so only the net depth after both points matters. (macOS's pre-#255
+        // index, so only the net depth after both points matters. (macOS's earlier
         // code pre-merged same-type ranges to avoid this; counters subsume that and
         // also carry the name layer.)
         var questionDepth = 0

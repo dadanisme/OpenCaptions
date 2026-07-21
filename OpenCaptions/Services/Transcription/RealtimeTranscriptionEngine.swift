@@ -1,6 +1,6 @@
 //
 //  RealtimeTranscriptionEngine.swift
-//  unmute
+//  OpenCaptions
 //
 //  Production-side abstraction over real-time (streaming) speech-to-text engines.
 //

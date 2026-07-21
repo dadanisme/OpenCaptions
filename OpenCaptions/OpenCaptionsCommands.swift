@@ -2,7 +2,7 @@
 //  OpenCaptionsCommands.swift
 //  OpenCaptions
 //
-//  The app's menu-bar commands (issue #173). A single "Recording" menu carries
+//  The app's menu-bar commands. A single "Recording" menu carries
 //  every transcription action; each item reads a `@FocusedValue` published by
 //  the relevant screen and disables itself when that context isn't frontmost.
 //  Settings (Cmd+,) and the standard App/Edit/View/Window/Help menus come from
@@ -27,7 +27,7 @@ struct OpenCaptionsCommands: Commands {
         CommandGroup(replacing: .newItem) {}
 
         // File ▸ Import Audio or Video… (published only when the fileImport flag is on,
-        // so the item disables otherwise). Issue #302.
+        // so the item disables otherwise).
         CommandGroup(replacing: .importExport) {
             Button("Import Audio or Video…") { importMedia?() }
                 .keyboardShortcut("i", modifiers: .command)

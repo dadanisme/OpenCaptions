@@ -6,9 +6,9 @@
 //  input tap, identical in spirit to MacAudioService. We deliberately do NOT use
 //  voice-processing I/O: on macOS VPIO reconfigures the shared input device
 //  (perturbing other apps' mic access) and fires an AVAudioEngineConfiguration
-//  change on teardown that aborts a live source swap (issue #205). Echo
+//  change on teardown that aborts a live source swap. Echo
 //  cancellation of the system audio's speaker-bleed is handled in software here
-//  (`OpenCaptionsAEC`, issue #208). The tap is the mix pacer: per callback it extracts
+//  (`OpenCaptionsAEC`). The tap is the mix pacer: per callback it extracts
 //  channel 0, resamples to 16 kHz mono, pulls a matching span of system audio
 //  from the ring, runs the canceller (mic ← AEC(mic, reference: system)), adds
 //  the clean system audio back, and yields. Split from the lifecycle file to stay
@@ -25,7 +25,7 @@ extension MixedAudioCaptureService {
 
     /// Install the mic tap and start the engine. Throws if the engine refuses to
     /// start (no input device, etc.). Deliberately a PLAIN engine — no voice
-    /// processing (see the file header / issue #205): VPIO on macOS seizes the
+    /// processing (see the file header): VPIO on macOS seizes the
     /// shared input device and breaks both mic coexistence and live switching.
     func configureMicEngine() throws {
         let input = micEngine.inputNode
@@ -35,7 +35,7 @@ extension MixedAudioCaptureService {
         // on; snapshotted into `aecEnabled` by `observeAECFlag` before start()).
         // Flag off, or a nil OpenCaptionsAEC, leaves `aec == nil` → the mix falls back to
         // a plain (uncancelled) sum, giving us a Firestore escape hatch if the
-        // canceller regresses in the field (issue #231). Delay 0 — the ring already
+        // canceller regresses in the field. Delay 0 — the ring already
         // hands the tap an aligned system span (tune on device if echo leaks; see
         // OpenCaptionsAEC.setStreamDelayMs).
         aecLock.lock()
@@ -132,7 +132,7 @@ extension MixedAudioCaptureService {
         // plus a small jitter cushion BEFORE reading, so the reference and the
         // re-added system span track the fresh mic instead of lagging by the startup
         // seed. This is what collapses the mic-leads-system gap and moves the AEC
-        // far-end reference into the canceller's causal window (issue #305). The
+        // far-end reference into the canceller's causal window. The
         // returned pre-trim occupancy feeds the on-device alignment log.
         let occupancyBeforeTrim = systemRing.trim(
             toMaxAvailable: n + Self.systemRefCushionSamples)

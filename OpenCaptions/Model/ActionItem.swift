@@ -1,6 +1,6 @@
 //
 //  ActionItem.swift
-//  unmute
+//  OpenCaptions
 //
 
 import Foundation

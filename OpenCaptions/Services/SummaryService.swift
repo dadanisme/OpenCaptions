@@ -1,6 +1,6 @@
 //
 //  SummaryService.swift
-//  unmute
+//  OpenCaptions
 //
 //  Created by Wentao Guo on 17/11/25.
 //

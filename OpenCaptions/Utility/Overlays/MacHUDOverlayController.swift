@@ -2,7 +2,7 @@
 //  MacHUDOverlayController.swift
 //  OpenCaptions
 //
-//  Owns the transient HUD badge shown when a global hotkey fires (issue #249):
+//  Owns the transient HUD badge shown when a global hotkey fires:
 //  a borderless, non-activating, always-on-top `NSPanel` that fades in near the
 //  bottom-center of the main screen, holds briefly, and fades out — like the
 //  system volume HUD. It must appear over WHATEVER app is frontmost without
@@ -33,7 +33,7 @@ final class MacHUDOverlayController {
         present(MacHUDOverlayView(outcome: outcome))
     }
 
-    /// Shows a free-form badge (icon + one line) — e.g. the name-mention cue (#255).
+    /// Shows a free-form badge (icon + one line) — e.g. the name-mention cue.
     func show(symbol: String, message: String, isNeutral: Bool = false) {
         present(MacHUDOverlayView(symbol: symbol, message: message, isNeutral: isNeutral))
     }

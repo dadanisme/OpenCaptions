@@ -1,10 +1,10 @@
-# macOS Mic + System-Audio Mix with Echo Cancellation (VPIO) — #189
+# macOS Mic + System-Audio Mix with Echo Cancellation (VPIO)
 
-**Date:** 2026-07-05 · **Target:** OpenCaptions · **Epic:** #103 · **Depends on:** #176 (Phase 1)
+**Date:** 2026-07-05 · **Target:** OpenCaptions · **Depends on:** Phase 1
 
 ## Problem
 
-Phase 1 (#176) shipped microphone **or** whole-system audio as a live-switchable source. Phase 2 adds the third option — **Microphone + System Audio mixed** into one transcript — so a user on a video call is transcribed alongside the other participants. The naïve mix doubles the system audio: ScreenCaptureKit (SCK) captures the other apps' audio cleanly, *and* the mic re-captures the same audio bleeding from the speakers. The fix is acoustic echo cancellation on the mic so only the user's voice survives from the mic path.
+Phase 1 shipped microphone **or** whole-system audio as a live-switchable source. Phase 2 adds the third option — **Microphone + System Audio mixed** into one transcript — so a user on a video call is transcribed alongside the other participants. The naïve mix doubles the system audio: ScreenCaptureKit (SCK) captures the other apps' audio cleanly, *and* the mic re-captures the same audio bleeding from the speakers. The fix is acoustic echo cancellation on the mic so only the user's voice survives from the mic path.
 
 ## Approach
 
@@ -30,8 +30,8 @@ Required gotchas, all handled in `MixedAudioCaptureService+Mic`:
 
 - SCK audio is mixed **in software only** — never routed through the engine's output node (that would replay to the speakers and re-double the room audio).
 - The **mic tap is the pacer.** The mic input node produces continuous 16 kHz frames regardless of speech, so it defines the output clock. Per callback: extract ch0 → resample to 16 kHz mono → pull an equal-length span of system audio → sum sample-wise → clamp to `[-1, 1]` → yield.
-- Only the **asynchronous SCK stream** is buffered, in a single bounded `AudioRingBuffer` (~500 ms / 8000 samples). This is a deliberate simplification of the issue's "two ring buffers" sketch: the mic doesn't need buffering because it *is* the pump; only SCK needs realigning to the mic clock. **Drop-oldest** on overflow discards stale system audio (absorbing the mic-vs-SCK clock drift); an **underrun zero-pads** (that slice is mic-only for a few ms). In steady state both run at 16 kHz real-time, so consumption ≈ production and the ring hovers near one callback's worth — no systematic loss.
-- The ring is the one genuine cross-thread structure (SCK sample queue writes, mic render thread reads), so it is `NSLock`-guarded. This is stricter than the Phase-1 continuation/converter sharing (which the #176 doc left un-hardened) because concurrent index mutation would corrupt, not just tear.
+- Only the **asynchronous SCK stream** is buffered, in a single bounded `AudioRingBuffer` (~500 ms / 8000 samples). This is a deliberate simplification of the initial "two ring buffers" sketch: the mic doesn't need buffering because it *is* the pump; only SCK needs realigning to the mic clock. **Drop-oldest** on overflow discards stale system audio (absorbing the mic-vs-SCK clock drift); an **underrun zero-pads** (that slice is mic-only for a few ms). In steady state both run at 16 kHz real-time, so consumption ≈ production and the ring hovers near one callback's worth — no systematic loss.
+- The ring is the one genuine cross-thread structure (SCK sample queue writes, mic render thread reads), so it is `NSLock`-guarded. This is stricter than the Phase-1 continuation/converter sharing (which the Phase-1 doc left un-hardened) because concurrent index mutation would corrupt, not just tear.
 
 ## Permissions
 
@@ -47,7 +47,7 @@ The mixed source needs **both** the Microphone grant and the Screen & System Aud
 ## Trade-offs & risks
 
 - **Residual echo** is possible on loud external speakers (VPIO can't cancel everything); acceptable for STT, and headphones eliminate the bleed entirely. A future "headphones give best results" hint could help.
-- **VPIO's macOS AEC-reference-is-system-output** behavior is the load-bearing assumption. Like #176, this needs **on-device verification on a stably-signed build inside the App Sandbox** (dev/ad-hoc signing forgets TCC grants each launch and looks like a bug). Existing entitlements suffice — no new entitlement is needed for VPIO or SCK.
+- **VPIO's macOS AEC-reference-is-system-output** behavior is the load-bearing assumption. Like Phase 1, this needs **on-device verification on a stably-signed build inside the App Sandbox** (dev/ad-hoc signing forgets TCC grants each launch and looks like a bug). Existing entitlements suffice — no new entitlement is needed for VPIO or SCK.
 - Hard-clip on summation (vs. attenuating each source) can distort when voice and system are simultaneously full-scale; rare in practice and fine for STT.
 
 ## Files

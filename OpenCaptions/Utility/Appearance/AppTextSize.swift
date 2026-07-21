@@ -5,7 +5,7 @@
 //  App-WIDE font-size scaling for the general macOS UI (sidebar, session list,
 //  session detail + summary, settings, sign-in) — INDEPENDENT of the transcript /
 //  captions size (`TranscriptTextSize` + `LiveSessionStore.transcriptTextSizeKey`).
-//  See docs/2026-07-10-macos-app-wide-font-size.md (issue #270).
+//  See docs/2026-07-10-macos-app-wide-font-size.md.
 //
 //  Same mechanism as the transcript: macOS ignores Dynamic Type for built-in text
 //  styles, so we scale the ACTUAL point size (via `Font.scaled`). The persisted

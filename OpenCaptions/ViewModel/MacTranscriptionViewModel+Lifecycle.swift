@@ -4,8 +4,8 @@
 //
 //  Pause / resume for the standalone macOS transcription flow. A soft pause
 //  stops mic capture but holds the Soniox socket open via keepalive, so a
-//  resume continues the same session. Distilled from the iOS
-//  `OnlineViewModel+Lifecycle` — no Firestore / Live Activity / analytics, and
+//  resume continues the same session. There's no Firestore / Live Activity /
+//  analytics, and
 //  no reconnection (this target can't reconnect, so a socket that dies during
 //  a pause fails the session on resume while keeping the transcript).
 //

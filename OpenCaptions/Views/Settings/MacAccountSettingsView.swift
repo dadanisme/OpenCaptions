@@ -26,7 +26,7 @@ struct MacAccountSettingsView: View {
     /// Presents the confirmation-gated account-deletion sheet.
     @State private var showDeleteAccount = false
     /// Marketing-communications consent, loaded from and mirrored to the Firestore
-    /// user doc. Opt-in: defaults off and only flips on an explicit user toggle (#251).
+    /// user doc. Opt-in: defaults off and only flips on an explicit user toggle.
     @State private var marketingOptIn = false
     /// The Settings window, captured while it's key (before the sheet opens) so it can
     /// be closed after deletion — see the Delete Account button.
@@ -126,7 +126,7 @@ struct MacAccountSettingsView: View {
                             .labelsHidden()
                     }
                     // The name feeds both recognition and the mention alert, so a
-                    // short calling name works better than a full legal name (#255).
+                    // short calling name works better than a full legal name.
                     Text("Use the name people actually call you — Open Captions listens for it and alerts you when it's spoken during a recording.")
                         .appScaledFont(.caption)
                         .foregroundStyle(.secondary)

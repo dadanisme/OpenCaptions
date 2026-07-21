@@ -2,9 +2,9 @@
 //  MacNameMentionNotifier.swift
 //  OpenCaptions
 //
-//  Alerts the signed-in user when their name is spoken in a live transcription
-//  (issue #255). This is net-new product surface — iOS only *highlights* the name,
-//  it never notifies.
+//  Alerts the signed-in user when their name is spoken in a live transcription.
+//  This is net-new product surface: beyond highlighting the name, it raises a
+//  notification.
 //
 //  Focus-gated hybrid: when Open Captions is the frontmost app the user is looking at the
 //  transcript, so a transient in-app HUD badge (the same overlay the hotkeys use)

@@ -20,7 +20,7 @@ struct TranscriptionsScreen: View {
     @Query private var sessions: [TranscriptionSession]
 
     @State private var path: [ContentRoute] = []
-    /// Presents the audio/video file picker (toolbar button + File-menu command). #302.
+    /// Presents the audio/video file picker (toolbar button + File-menu command).
     @State private var isImporterPresented = false
     /// Non-nil presents the delete confirmation for exactly this session — set
     /// from the row's right-click context menu so nothing deletes without a
@@ -34,7 +34,7 @@ struct TranscriptionsScreen: View {
     /// Scopes the session list to the signed-in user. A `@Query`'s default
     /// initializer can't read a runtime value, so the predicate is built here
     /// from the captured uid — rebuilding this view on sign-out→sign-in
-    /// re-captures the new uid (mirrors the iOS home screen).
+    /// re-captures the new uid.
     init(userId: String) {
         _sessions = Query(
             filter: #Predicate<TranscriptionSession> { $0.userId == userId },
@@ -57,7 +57,7 @@ struct TranscriptionsScreen: View {
         // recording so the menu item disables instead of restarting a session.
         .focusedSceneValue(\.startRecording, startRecordingAction)
         // Expose "Import Audio or Video…" (Cmd+I) to the File menu. Nil while the
-        // flag is off or a recording is active, so the menu item disables. #302.
+        // flag is off or a recording is active, so the menu item disables.
         .focusedSceneValue(\.importMedia, importMediaAction)
         // Mirror the same action to the system menu-bar item (a separate scene
         // that can't read focused values). Re-published whenever recording
@@ -143,7 +143,7 @@ struct TranscriptionsScreen: View {
                     }
                 }
                 // Audio covers m4a/mp3/wav/aiff/caf; movie covers mp4/mov/etc. — the
-                // importer normalizes any of them to the canonical .m4a. #302.
+                // importer normalizes any of them to the canonical .m4a.
                 .fileImporter(
                     isPresented: $isImporterPresented,
                     allowedContentTypes: [.audio, .movie],
@@ -234,8 +234,8 @@ struct TranscriptionsScreen: View {
             if let desc = session.shortDescription, !desc.isEmpty { return desc }
             return session.resolvedPreviewText
         }()
-        // Live indicator while this session is being re-transcribed (#245) OR is the
-        // freshly-created target of a running file import (#302). Observes the shared
+        // Live indicator while this session is being re-transcribed OR is the
+        // freshly-created target of a running file import. Observes the shared
         // managers' progress, so the row updates when a run starts/finishes.
         let isRetranscribing = RetranscriptionManager.shared.isRunning(session.persistentModelID)
             || FileImportManager.shared.isRunning(session.persistentModelID)

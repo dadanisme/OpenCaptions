@@ -1,6 +1,6 @@
 # macOS Onboarding Clipping Fix (Open Captions)
 
-**Date:** 2026-07-16 · **Issue:** #312 (epic #103) · **Target:** `OpenCaptions`
+**Date:** 2026-07-16 · **Target:** `OpenCaptions`
 
 ## Summary
 

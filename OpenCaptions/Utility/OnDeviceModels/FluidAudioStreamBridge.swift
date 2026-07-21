@@ -7,7 +7,7 @@
 //  chunks for FluidAudio; `tokens(forFull:confirmedPrefix:)` diffs the full accumulated
 //  transcript Nemotron reports on each partial callback into (finals, partials).
 //
-//  Ported from the iOS `unmute/Utility/FluidAudioStreamBridge.swift`. Nemotron uses the
+//  Nemotron uses the
 //  full-transcript diff below; Parakeet (SlidingWindow) reuses only `makeBuffer(from:)`
 //  and does its own confirmed/volatile mapping (see `ParakeetTranscriberService`).
 //

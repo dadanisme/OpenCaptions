@@ -2,7 +2,7 @@
 //  MacHotKeysSettingsView.swift
 //  OpenCaptions
 //
-//  The "Shortcuts" Settings pane (issue #249): rebind each global hotkey by
+//  The "Shortcuts" Settings pane: rebind each global hotkey by
 //  RECORDING it — click a row, then press the chord you want. Capture uses a
 //  single local `NSEvent` key-down monitor (no permission needed), and
 //  `NSEvent.keyCode` is the same virtual-key space Carbon registers, so the press

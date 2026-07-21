@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase into this standalone project, now fully separated with its own independent backend (issue #1). Uses Firebase (Auth, Firestore, Functions), RevenueCat (consumable-minutes billing), Google Sign-In, and FluidAudio (on-device inference).
+**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase into this standalone project, now fully separated with its own independent backend. Uses Firebase (Auth, Firestore, Functions), RevenueCat (consumable-minutes billing), Google Sign-In, and FluidAudio (on-device inference).
 
 Core flow: capture mic **and/or** other apps' system audio → stream to a real-time STT engine → render a live diarized transcript → save to local SwiftData → optional AI summary. A fully on-device **Offline Mode** (Nemotron via FluidAudio) needs no network and is unmetered.
 
-## Naming — fully renamed to Open Captions (issue #1 done)
+## Naming — fully renamed to Open Captions
 
-The app was extracted from a larger multi-platform codebase and has since been **fully renamed and separated** into a standalone **Open Captions** project. Issue #1 is complete: no legacy branding remains in the committed source, symbols, UI copy, or identifiers.
+The app was extracted from a larger multi-platform codebase and has since been **fully renamed and separated** into a standalone **Open Captions** project. The rename is complete: no legacy branding remains in the committed source, symbols, UI copy, or identifiers.
 
 - **Xcode + files:** project/scheme/target/product (`OpenCaptions.app`), display name, Info.plist strings, and all file/folder/asset names (`OpenCaptions/`, `OpenCaptionsApp.swift`, `OpenCaptionsAEC.{h,mm}`, `opencaptions-logo`, …).
 - **Bundle id:** `com.muhammadramdan.OpenCaptions` — set in `project.pbxproj`, the `OpenCaptions.entitlements` keychain-access group, and 3 audio `Logger(subsystem:)` labels. Core Audio self-process identification reads it dynamically via `Bundle.main.bundleIdentifier`, so it needs no per-file literal.

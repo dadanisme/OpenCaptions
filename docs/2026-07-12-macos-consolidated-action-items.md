@@ -1,6 +1,6 @@
 # macOS: Consolidated Action Items view (read-only rollup)
 
-**Date:** 2026-07-12 · **Issue:** #285 · **Scope:** Open Captions only
+**Date:** 2026-07-12 · **Scope:** Open Captions only
 
 ## Problem
 
@@ -47,6 +47,5 @@ of action items across all of the signed-in user's sessions.
 
 ## Out of scope (possible follow-ups)
 
-- iOS parity (no equivalent consolidated view).
 - Editing text, delete, reorder, user-created (non-AI) action items.
 - Pending-only filtering / a flat cross-session task inbox.

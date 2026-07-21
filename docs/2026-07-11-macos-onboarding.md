@@ -1,6 +1,6 @@
 # macOS Onboarding & Offline Guest Mode (OpenCaptions)
 
-**Date:** 2026-07-11 · **Issue:** #243 (epic #103) · **Target:** `OpenCaptions`
+**Date:** 2026-07-11 · **Target:** `OpenCaptions`
 
 ## Summary
 
@@ -40,7 +40,7 @@ exploration lived in a clickable HTML mockup during review.
 
 ## Persistence & the gate
 
-Mirrors the iOS `AuthManager+Profile` per-user pattern, extended for guests
+A per-user persistence pattern, extended for guests
 (`MacAuthManager+Onboarding`):
 
 | Key | Meaning |
@@ -118,6 +118,6 @@ optimistically and shows its own recovery UI if denied.
 
 ## Deferred
 
-- Account deletion / password reset / email verification (already deferred under #103).
+- Account deletion / password reset / email verification (already deferred).
 - Localization — macOS UI strings (including onboarding) remain hardcoded English.
 - Migrating a guest's *audio files* (not just session rows) on upgrade, if any exist.

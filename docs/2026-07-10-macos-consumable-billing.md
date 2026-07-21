@@ -1,16 +1,16 @@
 # macOS Consumable-Hours Billing (rate limiting + minute metering)
 
 **Date:** 2026-07-10
-**Issue:** #242 (epic #103) — "macOS: rate limiting, consumable-hours billing, and per-provider BYOK"
-**Type:** Implementation. Ports the iOS consumable-minutes model to Open Captions.
+**Topic:** macOS: rate limiting, consumable-hours billing, and per-provider BYOK
+**Type:** Implementation. Adds the consumable-minutes billing model to Open Captions.
 **Scope note:** **BYOK is out of scope** for this change (dropped per product decision).
 Offline Mode is the free path instead (see below).
 
 ## Context
 
 Open Captions shipped without any metering — cloud transcription was unlimited and free.
-The #177 distribution decision (`docs/2026-07-10-macos-distribution.md`) named this
-issue as its follow-up: add RevenueCat, port `SubscriptionManager` /
+The distribution decision (`docs/2026-07-10-macos-distribution.md`) named this
+work as its follow-up: add RevenueCat, build `SubscriptionManager` /
 `MinuteDeductionService`, configure `Purchases` with the Firebase uid, add a paywall,
 and gate session start + minute deduction. This change does exactly that.
 
@@ -24,23 +24,18 @@ On-device (Offline Mode) sessions never touch billing — this is the free path 
 replaces the dropped BYOK escape hatch, and it matches the actual cost model. Metering
 keys off `!kind.isOnDevice`.
 
-### 2. Same RevenueCat project as iOS — shared balance
-macOS uses the **same** RevenueCat project as iOS. The `credits` offering's packages
-`starter` / `plus` / `pro` each carry **both** the iOS app's minute products
-and the macOS products (`extra_3_hours` /
-`extra_10_hours` / `extra_25_hours`); RevenueCat serves the right store product per
-platform. The `Min` virtual-currency balance is **shared across iOS + macOS** per
-Firebase uid (same project + currency + App User ID). A purchase on either platform
-credits the same balance. (This supersedes the shared-vs-per-platform uncertainty in
-#177 §4 — it is shared.) Only the **public SDK key** differs per store app, so macOS
-reads `REVENUECAT_API_KEY_MACOS` (separate from iOS's `REVENUECAT_API_KEY`).
+### 2. RevenueCat credits offering — balance keyed by Firebase uid
+The `credits` offering's packages `starter` / `plus` / `pro` carry the macOS
+products (`extra_3_hours` / `extra_10_hours` / `extra_25_hours`); RevenueCat serves the
+right store product per package. The `Min` virtual-currency balance is keyed per
+Firebase uid (project + currency + App User ID), so a purchase credits that user's
+balance. macOS reads `REVENUECAT_API_KEY_MACOS` (the macOS store app's public SDK key).
 
 Minutes-per-pack is mapped by **package identifier** (`starter`/`plus`/`pro` →
 180/600/1500), which is platform-agnostic, rather than by product id.
 
 ### 3. The billing clock lives on the view model, not the view
-On iOS the enforcement `Timer` + deduction live in `LiveTranscriptionView`. On macOS a
-session **outlives its window** (owned by `LiveSessionStore`, kept awake by its
+A session **outlives its window** (owned by `LiveSessionStore`, kept awake by its
 `beginActivity` App-Nap assertion), so a view-owned timer would die on window close.
 The clock therefore lives on `MacTranscriptionViewModel` (`+Billing` extension), driven
 from `start`/`pause`/`resume`/`stop`/`discard`/`failSession`. It's a `RunLoop.main`
@@ -50,21 +45,20 @@ while `isRunning` — so paused seconds don't burn balance.
 ### 4. Deduction only at teardown; rounded up; crash-recovery checkpoint
 Network deduction happens **once**, at `stop()`/`discard()` — never per-minute —
 sending `sessionBaselinePending + ceil(billedSeconds/60)` as `{user_id, minutes}` to
-`DEDUCT_MINUTES_URL` (bearer `SUMMARIZE_API_TOKEN`, same backend as iOS). A 30 s local
+`DEDUCT_MINUTES_URL` (bearer `SUMMARIZE_API_TOKEN`). A 30 s local
 UserDefaults checkpoint (`pending_minutes_to_deduct`) gives crash recovery; it's flushed
 on the next launch via `refreshStatus()` and cleared only after a successful send.
 `failSession` freezes the clock but does **not** deduct — the eventual Stop & Save does
 the single deduction, avoiding a double-charge.
 
-### 5. Ported to `@Observable`, not `ObservableObject`
+### 5. Built on `@Observable`, not `ObservableObject`
 `MacSubscriptionManager` is an `@Observable @MainActor` singleton (matching
-`MacAuthManager`), unlike the iOS `SubscriptionManager` (`ObservableObject`). Dropped
-from the port: the legacy `hasActiveSubscription`/migration-notice path (no legacy
-macOS subscribers) and analytics (Open Captions has no Firebase Analytics). The paywall is
-hand-rolled native SwiftUI (`MacPaywallView`), not RevenueCatUI — mirroring how iOS
-already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
+`MacAuthManager`). Not included: a legacy `hasActiveSubscription`/migration-notice path
+(there are no legacy macOS subscribers) and analytics (Open Captions has no Firebase
+Analytics). The paywall is hand-rolled native SwiftUI (`MacPaywallView`), not
+RevenueCatUI, which keeps RevenueCatUI unlinked on macOS.
 
-## Enforcement flow (mirrors iOS)
+## Enforcement flow
 
 - **Pre-record gate** (`MacSubscriptionManager.canStartSession(metered:)`): metered
   starts require `hasAccess` (positive balance, after ensuring the balance is loaded);
@@ -104,13 +98,13 @@ already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
   `MacLiveTranscriptionView.swift` (banner inset + paywall sheet), `MacSettingsView.swift`
   (Usage tab), `SidebarProfileFooter.swift` (balance chip).
 
-## External setup (done in dashboards, per #177 §6)
+## External setup (done in dashboards)
 
 - App Store Connect: macOS app record + 3 consumables `extra_3_hours`/`extra_10_hours`/`extra_25_hours`.
-- RevenueCat: macOS store app added to the shared project; products attached to the
+- RevenueCat: macOS store app added to the project; products attached to the
   `credits` offering packages `starter`/`plus`/`pro`; `Min` virtual currency granted.
 - **Config**: add `REVENUECAT_API_KEY_MACOS = appl_…` (the macOS RC public SDK key) to the
-  git-ignored `unmute/Config.xcconfig`. `DEDUCT_MINUTES_URL` + `SUMMARIZE_API_TOKEN` already exist.
+  git-ignored `Config.xcconfig`. `DEDUCT_MINUTES_URL` + `SUMMARIZE_API_TOKEN` already exist.
 
 ## Testing notes
 
@@ -132,7 +126,7 @@ already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
   pre-record; mid-session exhaustion pauses + banners; a top-up resumes; a mid-session
   kill flushes the checkpoint on next launch.
 
-## Deferred (still open under #103)
+## Deferred
 
 BYOK (per-provider keys), account deletion / password reset, Firestore share analytics,
 and localization of the new billing strings (macOS UI is still hardcoded English).

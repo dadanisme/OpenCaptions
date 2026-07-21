@@ -5,7 +5,7 @@
 //  Remote feature-flag control for the mixed-source software echo canceller
 //  (`OpenCaptionsAEC`). Lets the team disable AEC from Firestore (`Mac_aec_enabled`)
 //  without shipping a build, falling back to the uncancelled plain-sum mix if the
-//  canceller regresses in the field (issue #231).
+//  canceller regresses in the field.
 //
 //  The gate itself (build-or-skip the OpenCaptionsAEC) lives in `+Mic`'s
 //  `configureMicEngine`; this file just keeps `aecEnabled`/`aec` in sync with the

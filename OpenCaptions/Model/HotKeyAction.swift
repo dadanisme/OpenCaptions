@@ -2,7 +2,7 @@
 //  HotKeyAction.swift
 //  OpenCaptions
 //
-//  The three transcription actions controllable by a global hotkey (issue #249).
+//  The three transcription actions controllable by a global hotkey.
 //  Each is a TOGGLE — one chord flips between the two states (start⇄stop,
 //  pause⇄resume, show⇄hide captions), mirroring how OBS/Krisp expose a single
 //  global key per function — and maps to a state-respecting operation on
@@ -10,8 +10,8 @@
 //
 //  Default chords all use the ⌃⌥⌘ ("hyper") modifier: it is essentially never
 //  claimed by macOS or by app menu shortcuts (which lean on ⌘/⌘⇧/⌘⌥), so a
-//  system-wide registration won't stomp on another app's keys — satisfying the
-//  issue's "avoid conflicts with common shortcuts" better than the suggested
+//  system-wide registration won't stomp on another app's keys — avoiding
+//  conflicts with common shortcuts better than the suggested
 //  ⌘⇧ combos would (those collide with Save-As, hard-reload, etc.). Fully
 //  user-editable in Settings. See docs/2026-07-10-macos-global-hotkeys.md.
 //

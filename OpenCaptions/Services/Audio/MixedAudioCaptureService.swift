@@ -14,7 +14,7 @@
 //  output node (that would replay it to the speakers and double the room audio).
 //  Conforms to `AudioCaptureSource`, so it drops straight into the view model.
 //
-//  Echo note (issue #205/#208): VPIO was removed because on macOS it seized the
+//  Echo note: VPIO was removed because on macOS it seized the
 //  shared mic and broke live switching, taking its hardware AEC with it. Echo is
 //  now cancelled in SOFTWARE (`OpenCaptionsAEC`, Speex) using the cleanly-captured system
 //  audio as the far-end reference, so on built-in speakers the other participants
@@ -59,7 +59,7 @@ final class MixedAudioCaptureService: AudioCaptureSource {
     /// See docs/2026-07-16-macos-mic-system-sync-fix.md.
     static let systemRefCushionSamples = 800
 
-    // MARK: - Mix-alignment instrumentation (issue #305 tuning)
+    // MARK: - Mix-alignment instrumentation
     /// Per-callback stats accumulated on the mic render thread (single-threaded, so
     /// unlocked) and flushed to Console (~1 s) so the mic tap buffer size, the
     /// steady-state ring occupancy, and the read-underrun ratio can be measured on

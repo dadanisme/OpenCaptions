@@ -2,7 +2,7 @@
 //  MacSupportSettingsView.swift
 //  OpenCaptions
 //
-//  The Settings → Support pane (#252). Gives users an in-app way to reach us —
+//  The Settings → Support pane. Gives users an in-app way to reach us —
 //  Send Feedback, Report a Problem, and Contact Support — each opening the default
 //  mail client via a prefilled `mailto:`. "Report a Problem" seeds the body with
 //  app/OS/account diagnostics for triage. A version footer rounds it out.

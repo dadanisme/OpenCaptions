@@ -6,7 +6,7 @@
 //  MacAudioService and feeds tokens through the (diarization-on) accumulator
 //  into an in-memory TranscriberModel, then persists on stop.
 //
-//  Distilled from the iOS `OnlineViewModel` — minus Firestore sync, Live
+//  A focused state machine that omits Firestore sync, Live
 //  Activity, subscription/minute billing, reconnection, periodic connection
 //  reset, pause/resume, and the multi-engine factory (Soniox only here).
 //

@@ -2,13 +2,10 @@
 //  MacMinuteDeductionService.swift
 //  OpenCaptions
 //
-//  Persists and sends minute-usage deductions to the backend. Ported from the iOS
-//  `MinuteDeductionService` (same UserDefaults checkpoint + same `{user_id, minutes}`
-//  POST to the same `DEDUCT_MINUTES_URL` cloud function, bearer = `SUMMARIZE_API_TOKEN`).
+//  Persists and sends minute-usage deductions to the backend: a UserDefaults
+//  checkpoint plus a `{user_id, minutes}` POST to the `DEDUCT_MINUTES_URL` cloud
+//  function, bearer = `SUMMARIZE_API_TOKEN`.
 //  Does NOT refresh the RevenueCat balance — the caller must do that after a send.
-//
-//  Duplicated per-target (iOS and macOS share no source); keep in sync with
-//  `unmute/Utility/MinuteDeductionService.swift`.
 //
 
 import Foundation

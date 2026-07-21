@@ -1,11 +1,11 @@
 # macOS Distribution — Signing, Notarization/MAS, StoreKit Products
 
 **Date:** 2026-07-10
-**Issue:** #177 (epic #103) — "macOS: distribution — signing, notarization/MAS, StoreKit products"
-**Type:** Decision + external-config record. **No app-code changes** — the issue is
+**Topic:** macOS distribution — signing, notarization/MAS, StoreKit products
+**Type:** Decision + external-config record. **No app-code changes** — this work is
 explicitly scoped as *"external-config + signing decisions distinct from the app code."*
 The Swift work to actually charge on macOS (RevenueCat SDK + paywall + minute gating)
-is a **separate implementation issue** (see **Out of scope**).
+is a **separate implementation task** (see **Out of scope**).
 
 ## TL;DR decisions
 
@@ -17,7 +17,7 @@ is a **separate implementation issue** (see **Out of scope**).
 | Hardened Runtime | **Not enabled** — not required for MAS; only Developer-ID/notarized apps need it |
 | Notarization | **Not needed** — the App Store review pipeline handles it |
 | Entitlements | **Finalized as-is** — the current `OpenCaptions.entitlements` set is MAS-clean; no change |
-| Monetization products | **Consumable "minutes" IAPs** (the store's minute products), *not* the `student`/`studentplus` subscriptions the issue text names (stale — see below) |
+| Monetization products | **Consumable "minutes" IAPs** (the store's minute products), *not* the `student`/`studentplus` subscriptions the earlier spec names (stale — see below) |
 
 ## 1. Distribution channel: Mac App Store
 
@@ -42,12 +42,12 @@ is a **separate implementation issue** (see **Out of scope**).
 
 **Trade-off accepted:** App Review latency, Apple's commission, and permanent App
 Sandbox confinement — in exchange for the only viable StoreKit path and a single,
-familiar distribution/update channel shared with the iOS app's audience.
+familiar distribution/update channel.
 
 ## 2. Signing & Hardened Runtime
 
 Current committed build settings for the `OpenCaptions` target (verified in
-`unmute.xcodeproj/project.pbxproj`):
+the Xcode project's `project.pbxproj`):
 
 | Setting | Value |
 |---|---|
@@ -98,21 +98,21 @@ Info.plist (`OpenCaptions-Info.plist`) items that matter for the store:
 
 ## 4. Monetization / StoreKit products
 
-### The issue text is stale — corrected model
+### The earlier spec is stale — corrected model
 
-Issue #177 says *"enable the `student` / `studentplus` subscription products
-(entitlement `pro_features`)."* That predates a billing migration. The app has since
-**moved off auto-renewable subscriptions**:
+The earlier spec said *"enable the `student` / `studentplus` subscription products
+(entitlement `pro_features`)."* That predates a billing migration. The billing model
+has since **moved off auto-renewable subscriptions**:
 
-- `SubscriptionManager` (iOS) now sells **consumable minute packs** (the **"credits"**
+- The billing model sells **consumable minute packs** (the **"credits"**
   offering) which grant a RevenueCat **"Min" virtual currency**. Access is gated
-  **purely on the remaining-minute balance** — the code comment is explicit:
+  **purely on the remaining-minute balance** — the source is explicit:
   *"There is no subscription/entitlement."* There is **no `pro_features` entitlement**.
 - The legacy `com.student.monthly` / `com.studentplus.monthly` auto-renewables still
   exist only to target a one-time migration notice for pre-migration subscribers; they
   do **not** gate access and should **not** be recreated for macOS.
 
-**Products to enable for macOS** (the consumables, from `unmute/product.storekit`):
+**Products to enable for macOS** (the consumables, from the original project's `product.storekit`):
 
 | Pack | Price |
 |---|---|
@@ -122,24 +122,17 @@ Issue #177 says *"enable the `student` / `studentplus` subscription products
 
 These are the store's minute products (consumable IAPs); enable the three packs above.
 
-### Cross-account nuance (important)
+### RevenueCat & product setup (important)
 
-Open Captions ships under **Ramdan's account (`C4SQMCY5WT`, `com.muhammadramdan.OpenCaptions`)**,
-which is **separate** from the iOS app's org account (`YN8NVQ69WY`,
-`com.wentao.unmute`). Consequences:
+Open Captions ships under **Ramdan's account (`C4SQMCY5WT`,
+`com.muhammadramdan.OpenCaptions`)**. Notes for wiring up billing:
 
 - The macOS IAP products are created under **Ramdan's** App Store Connect app record.
-  IAP product IDs are unique per account, so the **same ID strings can be reused**
-  (different account than iOS).
-- **To share the "Min" balance across iOS + macOS per user** (App User ID = Firebase
-  uid, same Firebase project → same uid namespace), the macOS app must be added to the
-  **same RevenueCat project** as iOS. RevenueCat supports multiple store apps per
-  project — even under different Apple accounts — each configured with its own store
-  credentials; the customer's virtual-currency balance is **project-level**, so a
-  purchase on either platform credits the same balance. **→ Verify this cross-account
-  setup in the RevenueCat dashboard** when wiring it up; if it turns out a shared
-  balance isn't achievable across the two Apple accounts, the fallback is a
-  per-platform balance (worse UX) or moving Open Captions under the org account.
+- The App User ID is the **Firebase uid**. The macOS app is registered in a
+  **RevenueCat project** and configured with its own App Store Connect credentials;
+  the customer's virtual-currency ("Min") balance is **project-level**, so a purchase
+  credits that balance. **→ Verify this setup in the RevenueCat dashboard** when
+  wiring it up.
 
 ## 5. CI for the macOS build
 
@@ -168,9 +161,9 @@ Performed by the account owner in dashboards — **not** code:
   category = Productivity; fill metadata + privacy nutrition labels (microphone, audio
   capture, account/email); create the three **consumable** IAPs above; export
   compliance already answered via the plist.
-- **RevenueCat:** add the **Mac App Store app** to the existing (iOS) project; supply
+- **RevenueCat:** add the **Mac App Store app** to a **RevenueCat project**; supply
   its App Store Connect credentials; map the three products into the **"credits"**
-  offering and grant the **"Min"** virtual currency (mirror iOS). Record the macOS
+  offering and grant the **"Min"** virtual currency. Record the macOS
   RevenueCat API key for the future billing port.
 - **Firebase:** the macOS app (`com.muhammadramdan.OpenCaptions`) is already registered
   (see `docs/2026-07-05-macos-auth-and-scoping.md`).
@@ -182,9 +175,9 @@ Performed by the account owner in dashboards — **not** code:
   `C4SQMCY5WT` once the Apple Distribution cert + Mac App Store profile exist
   (external). No notarization needed.
 - [~] **Purchases/paywall work on macOS with per-platform products enabled** —
-  #177 **decides and documents** monetization and unblocks the external product
+  this doc **decides and documents** monetization and unblocks the external product
   setup. Actually charging requires **both** (a) the external ASC/RC config above and
-  (b) the **billing-port code** (below), which is a separate issue.
+  (b) the **billing-port code** (below), which is a separate task.
 
 ## Out of scope (separate follow-ups)
 
@@ -192,6 +185,6 @@ Performed by the account owner in dashboards — **not** code:
   `SubscriptionManager` / `MinuteDeductionService`, configure `Purchases` with the
   Firebase uid, add a paywall, and gate `MacTranscriptionViewModel` session start +
   minute deduction. Open Captions currently has **no billing** (deferred at MVP,
-  `docs/2026-07-04-macos-standalone-mvp.md`). This is Swift work, not #177.
+  `docs/2026-07-04-macos-standalone-mvp.md`). This is Swift work, separate from this doc.
 - **macOS release CI workflow** — add once signing secrets are provisioned.
 - **Confirm RevenueCat cross-account shared-balance feasibility** (§4).

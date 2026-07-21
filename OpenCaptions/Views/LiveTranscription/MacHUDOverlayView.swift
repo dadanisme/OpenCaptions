@@ -2,8 +2,8 @@
 //  MacHUDOverlayView.swift
 //  OpenCaptions
 //
-//  The content of the brief HUD badge shown when a global hotkey fires (issue
-//  #249) — a system-volume-style card with an icon + one-line message. Rendered
+//  The content of the brief HUD badge shown when a global hotkey fires — a
+//  system-volume-style card with an icon + one-line message. Rendered
 //  inside a floating, non-activating panel by `MacHUDOverlayController`.
 //
 //  `HotKeyOutcome` is what a hotkey actually DID (or why it was a no-op), so the
@@ -73,14 +73,14 @@ struct MacHUDOverlayView: View {
     /// Muted (secondary) styling for no-ops / prompts; prominent for real events.
     let isNeutral: Bool
 
-    /// The hotkey-confirmation badge (issue #249).
+    /// The hotkey-confirmation badge.
     init(outcome: HotKeyOutcome) {
         self.symbol = outcome.symbol
         self.message = outcome.message
         self.isNeutral = outcome.isNeutral
     }
 
-    /// A free-form badge (icon + one line) — used for the name-mention cue (#255)
+    /// A free-form badge (icon + one line) — used for the name-mention cue
     /// and any future non-hotkey HUD.
     init(symbol: String, message: String, isNeutral: Bool = false) {
         self.symbol = symbol

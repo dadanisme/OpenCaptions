@@ -55,7 +55,7 @@ final class LiveSessionStore {
     /// the general chrome and the transcript/captions scale independently — changing
     /// one never affects the other. Read reactively by `.appTextScaling()` and bound
     /// to Settings' General slider. Reuses `TranscriptTextSize.range/.step`; default
-    /// is `1.0` (registered in `OpenCaptionsApp`). Issue #270.
+    /// is `1.0` (registered in `OpenCaptionsApp`).
     static let appTextSizeKey = "opencaptions.app.textSizeMultiplier"
 
     /// UserDefaults key for the "save session audio for playback" preference.
@@ -65,7 +65,7 @@ final class LiveSessionStore {
     static let sessionAudioKey = "opencaptions.sessionAudio.save"
 
     /// UserDefaults key (Bool) for AUTOMATIC re-transcription after a recording is
-    /// saved (#245). When on, the just-saved session is re-processed automatically; the
+    /// saved. When on, the just-saved session is re-processed automatically; the
     /// engine FOLLOWS Offline Mode (Parakeet offline / Soniox cloud) — there's no engine
     /// choice. Bound to `MacSettingsView`'s toggle and read by `RetranscriptionManager`.
     /// Only takes effect while the `postSessionRetranscription` remote flag is on. The
@@ -77,14 +77,13 @@ final class LiveSessionStore {
     /// on → on-device Nemotron transcription with no network. Read at session start
     /// by `MacTranscriptionViewModel.start` and by `MacSessionDetailView` to gate
     /// cloud summary generation. Bound to the toggle in Settings → Recording.
-    /// Default `false` (registered in `OpenCaptionsApp`). Issue #274.
+    /// Default `false` (registered in `OpenCaptionsApp`).
     static let offlineModeKey = "opencaptions.offlineMode.enabled"
 
     /// UserDefaults key (Bool) for the global "finished onboarding" gate flag. The
     /// app gate (`OpenCaptionsApp`) shows the main UI only when this is set AND the user
     /// is either signed in or a local guest. Written by `completeOnboarding` and
     /// mirrored from the per-owner key on sign-in (see `MacAuthManager+Onboarding`).
-    /// Mirrors the iOS `"hasCompletedOnboarding"` convention.
     static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     /// UserDefaults key (Bool) marking a "use without an account" local guest: a
@@ -237,8 +236,7 @@ final class LiveSessionStore {
     /// (doesn't save) the in-progress transcript — signing out mid-recording abandons
     /// it — while `discard()` → `endBilling()` stops the billing clock and clears the
     /// session-active flag. The caller (`MacAuthManager.signOut`) then clears pending
-    /// so the outgoing user's last partial minute isn't charged to the next user
-    /// (matches iOS sign-out semantics). #242 review.
+    /// so the outgoing user's last partial minute isn't charged to the next user.
     func discardActiveSession() {
         guard let vm = viewModel else { return }
         vm.discard()
@@ -376,7 +374,7 @@ final class LiveSessionStore {
     }
 
     /// Observes the VM's `isRunning`/`isPaused` and re-arms itself on each change
-    /// (the SwiftData/Observation kill-switch pattern from iOS). Stops re-arming
+    /// (the SwiftData/Observation kill-switch pattern). Stops re-arming
     /// once the session is cleared.
     private func armStatusMirroring() {
         withObservationTracking {

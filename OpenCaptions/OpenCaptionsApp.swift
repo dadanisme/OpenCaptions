@@ -65,7 +65,7 @@ struct OpenCaptionsApp: App {
         // The listener also configures RevenueCat with the uid (see MacAuthManager).
         MacAuthManager.shared.startListening()
         // Re-fetch the minute balance whenever the app becomes active, so gating
-        // never runs on a stale balance (mirrors iOS's foreground refresh). Guarded
+        // never runs on a stale balance (refreshed on foreground). Guarded
         // against mid-session flushing inside refreshStatusOnForeground(). Registered
         // once here (App.init runs once); no-ops until RevenueCat is configured.
         NotificationCenter.default.addObserver(
@@ -98,7 +98,7 @@ struct OpenCaptionsApp: App {
             // transcript/captions size). Applied at the window root so the sidebar,
             // lists, detail, sign-in, and pushed screens all inherit it. The live
             // transcript keeps its own explicit `Font.transcript(...)` sizing, and
-            // the captions overlay is a separate window untouched by this. (#270)
+            // the captions overlay is a separate window untouched by this.
             .appTextScaling()
             .environment(auth)
             .environment(session)
@@ -110,7 +110,7 @@ struct OpenCaptionsApp: App {
                 // Hand the store the shared container so the menu-bar item can
                 // start a recording without an on-screen view supplying one.
                 LiveSessionStore.shared.modelContainer = sharedModelContainer
-                // Register the system-wide transcription hotkeys (issue #249).
+                // Register the system-wide transcription hotkeys.
                 // Idempotent, so this re-running on window recreation is a no-op.
                 HotKeyManager.shared.start()
                 // Start the remote feature-flag listener (gates share-to-web), then
@@ -138,7 +138,7 @@ struct OpenCaptionsApp: App {
         // Floor the window at its content's minimum size and open it at the
         // content-fit ideal. Under the default `.automatic`, the window could open
         // or restore SHORTER than the content min and clip the onboarding's fixed
-        // top/bottom chrome (#312). `.contentMinSize` sets only the floor — the
+        // top/bottom chrome. `.contentMinSize` sets only the floor — the
         // window still resizes larger freely (`.contentSize` would also cap the max
         // and lock the resizable main app). Per-scene: the Settings and MenuBarExtra
         // scenes below are untouched.

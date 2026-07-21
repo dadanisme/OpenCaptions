@@ -6,7 +6,7 @@
 //  non-blocking progress banner, error alert, paywall) for the saved-session detail
 //  screen. The actual work runs in the app-lifetime `RetranscriptionManager`, so it
 //  keeps going if the user leaves this window. Split from MacSessionDetailView to keep
-//  that file under the line limit. See issue #245.
+//  that file under the line limit.
 //
 
 import SwiftData
@@ -28,7 +28,7 @@ extension MacSessionDetailView {
             let offlineModelMissing = kind == .parakeet && !FluidAudioModelLoader.isParakeetDownloaded()
             // Disabled while a re-transcription OR a file import is filling in this
             // session — both drive PostSessionRetranscriber.run over it, so they must
-            // never overlap (which would double-meter and corrupt the transcript). #302.
+            // never overlap (which would double-meter and corrupt the transcript).
             let running = RetranscriptionManager.shared.isRunning(session.persistentModelID)
                 || FileImportManager.shared.isRunning(session.persistentModelID)
             Button {
@@ -47,8 +47,8 @@ extension MacSessionDetailView {
 
     // MARK: - Progress banner
 
-    /// The in-flight batch-pass banner for this session, if any — a file import (#302)
-    /// or a re-transcription (#245). Read in the detail view's `body` (via its single
+    /// The in-flight batch-pass banner for this session, if any — a file import
+    /// or a re-transcription. Read in the detail view's `body` (via its single
     /// top overlay) so it stays reactive. Import takes priority, though the two can't
     /// co-occur (re-transcribe is disabled while an import runs).
     @ViewBuilder

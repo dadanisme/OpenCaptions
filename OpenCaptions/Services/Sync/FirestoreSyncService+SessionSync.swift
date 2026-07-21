@@ -65,8 +65,8 @@ extension FirestoreSyncService {
         }
     }
 
-    /// Re-pushes a re-transcribed session's transcript to its EXISTING shared doc
-    /// (#245). Keeps the same `cloudSessionId`/public link and overwrites the session
+    /// Re-pushes a re-transcribed session's transcript to its EXISTING shared doc.
+    /// Keeps the same `cloudSessionId`/public link and overwrites the session
     /// doc + line docs `0..<count`, resetting `lineCount`. The web reads lines by
     /// `lineCount`, so any orphaned trailing docs left by a now-shorter transcript are
     /// ignored. This nulls the web summary (writeSessionDocs writes `summary: NSNull`);
@@ -158,7 +158,7 @@ extension FirestoreSyncService {
     }
 
     /// At app launch, marks any of this user's sessions still flagged
-    /// `live` or `paused` as `ended`. Defends against the iOS app crashing
+    /// `live` or `paused` as `ended`. Defends against the app crashing
     /// mid-recording without sealing the session.
     func reconcileLiveSessions() async {
         guard let uid = currentUid() else { return }

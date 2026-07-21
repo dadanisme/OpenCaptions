@@ -2,7 +2,7 @@
 //  HotKeyBinding.swift
 //  OpenCaptions
 //
-//  Value types describing a single global-hotkey chord (issue #249). A binding is
+//  Value types describing a single global-hotkey chord. A binding is
 //  a Carbon virtual key code plus a Carbon modifier-flags mask, stored VERBATIM
 //  as the values `RegisterEventHotKey` expects, so registration needs no
 //  translation. Bindings persist to UserDefaults as JSON.

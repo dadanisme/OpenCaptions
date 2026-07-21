@@ -1,6 +1,6 @@
-# macOS System-Audio Capture Pitched Up — Aggregate Rate Fix — #304
+# macOS System-Audio Capture Pitched Up — Aggregate Rate Fix
 
-**Date:** 2026-07-16 · **Target:** OpenCaptions · **Epic:** #103 · **Fixes:** #304
+**Date:** 2026-07-16 · **Target:** OpenCaptions
 
 ## Problem
 

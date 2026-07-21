@@ -8,7 +8,6 @@
 //  the real on/off Toggle, so this control never needs a "downloaded" state. Offline needs
 //  two models on disk, but that's an implementation detail — this downloads them as one
 //  unit and never names a model. Deleting models is left to the upcoming model manager.
-//  Issue #274.
 //
 
 import SwiftUI

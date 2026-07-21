@@ -6,7 +6,7 @@
 //  (`stt-async-v5`). The async model sees the full recording at once, so it's more
 //  accurate — and its diarization is better — than the realtime WebSocket path used
 //  live. Reuses the same `SONIOX_API_KEY` (bearer auth). Billable: the caller meters
-//  it like a live cloud session. See issue #245 and the Soniox docs
+//  it like a live cloud session. See the Soniox docs
 //  (https://soniox.com/docs/stt/async/async-transcription).
 //
 //  The REST flow (upload → create → poll → fetch → delete) lives in

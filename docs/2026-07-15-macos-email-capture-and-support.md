@@ -1,13 +1,13 @@
 # macOS: Email capture + marketing consent, and a Support section
 
-**Date:** 2026-07-15 · **Scope:** OpenCaptions (native macOS) only · **Issues:** #251 (capture email + consent), #252 (Support section) · **Epic:** #103
+**Date:** 2026-07-15 · **Scope:** OpenCaptions (native macOS) only
 
 Two related additions to the macOS Settings scene (`MacSettingsView`, Cmd+,).
 
-## #251 — Always capture user email (+ marketing consent)
+## Always capture user email (+ marketing consent)
 
 ### Key realization: email is already captured
-The email does **not** need to be mirrored to Firestore. Firebase **Auth** already stores it for every provider (Google returns it, email/password inherently has it, and Apple returns whatever the user allows). The *user record* the issue refers to is the Firebase Auth account. So the email-capture half of #251 reduces to one thing: **make sure Sign in with Apple requests the email scope** so Apple returns an email rather than nothing.
+The email does **not** need to be mirrored to Firestore. Firebase **Auth** already stores it for every provider (Google returns it, email/password inherently has it, and Apple returns whatever the user allows). The *user record* the issue refers to is the Firebase Auth account. So the email-capture half of this work reduces to one thing: **make sure Sign in with Apple requests the email scope** so Apple returns an email rather than nothing.
 
 That was **already implemented** — every Apple entry point sets `request.requestedScopes = [.fullName, .email]`:
 - `MacSignInControls.swift` (onboarding + guest-upgrade sheet)
@@ -30,7 +30,7 @@ This is why `syncOfflineMode` was refactored to route through the same helper (p
 ### Firestore rules
 No change needed. `match /users/{userId} { allow read, write: if request.auth.uid == userId }` in the backend Cloud Functions project's `firestore.rules` already lets the owner write arbitrary fields.
 
-## #252 — Support section
+## Support section
 
 A new **Support** tab in `MacSettingsView`'s `TabView` (`MacSupportSettingsView`), placed **before** the conditional Usage tab (which must stay last — a middle conditional tab drops a sibling's icon on macOS). Three actions, each opening the default mail client via a prefilled `mailto:` to a single inbox, **the support inbox (SUPPORT_EMAIL)** (distinguished by subject):
 

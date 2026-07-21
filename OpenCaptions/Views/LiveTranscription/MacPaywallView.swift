@@ -4,9 +4,8 @@
 //
 //  Native minute-pack purchase sheet. Reads the `credits` offering packages from
 //  `MacSubscriptionManager` and buys via RevenueCat. Hand-rolled (not RevenueCatUI)
-//  to match the app's aesthetic and mirror how the iOS target already hand-rolls
-//  its paywall. Presented from the pre-record gate, the in-session banners, and the
-//  Usage settings pane.
+//  to match the app's aesthetic. Presented from the pre-record gate, the in-session
+//  banners, and the Usage settings pane.
 //
 
 import RevenueCat

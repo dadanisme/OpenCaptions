@@ -6,7 +6,7 @@
 //  session's distinct diarized speakers for the edit sheet, then persists the
 //  new names onto every matching line in SwiftData and mirrors the change to
 //  the shared Firestore doc (when the session was shared). Split from
-//  MacSessionDetailView to stay under the line limit. See issue #246.
+//  MacSessionDetailView to stay under the line limit.
 //
 
 import SwiftData

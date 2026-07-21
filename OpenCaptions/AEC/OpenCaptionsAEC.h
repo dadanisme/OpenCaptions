@@ -3,7 +3,7 @@
 //  OpenCaptions
 //
 //  Software acoustic echo canceller for the "Microphone + System Audio" mixed
-//  source (issue #205, Part C / #208). When you're on a call over the built-in
+//  source. When you're on a call over the built-in
 //  speakers, the mic re-captures the system audio (the other participants), so
 //  without cancellation they get transcribed twice. This removes the system
 //  audio's speaker-bleed from the mic using the cleanly-captured system audio as
@@ -48,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// sub-10 ms warm-up before the first full frame is available).
 - (void)process:(const float *)mic into:(float *)out frameCount:(int)frameCount;
 
-/// Alignment knob for the issue's top risk: the mic (AVAudioEngine) and system
+/// Alignment knob for the top risk here: the mic (AVAudioEngine) and system
 /// audio (Core Audio tap) run on independent capture clocks. Delays the far-end
 /// reference relative to the mic by `ms` milliseconds (applied once, before the
 /// first frame). Default 0 — the mixed pipeline pulls both from the same instant

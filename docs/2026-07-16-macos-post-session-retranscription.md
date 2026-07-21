@@ -1,8 +1,7 @@
 # macOS Post-Session Re-Transcription (pluggable protocol)
 
 **Date:** 2026-07-16
-**Issue:** #245
-**Target:** Open Captions (standalone macOS app) only. iOS `unmute` untouched.
+**Target:** Open Captions (standalone macOS app) only.
 
 ## Context
 

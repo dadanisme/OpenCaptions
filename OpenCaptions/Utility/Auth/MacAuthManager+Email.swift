@@ -2,9 +2,8 @@
 //  MacAuthManager+Email.swift
 //  OpenCaptions
 //
-//  First-class Firebase email/password sign-in. On iOS this same mechanism
-//  exists but is gated behind `#if DEBUG` (a QA aid); here it ships as a real
-//  sign-in option. No password reset / email verification yet (deferred).
+//  First-class Firebase email/password sign-in, shipped as a real sign-in
+//  option. No password reset / email verification yet (deferred).
 //
 
 import FirebaseAuth

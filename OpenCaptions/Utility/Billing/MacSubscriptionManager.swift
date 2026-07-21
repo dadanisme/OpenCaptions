@@ -3,15 +3,13 @@
 //  OpenCaptions
 //
 //  RevenueCat wrapper + consumable-minute balance for the standalone macOS app.
-//  Ported from the iOS `SubscriptionManager` but rebuilt as an `@Observable`
+//  Built as an `@Observable`
 //  singleton (matching `MacAuthManager`) instead of `ObservableObject`.
 //
 //  Billing model: minutes are bought as consumable IAPs from the `credits`
 //  offering; RevenueCat grants the `Min` virtual currency on purchase; access is
-//  gated purely on the remaining-minute balance. macOS shares the SAME RevenueCat
-//  project as iOS, so the `Min` balance is shared per Firebase uid — a purchase on
-//  either platform credits the same balance (only the store products + public SDK
-//  key differ per platform). See docs/2026-07-10-macos-consumable-billing.md.
+//  gated purely on the remaining-minute balance. The `Min` balance is tracked per
+//  Firebase uid. See docs/2026-07-10-macos-consumable-billing.md.
 //
 //  Only cloud Soniox sessions are metered; Offline Mode (on-device) is free.
 //  Minute-deduction API calls are delegated to `MacMinuteDeductionService`.
@@ -38,7 +36,7 @@ final class MacSubscriptionManager {
     static let shared = MacSubscriptionManager()
     private init() {}
 
-    // MARK: - Server-coupled identifiers (shared RevenueCat project with iOS)
+    // MARK: - Server-coupled identifiers
 
     /// Offering that holds the minute packs; falls back to `offerings.current`.
     static let offeringID = "credits"
@@ -118,7 +116,7 @@ final class MacSubscriptionManager {
     /// Whether the balance covers `minutes` of metered use, accounting for unsent
     /// pending deductions. Unlike a live session (which can pause at 0), a batch
     /// re-transcription can't stop mid-job, so it must gate on the WHOLE estimated
-    /// cost up front rather than merely balance > 0 (#245 review). Loads the balance
+    /// cost up front rather than merely balance > 0. Loads the balance
     /// first if it hasn't resolved yet.
     func canAfford(minutes: Int) async -> Bool {
         guard minutes > 0 else { return true }
@@ -126,7 +124,7 @@ final class MacSubscriptionManager {
         // transiently locally-deducted value) and `pendingMinutes` is settled —
         // otherwise a just-ended live session's minutes are counted twice here (once
         // baked into the local `remainingMinutes`, once still in `pendingMinutes`) and
-        // wrongly block re-transcription (#245 review). Safe: this is called before any
+        // wrongly block re-transcription. Safe: this is called before any
         // re-transcription metered window opens, so the refresh flushes pending too.
         await refreshStatus()
         // Fail OPEN if the balance never resolved (e.g. RevenueCat not configured in a
@@ -207,11 +205,11 @@ final class MacSubscriptionManager {
     func savePendingDeduction(_ minutes: Int) { deduction.savePending(minutes) }
 
     /// Charges `minutes` for an OFF-session cloud operation (post-session
-    /// re-transcription, #245). Sent as a STANDALONE deduction — deliberately NOT via
+    /// re-transcription). Sent as a STANDALONE deduction — deliberately NOT via
     /// the shared `pending_minutes_to_deduct` checkpoint, which belongs to the LIVE
     /// session's crash-recovery accumulator. Entangling them let a re-transcription
     /// finishing mid-live-session flush the live checkpoint early, after which
-    /// `endBilling` re-sent the live total and double-charged it (#245 review). Drops
+    /// `endBilling` re-sent the live total and double-charged it. Drops
     /// the local balance immediately for instant UI; a failed send is best-effort (no
     /// crash-recovery retry — acceptable for a value-add re-transcription; the next
     /// balance refresh reconciles).
@@ -275,14 +273,14 @@ final class MacSubscriptionManager {
         // (foreground/manual) refresh must keep `loadState == .loaded` so the
         // pre-record gate fails CLOSED on the last-known balance rather than
         // fail-open — which would let a 0-balance metered session start uncapped
-        // when Record is tapped during a concurrent refresh (#242 review).
+        // when Record is tapped during a concurrent refresh.
         if loadState != .loaded { loadState = .loading }
         defer { isRefreshing = false }
 
         // Never flush the crash-recovery checkpoint while a metered session is
         // active: the single teardown flush in `endBilling` is the sole send, and an
         // early flush here (e.g. the Settings "Refresh balance" button, or a
-        // re-sign-in refresh) would be re-sent at stop and double-charge (#242 review).
+        // re-sign-in refresh) would be re-sent at stop and double-charge.
         if !isTranscriptionSessionActive {
             await flushPendingDeductionIfNeeded()
         }

@@ -37,7 +37,7 @@ extension SystemAudioTapCaptureService {
 
         // Read the tap's native ASBD — correct channel count / format flags, but its
         // sample RATE is the tap's own mixer rate, which is NOT necessarily the rate
-        // the aggregate IOProc delivers frames at (fixed up below, see #304).
+        // the aggregate IOProc delivers frames at (fixed up below).
         var asbd = try CoreAudioTapUtils.tapStreamFormat(tapID)
 
         // Private aggregate: default output as main sub-device + the tap as a
@@ -65,7 +65,7 @@ extension SystemAudioTapCaptureService {
         // (the default OUTPUT device). Drift compensation resamples the tap's native
         // stream TO that clock, so frames arrive at the aggregate's nominal rate — e.g.
         // 44.1 kHz frames, NOT the tap's native 48 kHz. Interpreting them with the tap
-        // rate over-decimates the resample and pitches the audio up ~9% (#304). Override
+        // rate over-decimates the resample and pitches the audio up ~9%. Override
         // only the sample rate (channel count / format flags are rate-independent and
         // correct); keep the tap rate if the read fails so a working 48 kHz path never
         // regresses into a hard failure. Set BEFORE the IOProc/AudioDeviceStart below,

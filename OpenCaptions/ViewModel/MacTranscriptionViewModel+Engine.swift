@@ -47,7 +47,7 @@ extension MacTranscriptionViewModel {
     // MARK: - Soniox config
 
     /// Builds the Soniox config for the standalone Mac app: fixed language hints
-    /// (id/en/ar), diarization on. Mirrors the iOS `buildSonioxConfig` context.
+    /// (id/en/ar), diarization on.
     ///
     /// - Parameter userName: the signed-in user's display name, appended to the
     ///   Soniox context `terms` so recognition is biased toward transcribing it

@@ -11,7 +11,7 @@
 //    • `SonioxAsyncPostSessionEngine` — cloud Soniox `stt-async-v5` (diarized, billable)
 //
 //  Adding a provider = add a `PostSessionTranscriptionEngine` conformer and a
-//  `RetranscriptionEngineKind` case. See issue #245 and
+//  `RetranscriptionEngineKind` case. See
 //  docs/2026-07-16-macos-post-session-retranscription.md.
 //
 

@@ -1,7 +1,7 @@
 # macOS: gate the mixed-source software AEC behind a remote feature flag
 
 **Date:** 2026-07-08
-**Issue:** #231 (follow-up to #208 — the software echo canceller from `docs/2026-07-06-macos-mic-system-audio-fix.md`)
+**Context:** Follow-up to the software echo canceller from `docs/2026-07-06-macos-mic-system-audio-fix.md`
 **Scope:** OpenCaptions only
 
 ## Problem
@@ -32,7 +32,7 @@ The default is `true`, so with no remote config the behavior is unchanged.
 
 ## Why the flag lives partly in the service and partly in the view model
 
-The **build gate** stays in `configureMicEngine` (`+Mic`) per the issue — that is
+The **build gate** stays in `configureMicEngine` (`+Mic`) — that is
 where the OpenCaptionsAEC was already constructed. The **flag observer** and the
 thread-safe setter live in a new `MixedAudioCaptureService+AEC.swift`, mirroring
 `FirestoreSyncService.observeSessionSharingFlag` (a service that owns its own flag

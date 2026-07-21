@@ -1,6 +1,6 @@
 # macOS Session Audio Persistence + Synced Transcript Playback
 
-**Date:** 2026-07-08 · **Scope:** Open Captions (native macOS) only · **Issue:** #198 · **Epic:** #103
+**Date:** 2026-07-08 · **Scope:** Open Captions (native macOS) only
 
 Persists each Open Captions transcription session's audio to disk and adds a playback UI on the saved-session detail screen (`MacSessionDetailView`): a player bar (play/pause, scrubber, elapsed/total) plus a transcript that highlights the line under the playhead, auto-scrolls to it, and lets you tap any bubble to seek there. Every `TranscriptionLine` already stored `startMs`/`endMs`, so only the audio itself and the UI were missing.
 
@@ -66,4 +66,4 @@ Two earlier approaches were tried and discarded:
 
 ## Known issue
 
-Mixed **Microphone + System Audio** mode records glitched system audio on playback (mic-only and system-only are clean) — tracked separately in #229. The artifact is in the mixed capture path (`MixedAudioCaptureService`), not the recorder.
+Mixed **Microphone + System Audio** mode records glitched system audio on playback (mic-only and system-only are clean) — tracked separately. The artifact is in the mixed capture path (`MixedAudioCaptureService`), not the recorder.

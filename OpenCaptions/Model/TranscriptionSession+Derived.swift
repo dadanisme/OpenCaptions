@@ -1,6 +1,6 @@
 //
 //  TranscriptionSession+Derived.swift
-//  unmute
+//  OpenCaptions
 //
 //  Cached derived fields (`durationMs`, `previewText`) keep list cards O(1).
 //  See docs/2026-06-02-home-screen-derived-fields.md for the design decision.

@@ -15,7 +15,7 @@
 //  `FeatureFlag.defaultValue` so a future app version can change a default
 //  without a stale cache shadowing it.
 //
-//  Ported from the iOS `unmute` target. The Mac uses its own cache key and
+//  Uses a dedicated cache key and
 //  reads `Mac_`-prefixed flag keys (see `FeatureFlag`). Threading: `@MainActor`;
 //  the Firestore listener callback hops back onto the main actor before
 //  mutating state. See docs/2026-07-06-macos-firestore-share.md.
@@ -40,7 +40,7 @@ final class FeatureFlagService {
         static let flags = "flags"
     }
 
-    /// Mac-distinct cache key so it never collides with the iOS app's cache.
+    /// Dedicated cache key for this app's feature-flags cache.
     private static let cacheKey = "mac_featureFlagsCache"
 
     // MARK: - State

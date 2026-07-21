@@ -49,7 +49,7 @@ final class AudioRingBuffer {
     /// analogue of the drop-oldest that `write` applies only at full capacity: it
     /// keeps the far-end AEC reference (and the re-added system span, one and the
     /// same buffer) aligned with the fresh mic rather than lagging by hundreds of ms.
-    /// Post-#306 (system produced at the mic's rate) the first trim discards the
+    /// Once the system is produced at the mic's rate, the first trim discards the
     /// startup seed and occupancy then holds at the cushion.
     /// See docs/2026-07-16-macos-mic-system-sync-fix.md.
     @discardableResult

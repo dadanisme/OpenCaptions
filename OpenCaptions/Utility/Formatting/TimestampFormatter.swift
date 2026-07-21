@@ -3,7 +3,6 @@
 //  OpenCaptions
 //
 //  Shared formatting for session-relative elapsed/offset timestamps.
-//  (Copied from the iOS target — the targets share no source.)
 //
 
 import Foundation

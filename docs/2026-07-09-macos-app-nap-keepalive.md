@@ -1,8 +1,7 @@
 # macOS: harden the background WebSocket keepalive against App Nap
 
 **Date:** 2026-07-09
-**Issue:** #174 (parent epic #103, depends on the MVP #171)
-**Target:** `OpenCaptions` (standalone native macOS app) only. The iOS `unmute` target is untouched.
+**Target:** `OpenCaptions` (standalone native macOS app).
 
 ## Problem
 
@@ -51,10 +50,10 @@ timer (delaying — not causing — detection of a half-open socket).
 
 A repo-wide search found **no** App Nap / power-assertion / background-activity
 mitigation anywhere in `OpenCaptions` (no `ProcessInfo.beginActivity`, no
-`NSAppSleepDisabled`, no power assertion). The only related hits were the iOS
-target's `UIBackgroundModes = audio`, which is a UIKit-only concept with no
-macOS equivalent — the iOS survival mechanism (audio background mode + an active
-`AVAudioSession`) does not transfer to the Mac.
+`NSAppSleepDisabled`, no power assertion). macOS has no `UIBackgroundModes =
+audio` equivalent — that background-audio survival mechanism (a UIKit background
+mode + an active `AVAudioSession`) is UIKit-only and does not exist on the Mac,
+so the keepalive has to be handled with a macOS-native approach.
 
 ## Decision
 
@@ -118,7 +117,7 @@ suppress App Nap (and automatic/sudden termination); the difference is idle
 - `.userInitiatedAllowingIdleSystemSleep` — suppresses App Nap but **still lets
   the Mac idle-sleep**.
 
-We chose `.userInitiated`. Issue #174's headline is App Nap, but the product
+We chose `.userInitiated`. App Nap is the headline problem, but the product
 requirement is broader: **a recording must keep transcribing when the Mac would
 otherwise go idle**, not just when a window is occluded. `.userInitiated` covers
 both — App Nap suppression fixes the occluded-window stall, and disabling idle

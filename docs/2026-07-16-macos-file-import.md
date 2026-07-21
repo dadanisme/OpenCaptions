@@ -1,10 +1,9 @@
 # macOS: Import audio & video files for transcription
 
 **Date:** 2026-07-16
-**Issue:** #302
-**Target:** OpenCaptions (standalone macOS app) only. iOS `unmute` untouched.
-**Depends on:** #245 (post-session
-re-transcription platform), which shipped the `PostSessionTranscriptionEngine` stack.
+**Target:** OpenCaptions (standalone macOS app).
+**Depends on:** the post-session re-transcription platform, which shipped the
+`PostSessionTranscriptionEngine` stack.
 
 ## Context
 
@@ -15,7 +14,7 @@ extracts/normalizes its audio, transcribes it, and saves a normal `Transcription
 (transcript + diarization where supported + AI summary), scoped to the signed-in user and
 metered like a cloud session.
 
-The insight that made this small: **#245's `PostSessionRetranscriber.run(...)` already
+The insight that made this small: **`PostSessionRetranscriber.run(...)` already
 transcribes an arbitrary `audioURL` into a session** (builds lines via
 `PostSessionSegmentBuilder`, meters cloud usage by media duration, regenerates the
 summary). Its engine/`run` layer is decoupled from `session.audioFileName`, and its
@@ -41,7 +40,7 @@ coordinator + the UI entry points.
 
 3. **Engine follows global Offline Mode — no per-import picker.** `RetranscriptionEngineKind.forCurrentMode`:
    Offline → **Parakeet** (on-device, free, single-stream); Online → **Soniox async**
-   (cloud, metered, diarized). Matches the #245 decision so import behaves like the
+   (cloud, metered, diarized). Matches the re-transcription decision so import behaves like the
    pipeline the user already chose. Parakeet requires the on-device model downloaded
    (same gate as re-transcription); otherwise a clear error.
 
@@ -95,7 +94,7 @@ coordinator + the UI entry points.
   retention cleanup. Keeps the session on failure/cancel. Exposes `jobs` + `isRunning(_:)`
   (list-row spinner) and `job(for:)` (detail banner).
 - **`PostSessionProgressBanner`** (`Views/SessionDetail/`) — one banner component shared by
-  import (#302) and re-transcription (#245), driven by a `Kind`; replaces the old
+  import and re-transcription, driven by a `Kind`; replaces the old
   `RetranscriptionProgressBanner`. Rendered by `MacSessionDetailView`'s single top overlay
   (`postSessionBanner`, in the `+Retranscription` extension), which shows whichever pass is
   in flight for that session. The list shows only a per-row spinner — no banner.

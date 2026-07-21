@@ -85,8 +85,8 @@ struct MacTranscriptionControls: View {
 
     /// Font-size control: a compact glyph opening a popover with a fine-grained
     /// slider that scales the live transcript AND the overlay captions. A native
-    /// macOS `Menu` can't host a `Slider`, so this uses a popover (the issue's
-    /// sanctioned alternative). Always enabled — it's a display preference.
+    /// macOS `Menu` can't host a `Slider`, so this uses a popover instead.
+    /// Always enabled — it's a display preference.
     private var fontSizeSelector: some View {
         Button {
             showTextSizePopover.toggle()
@@ -103,7 +103,7 @@ struct MacTranscriptionControls: View {
         }
     }
 
-    /// The popover's slider — a port of the iOS display-settings text-size row: a
+    /// The popover's slider — a display-settings text-size row: a
     /// small "A" and large "A" flanking a fine-grained slider over the shared
     /// multiplier.
     private var textSizeSlider: some View {

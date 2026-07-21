@@ -1,6 +1,6 @@
 # macOS app-wide font size (OpenCaptions) — independent of transcript size
 
-**Date:** 2026-07-10 · **Issue:** #270 · **Target:** OpenCaptions only (iOS `unmute` unaffected)
+**Date:** 2026-07-10 · **Scope:** OpenCaptions
 
 ## Problem
 

@@ -1,4 +1,4 @@
-# macOS transcript auto-scroll fix (issue #239)
+# macOS transcript auto-scroll fix
 
 **Date:** 2026-07-09
 **Scope:** `OpenCaptions` target — captions overlay (primary) + main live view (secondary).
@@ -42,8 +42,8 @@ compounding issues:
 ## Rejected: `.defaultScrollAnchor(.bottom)`
 
 The first attempt replaced the manual pinning with the native
-**`.defaultScrollAnchor(.bottom)`** modifier (macOS 14.0+) — the fix the issue
-suggested. On paper it maintains the bottom edge from real content geometry as the
+**`.defaultScrollAnchor(.bottom)`** modifier (macOS 14.0+). On paper it maintains
+the bottom edge from real content geometry as the
 content both grows and shrinks. **In practice it froze the app.** On macOS,
 `.defaultScrollAnchor(.bottom)` over a `LazyVStack` whose rows are **removed from
 the top** (our flush) drives an unrecoverable layout-invalidation loop: the strip
@@ -54,7 +54,7 @@ anywhere in the fix.
 ## Fix
 
 Keep an imperative `ScrollViewReader` + `proxy.scrollTo(…)`, but fix the three
-things the old code got wrong (this is the fallback the issue anticipated):
+things the old code got wrong:
 
 - **Target a real, realized view** — the live partial (`id("partial")`) when
   present, else the **last committed line's id** — never the zero-height
@@ -103,13 +103,15 @@ written; its sole reader was the deleted `.onChange`, and the fix observes
   fires self-corrects on the next `partialLine`/`ids.count` change. If residual
   jitter ever shows, wrap the `scrollTo` in a one-tick `DispatchQueue.main.async`.
 
-## iOS is intentionally out of scope
+## Why this fix is macOS-specific
 
-The iOS live transcript (`unmute/Views/TranscriptView/TranscriptionContainer.swift`
-+ `ScrollStateObserver.swift`) is affected by a **related but distinct** set of
-causes and — unlike macOS — deliberately supports a **scroll-away / "jump to live"**
-UX (a `UIScrollView` KVO observer distinguishes user drag from content shifts).
-Applying `.defaultScrollAnchor(.bottom)` there would fight a user scrolling up to
-read history, so the iOS path needs a tailored fix (dynamic `Range<Int>` ForEach,
-`sortedLines` refresh timing vs. synchronous `flushedLineCount` bumps, the
-leading-edge throttle, and the KVO animated-scroll race). Tracked separately.
+Open Captions was extracted from an original iOS app whose live transcript
+(`TranscriptView/TranscriptionContainer.swift` + `ScrollStateObserver.swift`) hit a
+**related but distinct** set of causes and — unlike macOS — deliberately supported a
+**scroll-away / "jump to live"** UX (a `UIScrollView` KVO observer distinguished user
+drag from content shifts). On that surface, applying `.defaultScrollAnchor(.bottom)`
+would fight a user scrolling up to read history, so it needed a tailored fix (dynamic
+`Range<Int>` ForEach, `sortedLines` refresh timing vs. synchronous `flushedLineCount`
+bumps, the leading-edge throttle, and the KVO animated-scroll race). None of that
+touch-scroll machinery exists here — this note covers only the macOS captions overlay
+and live view.

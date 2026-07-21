@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-05
 **Target:** OpenCaptions (standalone native macOS app)
-**Related:** `docs/2026-07-05-macos-auth-and-scoping.md` (#180)
+**Related:** `docs/2026-07-05-macos-auth-and-scoping.md`
 
 ## Problem
 

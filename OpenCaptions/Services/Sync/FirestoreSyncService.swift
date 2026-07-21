@@ -21,17 +21,17 @@ import Observation
 /// Shared sessions are publicly readable on Firestore (see `firestore.rules`).
 /// Writes still require Firebase Auth as the owner.
 ///
-/// Sync model mirrors the iOS rendering flow. The iOS UI renders two distinct
+/// The sync model renders two distinct
 /// units stacked vertically — a list of `SpeakerBubble`s (one per committed
 /// line, all styled identically), then a single `PartialSpeakerBubble` below
 /// for the in-flight preview. Firestore stores those same two units:
 ///
 /// - `lines/{lineId}` — one document per committed bubble. Uniform shape; no
-///   `live`/`sealed` distinction (iOS doesn't render one). Text may still
+///   `live`/`sealed` distinction. Text may still
 ///   grow at sentence boundaries within the most recent same-speaker bubble
-///   (matching iOS's `appendOrAdd` behaviour); web simply re-renders.
+///   (an append-or-add behaviour); web simply re-renders.
 /// - `session.accumulator` — current in-flight preview (Soniox partial +
-///   iOS-side sentence accumulator). Throttled to 1 write/sec. Cleared the
+///   sentence accumulator). Throttled to 1 write/sec. Cleared the
 ///   moment the partial graduates into a committed line, and on
 ///   pause/end. Web renders this as a separate preview bubble below the
 ///   lines list — *not* joined to any line.
@@ -83,7 +83,7 @@ final class FirestoreSyncService {
         static let ownerId = "ownerId"
         static let hasPassword = "hasPassword"
         static let isOfflineModeEnabled = "isOfflineModeEnabled"
-        // Marketing-communications consent on the `users/{uid}` doc (#251). The email
+        // Marketing-communications consent on the `users/{uid}` doc. The email
         // itself is NOT mirrored here — it already lives in Firebase Auth; the backend
         // joins consent to the auth email by uid.
         static let marketingOptIn = "marketingOptIn"
