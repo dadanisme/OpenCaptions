@@ -1,0 +1,85 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "B9E27F10",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "6900000180",
+      "localizations" : [
+        {
+          "description" : "3 hours of transcription",
+          "displayName" : "Extra 3 hours",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "extra_3_hours",
+      "referenceName" : "starter",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6900000600",
+      "localizations" : [
+        {
+          "description" : "10 hours of transcription",
+          "displayName" : "Extra 10 hours",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "extra_10_hours",
+      "referenceName" : "plus",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "6900001500",
+      "localizations" : [
+        {
+          "description" : "25 hours of transcription",
+          "displayName" : "Extra 25 hours",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "extra_25_hours",
+      "referenceName" : "pro",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "C4SQMCY5WT",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

@@ -1,0 +1,18 @@
+// Config.xcconfig.example — copy to `Config.xcconfig` and fill in your own values.
+// Config.xcconfig is git-ignored; never commit real keys.
+
+// Soniox real-time STT API key — https://soniox.com
+SONIOX_API_KEY = YOUR_SONIOX_API_KEY
+
+// Bearer token for the summarization + minute-deduction Cloud Functions
+SUMMARIZE_API_TOKEN = YOUR_SUMMARIZE_API_TOKEN
+
+// RevenueCat public SDK key for the macOS app
+REVENUECAT_API_KEY_MACOS = YOUR_REVENUECAT_MACOS_PUBLIC_KEY
+
+// Minute-usage deduction endpoint (Cloud Function).
+// The `$()` breaks up `//` so xcconfig doesn't treat the URL as a comment.
+DEDUCT_MINUTES_URL = https:/$()/YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/deductMinutes
+
+// Google Sign-In OAuth callback = REVERSED_CLIENT_ID from GoogleService-Info.plist
+REVERSED_CLIENT_ID = com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID

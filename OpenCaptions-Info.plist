@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- User-facing app name. Pins CFBundleName to "Open Captions" so the macOS menu bar, the
+	     About/Hide/Quit items, and the window title read "Open Captions". The built artifact is OpenCaptions.app
+	     (PRODUCT_NAME = OpenCaptions in the target's build settings).
+	     Dock/Finder use CFBundleDisplayName, set via INFOPLIST_KEY_CFBundleDisplayName. -->
+	<key>CFBundleName</key>
+	<string>Open Captions</string>
+	<!-- Export-compliance declaration. Open Captions only uses standard TLS/HTTPS (Soniox WSS,
+	     Firebase, Google Sign-In) — no proprietary/non-exempt encryption — so this is
+	     false, which suppresses the per-upload encryption question in App Store Connect. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- TCC usage string for Core Audio process-tap system-audio capture (the
+	     "Audio Recording" grant, kTCCServiceAudioCapture). Required for the
+	     system-audio permission prompt to appear on the first capture start. -->
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Open Captions records other apps' audio so it can transcribe your session.</string>
+	<key>SONIOX_API_KEY</key>
+	<string>$(SONIOX_API_KEY)</string>
+	<key>SUMMARIZE_API_TOKEN</key>
+	<string>$(SUMMARIZE_API_TOKEN)</string>
+	<!-- RevenueCat public SDK key for the Mac App Store app. Distinct from the iOS
+	     REVENUECAT_API_KEY: the two apps share one RevenueCat project (so the "Min"
+	     minute balance is shared per Firebase uid), but each store app has its own
+	     public SDK key. Supplied per-developer via the git-ignored Config.xcconfig. -->
+	<key>REVENUECAT_API_KEY_MACOS</key>
+	<string>$(REVENUECAT_API_KEY_MACOS)</string>
+	<!-- Minute-usage deduction endpoint (Cloud Function). Bearer is SUMMARIZE_API_TOKEN
+	     (reused; there is no separate deduction token). Same backend as iOS. -->
+	<key>DEDUCT_MINUTES_URL</key>
+	<string>$(DEDUCT_MINUTES_URL)</string>
+	<!-- Google Sign-In OAuth callback. The value is the Firebase app's
+	     REVERSED_CLIENT_ID; kept generic here and supplied per-developer via the
+	     git-ignored Config.xcconfig (REVERSED_CLIENT_ID = com.googleusercontent.apps.…). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

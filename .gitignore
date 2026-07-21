@@ -1,0 +1,13 @@
+# Secrets — never commit
+Config.xcconfig
+GoogleService-Info.plist
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+.DS_Store
+
+# SwiftPM (resolved on build)
+.swiftpm/

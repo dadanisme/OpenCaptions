@@ -1,0 +1,492 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2F17500A2FD1750100B4302D /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 2F17500B2FD1750100B4302D /* FluidAudio */; };
+		60061E51640000000000000C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 60061E51640000000000000B /* GoogleSignIn */; };
+		FBA000010000000000000002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000001 /* FirebaseAuth */; };
+		FBA000010000000000000004 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000003 /* FirebaseFirestore */; };
+		FBA000010000000000000006 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000005 /* FirebaseFunctions */; };
+		FBA000010000000000000011 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000010 /* RevenueCat */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		2F99CAF92FF9522100B4302D /* OpenCaptions.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenCaptions.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		2F99CAFA2FF9522100B4302D /* OpenCaptions */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OpenCaptions;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2F99CAF62FF9522100B4302D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBA000010000000000000002 /* FirebaseAuth in Frameworks */,
+				FBA000010000000000000004 /* FirebaseFirestore in Frameworks */,
+				FBA000010000000000000006 /* FirebaseFunctions in Frameworks */,
+				60061E51640000000000000C /* GoogleSignIn in Frameworks */,
+				2F17500A2FD1750100B4302D /* FluidAudio in Frameworks */,
+				FBA000010000000000000011 /* RevenueCat in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		378297062E8E1D2100C30EA9 = {
+			isa = PBXGroup;
+			children = (
+				2F99CAFA2FF9522100B4302D /* OpenCaptions */,
+				CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */,
+				378297102E8E1D2100C30EA9 /* Products */,
+				C2F99CD504A941D2528DB079 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		378297102E8E1D2100C30EA9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2F99CAF92FF9522100B4302D /* OpenCaptions.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C2F99CD504A941D2528DB079 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2F99CAF82FF9522100B4302D /* OpenCaptions */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2F99CB052FF9522100B4302D /* Build configuration list for PBXNativeTarget "OpenCaptions" */;
+			buildPhases = (
+				2F99CAF52FF9522100B4302D /* Sources */,
+				2F99CAF62FF9522100B4302D /* Frameworks */,
+				2F99CAF72FF9522100B4302D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2F99CAFA2FF9522100B4302D /* OpenCaptions */,
+			);
+			name = OpenCaptions;
+			packageProductDependencies = (
+				FBA000010000000000000001 /* FirebaseAuth */,
+				FBA000010000000000000003 /* FirebaseFirestore */,
+				FBA000010000000000000005 /* FirebaseFunctions */,
+				60061E51640000000000000B /* GoogleSignIn */,
+				2F17500B2FD1750100B4302D /* FluidAudio */,
+				FBA000010000000000000010 /* RevenueCat */,
+			);
+			productName = OpenCaptions;
+			productReference = 2F99CAF92FF9522100B4302D /* OpenCaptions.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		378297072E8E1D2100C30EA9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					2F99CAF82FF9522100B4302D = {
+						CreatedOnToolsVersion = 26.5;
+					};
+				};
+			};
+			buildConfigurationList = 3782970A2E8E1D2100C30EA9 /* Build configuration list for PBXProject "OpenCaptions" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				id,
+				"zh-Hans",
+				ru,
+			);
+			mainGroup = 378297062E8E1D2100C30EA9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */,
+				37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 378297102E8E1D2100C30EA9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2F99CAF82FF9522100B4302D /* OpenCaptions */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2F99CAF72FF9522100B4302D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2F99CAF52FF9522100B4302D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2F99CB032FF9522100B4302D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OpenCaptions.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 17;
+				DEVELOPMENT_TEAM = C4SQMCY5WT;
+				ENABLE_PREVIEWS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/OpenCaptions/ThirdParty/SpeexDSP/include",
+					"$(SRCROOT)/OpenCaptions/ThirdParty/SpeexDSP/src",
+				);
+				INFOPLIST_FILE = "OpenCaptions-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Open Captions";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Open Captions uses the microphone to record your voice and transcribe it into text — for example, capturing a lecture or meeting so you can read a live transcript and review it later.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.muhammadramdan.OgmoMac;
+				PRODUCT_NAME = OpenCaptions;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "OpenCaptions/OpenCaptions-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		2F99CB042FF9522100B4302D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OpenCaptions.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 17;
+				DEVELOPMENT_TEAM = C4SQMCY5WT;
+				ENABLE_PREVIEWS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/OpenCaptions/ThirdParty/SpeexDSP/include",
+					"$(SRCROOT)/OpenCaptions/ThirdParty/SpeexDSP/src",
+				);
+				INFOPLIST_FILE = "OpenCaptions-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Open Captions";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Open Captions uses the microphone to record your voice and transcribe it into text — for example, capturing a lecture or meeting so you can read a live transcript and review it later.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.muhammadramdan.OgmoMac;
+				PRODUCT_NAME = OpenCaptions;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "OpenCaptions/OpenCaptions-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3782971B2E8E1D2200C30EA9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = YN8NVQ69WY;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3782971C2E8E1D2200C30EA9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = YN8NVQ69WY;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2F99CB052FF9522100B4302D /* Build configuration list for PBXNativeTarget "OpenCaptions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F99CB032FF9522100B4302D /* Debug */,
+				2F99CB042FF9522100B4302D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3782970A2E8E1D2100C30EA9 /* Build configuration list for PBXProject "OpenCaptions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3782971B2E8E1D2200C30EA9 /* Debug */,
+				3782971C2E8E1D2200C30EA9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidInference/FluidAudio.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.0;
+			};
+		};
+		37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2F17500B2FD1750100B4302D /* FluidAudio */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */;
+			productName = FluidAudio;
+		};
+		60061E51640000000000000B /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		FBA000010000000000000001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		FBA000010000000000000003 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		FBA000010000000000000005 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		FBA000010000000000000010 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 378297072E8E1D2100C30EA9 /* Project object */;
+}
