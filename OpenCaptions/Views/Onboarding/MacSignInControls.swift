@@ -1,6 +1,6 @@
 //
 //  MacSignInControls.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The reusable sign-in control stack: Continue with Google (primary), Sign in
 //  with Apple, an "or" divider, and a Firebase email/password form. Extracted from

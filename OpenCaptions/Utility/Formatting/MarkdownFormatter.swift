@@ -1,6 +1,6 @@
 //
 //  MarkdownFormatter.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Formats a saved session's transcript as GitHub-flavored markdown for
 //  copy-to-clipboard. Mirrors the iOS `MarkdownFormatter` naming, but this

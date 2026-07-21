@@ -1,6 +1,6 @@
 //
 //  MixedAudioCaptureService+Stats.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Mix-alignment instrumentation for the "Microphone + System Audio" source.
 //  Accumulates cheap per-callback counters on the mic render thread and flushes a

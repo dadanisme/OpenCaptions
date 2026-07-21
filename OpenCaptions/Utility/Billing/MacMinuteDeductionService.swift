@@ -1,6 +1,6 @@
 //
 //  MacMinuteDeductionService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Persists and sends minute-usage deductions to the backend. Ported from the iOS
 //  `MinuteDeductionService` (same UserDefaults checkpoint + same `{user_id, minutes}`

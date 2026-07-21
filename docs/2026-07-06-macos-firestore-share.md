@@ -1,6 +1,6 @@
 # macOS Firestore share-to-web (issue #182)
 
-Brings the iOS "Share Session" feature to the standalone macOS app (`OgmoMac/`):
+Brings the iOS "Share Session" feature to the standalone macOS app (`OpenCaptions/`):
 live Firestore mirroring, a finished-session share link, and password protection.
 Before this, the Mac MVP (#171) recorded, transcribed, saved locally, and
 summarized, but never touched Firestore.
@@ -12,10 +12,10 @@ issue (#200) and is **not** included here. `FirebaseAnalytics` is deliberately
 ## What shipped
 
 - **Firebase products**: added `FirebaseFirestore` + `FirebaseFunctions` to the
-  OgmoMac target in `unmute.xcodeproj/project.pbxproj` (the `firebase-ios-sdk`
+  OpenCaptions target in `unmute.xcodeproj/project.pbxproj` (the `firebase-ios-sdk`
   package ref was already shared at project level; only per-target product
   dependencies + build-file entries were added, reusing the `FBA…` id scheme the
-  existing OgmoMac `FirebaseAuth` entry uses).
+  existing OpenCaptions `FirebaseAuth` entry uses).
 - **Ported services** (near-verbatim from `unmute/`, kept under the 250-line file
   limit via the same extension splits):
   - `FirestoreSyncService` (+`+Writes`/`+SessionSync`/`+LineSync`) — the live
@@ -31,11 +31,11 @@ issue (#200) and is **not** included here. `FirebaseAnalytics` is deliberately
   extension + hooks): share mints the cloud session and backfills the transcript;
   line commits, partial previews, pause/resume, speaker renames, and stop/discard/
   fail all mirror to Firestore. `SummaryViewModel` pushes a fresh summary to the
-  shared doc. `OgmoMacApp` starts the flag listener and reconciles orphaned live
+  shared doc. `OpenCaptionsApp` starts the flag listener and reconciles orphaned live
   docs at launch.
 - **UI (share dialog)**: both the live-recording toolbar Share button and the
   saved-session detail "Share…" menu item mint/reuse the shared session and open
-  a single `MacShareSessionSheet` — the public `https://session.ogmo.app/{id}`
+  a single `MacShareSessionSheet` — the public `<SESSION_SHARE_BASE_URL>/{id}`
   link with a Copy button, plus password controls (set / change / remove) that
   load the current server-owned state on open.
 - **Menu-bar status**: the menu-bar dropdown shows recording state only, with no
@@ -83,7 +83,7 @@ literals instead of the iOS `.localized` keys.
 
 The wire format, Firestore paths, security rules, and Cloud Functions are all
 unchanged — the Mac writes to the same paths as the same authenticated user, so
-`../ogmo-cf` needs no edit. The only optional backend touch is adding a
+the backend Cloud Functions project needs no edit. The only optional backend touch is adding a
 `Mac_session_sharing` boolean to the `config/featureFlags` doc's `flags` map;
 absent, it defaults to `true`.
 

@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+AppMonitor.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Owns the lifecycle of the source-app attribution monitor
 //  (`SystemAudioActivityMonitor`). The monitor only runs when the current capture

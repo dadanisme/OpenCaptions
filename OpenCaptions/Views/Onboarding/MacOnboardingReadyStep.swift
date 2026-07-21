@@ -1,6 +1,6 @@
 //
 //  MacOnboardingReadyStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 6: confirmation. Recaps the chosen mode and capture source, then the
 //  coordinator's primary action finishes onboarding and drops into the app.
@@ -27,7 +27,7 @@ struct MacOnboardingReadyStep: View {
             MacOnboardingHeader(
                 systemImage: "checkmark.circle",
                 title: "You're all set",
-                subtitle: "Ogmo is ready. Start a session and watch your words appear.",
+                subtitle: "Open Captions is ready. Start a session and watch your words appear.",
                 isComplete: true
             )
 

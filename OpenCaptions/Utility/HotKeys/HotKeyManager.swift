@@ -1,13 +1,13 @@
 //
 //  HotKeyManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-level owner of the system-wide transcription hotkeys (issue #249). Loads
 //  and persists per-action bindings, registers them with Carbon (see
 //  `HotKeyManager+Carbon`), and dispatches each press to a state-respecting
 //  operation on `LiveSessionStore` — then shows a brief HUD confirming what
 //  happened. Because it drives `LiveSessionStore` (which owns the session
-//  independently of any window), the hotkeys work while Ogmo is in the
+//  independently of any window), the hotkeys work while Open Captions is in the
 //  background or its window is closed.
 //
 //  `@Observable @MainActor` singleton (the `MacAuthManager`/`MenuBarState`
@@ -167,7 +167,7 @@ final class HotKeyManager {
 
     // MARK: - App raise (Start fallback)
 
-    /// Brings Ogmo forward and opens its window (reopening if closed).
+    /// Brings Open Captions forward and opens its window (reopening if closed).
     private func raiseApp() {
         NSApplication.shared.activate()
         LiveSessionStore.shared.openMainWindow?()

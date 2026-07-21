@@ -1,6 +1,6 @@
 //
 //  MacAuthManager+Apple.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Sign in with Apple → Firebase. The credential is delivered by SwiftUI's
 //  `SignInWithAppleButton` (see `MacSignInControls`), so there is no ASAuthorization

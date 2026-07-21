@@ -1,6 +1,6 @@
 //
 //  MacEditSpeakersSheet.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Explicit edit-mode sheet for renaming the speakers of a SAVED session
 //  (the detail view). Lists every diarized speaker with its palette color

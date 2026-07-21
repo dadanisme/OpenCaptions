@@ -1,8 +1,8 @@
 //
 //  OpenCaptionsAEC.mm
-//  OgmoMac
+//  OpenCaptions
 //
-//  SpeexDSP-backed implementation of the OgmoAEC bridge (see OgmoAEC.h). Wraps
+//  SpeexDSP-backed implementation of the OpenCaptionsAEC bridge (see OpenCaptionsAEC.h). Wraps
 //  Speex's MDF adaptive echo canceller (`speex_echo_cancellation`) plus its
 //  residual-echo preprocessor (`speex_preprocess_run` with the echo state), and
 //  re-blocks the arbitrarily-sized mic / reference spans the audio callback
@@ -40,7 +40,7 @@ inline float pcmToFloat(spx_int16_t s) { return static_cast<float>(s) * (1.0f / 
 
 } // namespace
 
-@implementation OgmoAEC {
+@implementation OpenCaptionsAEC {
     SpeexEchoState *_echo;
     SpeexPreprocessState *_preprocess;
 

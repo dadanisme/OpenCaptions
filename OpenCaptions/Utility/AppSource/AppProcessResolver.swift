@@ -1,6 +1,6 @@
 //
 //  AppProcessResolver.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Maps an audio process's PID to the user-facing APP it belongs to, so audio
 //  produced by a helper / child process attributes to the parent app rather than
@@ -24,7 +24,7 @@ import Darwin
 /// helper states also don't resolve). Rendered as a neutral speaker glyph. Not a
 /// real bundle id, so it never resolves to an app icon.
 enum SourceAppMarker {
-    static let unknownSystemAudio = "__ogmo_unknown_system_audio__"
+    static let unknownSystemAudio = "__opencaptions_unknown_system_audio__"
 }
 
 enum AppProcessResolver {

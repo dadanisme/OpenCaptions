@@ -1,6 +1,6 @@
 //
 //  TranscriptTextSize.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Shared font-size scaling for the live transcript + captions overlay (#214).
 //  The size is a persisted Double MULTIPLIER (see `LiveSessionStore.transcriptTextSizeKey`).

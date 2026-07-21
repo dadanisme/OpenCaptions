@@ -1,6 +1,6 @@
 //
 //  MacRenameSpeakerSheet.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Small modal for renaming a speaker during a live transcription. It owns its
 //  own text state, seeded from the current name at init, so the field prefills

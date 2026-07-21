@@ -1,6 +1,6 @@
 //
 //  FeatureFlag.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Type-safe catalog of remotely-togglable features for the macOS app. Each
 //  case's `rawValue` is the key inside the Firestore `config/featureFlags` doc's
@@ -43,7 +43,7 @@ enum FeatureFlag: String {
     case postSessionRetranscription = "Mac_post_session_retranscription"
 
     /// Software acoustic echo cancellation for the "Microphone + System Audio"
-    /// mixed source (`OgmoAEC`, Speex-backed — issue #208). Gates whether the
+    /// mixed source (`OpenCaptionsAEC`, Speex-backed — issue #208). Gates whether the
     /// canceller is built at session start (off → the mix stays an uncancelled
     /// plain sum, the existing `aec == nil` fallback). Flipping it off mid-session
     /// releases a running canceller so it falls back to plain sum, giving us a

@@ -2,13 +2,13 @@
 
 **Date:** 2026-07-10
 **Issue:** #242 (epic #103) — "macOS: rate limiting, consumable-hours billing, and per-provider BYOK"
-**Type:** Implementation. Ports the iOS consumable-minutes model to OgmoMac.
+**Type:** Implementation. Ports the iOS consumable-minutes model to Open Captions.
 **Scope note:** **BYOK is out of scope** for this change (dropped per product decision).
 Offline Mode is the free path instead (see below).
 
 ## Context
 
-OgmoMac shipped without any metering — cloud transcription was unlimited and free.
+Open Captions shipped without any metering — cloud transcription was unlimited and free.
 The #177 distribution decision (`docs/2026-07-10-macos-distribution.md`) named this
 issue as its follow-up: add RevenueCat, port `SubscriptionManager` /
 `MinuteDeductionService`, configure `Purchases` with the Firebase uid, add a paywall,
@@ -26,8 +26,8 @@ keys off `!kind.isOnDevice`.
 
 ### 2. Same RevenueCat project as iOS — shared balance
 macOS uses the **same** RevenueCat project as iOS. The `credits` offering's packages
-`starter` / `plus` / `pro` each carry **both** the iOS products
-(`com.ogmo.minutes_180/600/1500`) and the macOS products (`extra_3_hours` /
+`starter` / `plus` / `pro` each carry **both** the iOS app's minute products
+and the macOS products (`extra_3_hours` /
 `extra_10_hours` / `extra_25_hours`); RevenueCat serves the right store product per
 platform. The `Min` virtual-currency balance is **shared across iOS + macOS** per
 Firebase uid (same project + currency + App User ID). A purchase on either platform
@@ -60,7 +60,7 @@ the single deduction, avoiding a double-charge.
 `MacSubscriptionManager` is an `@Observable @MainActor` singleton (matching
 `MacAuthManager`), unlike the iOS `SubscriptionManager` (`ObservableObject`). Dropped
 from the port: the legacy `hasActiveSubscription`/migration-notice path (no legacy
-macOS subscribers) and analytics (OgmoMac has no Firebase Analytics). The paywall is
+macOS subscribers) and analytics (Open Captions has no Firebase Analytics). The paywall is
 hand-rolled native SwiftUI (`MacPaywallView`), not RevenueCatUI — mirroring how iOS
 already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
 
@@ -95,9 +95,9 @@ already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
   `Utility/MacMinuteDeductionService.swift`, `ViewModel/MacTranscriptionViewModel+Billing.swift`,
   `Views/MacPaywallView.swift`, `Views/MacUsageSettingsView.swift`,
   `Views/MacLiveTranscriptionView+Billing.swift`, `Views/MacLiveTranscriptionView+Speakers.swift`
-  (split out to hold the line limit), `OgmoMac/OgmoMac.storekit` (local StoreKit test file).
-- **Edited**: `project.pbxproj` (link RevenueCat to OgmoMac), `OgmoMac-Info.plist`
-  (`REVENUECAT_API_KEY_MACOS`, `DEDUCT_MINUTES_URL`), `OgmoMacApp.swift` (env + foreground
+  (split out to hold the line limit), `OpenCaptions/OpenCaptions.storekit` (local StoreKit test file).
+- **Edited**: `project.pbxproj` (link RevenueCat to OpenCaptions), `OpenCaptions-Info.plist`
+  (`REVENUECAT_API_KEY_MACOS`, `DEDUCT_MINUTES_URL`), `OpenCaptionsApp.swift` (env + foreground
   refresh), `MacAuthManager.swift` (configure/logout RevenueCat with the uid),
   `MacTranscriptionViewModel.swift` (billing state + lifecycle hooks), `LiveSessionStore.swift`
   (headless gate + `pendingPaywall`), `TranscriptionsScreen.swift` (in-window gate + paywall),
@@ -114,11 +114,11 @@ already hand-rolls its paywall, and keeping RevenueCatUI unlinked on macOS.
 
 ## Testing notes
 
-- The local `OgmoMac.storekit` simulates the **purchase** UI/flow but not the `Min`
+- The local `OpenCaptions.storekit` simulates the **purchase** UI/flow but not the `Min`
   balance credit (virtual currency is computed by the RevenueCat backend). To exercise
   the full balance/deduction loop, use RevenueCat **sandbox** purchases, not the local
   config file.
-- **IAP review screenshot**: attach `OgmoMac/OgmoMac.storekit` in the scheme
+- **IAP review screenshot**: attach `OpenCaptions/OpenCaptions.storekit` in the scheme
   (Run → Options → StoreKit Configuration) and open the paywall. `MacPaywallView` has a
   **DEBUG-only StoreKit-direct fallback** (`MacSubscriptionManager.loadStoreKitFallback`)
   that renders products straight from StoreKit when RevenueCat returns no packages, so

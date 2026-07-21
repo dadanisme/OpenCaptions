@@ -1,6 +1,6 @@
 //
 //  MacOnboardingView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  First-run setup assistant, shown by the app gate until onboarding is complete.
 //  A single-card wizard: a progress-dot header, the current step's content, and a
@@ -82,7 +82,7 @@ struct MacOnboardingView: View {
         // the tallest) via `idealHeight`, but floor low enough that on a short display
         // or at a large app-text size the window can shrink and the middle scrolls
         // rather than clipping the pinned chrome. `.windowResizability(.contentMinSize)`
-        // (OgmoMacApp) enforces this floor and opens the window at the 600 ideal.
+        // (OpenCaptionsApp) enforces this floor and opens the window at the 600 ideal.
         .frame(minWidth: 500, minHeight: 400, idealHeight: 600)
         // Advance off the cloud Sign-in step once signed in. Triggered on BOTH the
         // sign-in edge (sign-in resolved while on .setup) AND arrival at .setup
@@ -187,7 +187,7 @@ struct MacOnboardingView: View {
     }
 
     /// Persists the capture choice and records onboarding completion. Writing the
-    /// gate flags flips the app gate (`OgmoMacApp`) to the main UI.
+    /// gate flags flips the app gate (`OpenCaptionsApp`) to the main UI.
     private func complete() {
         UserDefaults.standard.set(source.rawValue, forKey: LiveSessionStore.audioSourceKey)
         auth.completeOnboarding(guest: mode == .offline)

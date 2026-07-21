@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionControls.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The floating "transport pill" for the live recording screen (Apple Music
 //  style): a compact Liquid Glass capsule with three equal zones — an audio-input

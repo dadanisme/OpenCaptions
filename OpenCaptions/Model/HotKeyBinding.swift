@@ -1,6 +1,6 @@
 //
 //  HotKeyBinding.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Value types describing a single global-hotkey chord (issue #249). A binding is
 //  a Carbon virtual key code plus a Carbon modifier-flags mask, stored VERBATIM
@@ -111,7 +111,7 @@ enum HotKeyIssue {
     var warningText: String {
         switch self {
         case .missingModifier: return "Add at least one of ⌃ ⌥ ⌘ — this shortcut isn't active."
-        case .duplicate: return "Already used by another Ogmo shortcut — this one isn't active."
+        case .duplicate: return "Already used by another Open Captions shortcut — this one isn't active."
         case .systemConflict: return "In use by the system or another app — this shortcut isn't active."
         }
     }

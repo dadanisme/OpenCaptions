@@ -1,6 +1,6 @@
 //
 //  PostSessionProgressBanner.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  A slim, NON-blocking status pill shown while a batch pass runs over a session's
 //  audio in the background — either a re-transcription (#245) or a file import (#302).

@@ -1,6 +1,6 @@
 //
 //  OpenCaptionsCommands.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The app's menu-bar commands (issue #173). A single "Recording" menu carries
 //  every transcription action; each item reads a `@FocusedValue` published by
@@ -14,7 +14,7 @@
 
 import SwiftUI
 
-struct OgmoCommands: Commands {
+struct OpenCaptionsCommands: Commands {
     @FocusedValue(\.startRecording) private var startRecording
     @FocusedValue(\.liveRecording) private var liveRecording
     @FocusedValue(\.exportSummary) private var exportSummary

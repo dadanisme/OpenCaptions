@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionEngineKind.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The internal transcription-engine descriptor + a small factory that builds the concrete
 //  `RealtimeTranscriptionEngine` for a chosen kind. Cloud Soniox (diarized) plus two on-device

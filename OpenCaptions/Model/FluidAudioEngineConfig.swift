@@ -1,6 +1,6 @@
 //
 //  FluidAudioEngineConfig.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Configuration for the on-device FluidAudio transcription engines on macOS:
 //  NVIDIA Parakeet TDT v2 (batch model driven in a sliding window) and Nemotron

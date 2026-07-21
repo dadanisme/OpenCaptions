@@ -1,4 +1,4 @@
-# macOS Account Deletion (OgmoMac)
+# macOS Account Deletion (OpenCaptions)
 
 **Date:** 2026-07-14
 **Issue:** #253 (under epic #103)
@@ -7,7 +7,7 @@
 ## Why
 
 Apple App Store Review Guideline **5.1.1(v)** requires any app that supports account
-creation to also offer **in-app account deletion**. OgmoMac creates accounts (Google /
+creation to also offer **in-app account deletion**. Open Captions creates accounts (Google /
 email-password / Apple) but had no deletion path — a hard blocker for shipping to the Mac
 App Store. This was an explicit deferral under epic #103.
 
@@ -22,15 +22,15 @@ token (Apple users), wipes this user's local data, and returns the app to onboar
 ### Scope: the app deletes only Auth + local data; the backend cleans itself up
 The client deletes the **Firebase Auth user** and this user's **local SwiftData rows + on-disk
 audio**. It does **not** touch Firestore. Database/backend cleanup is a Cloud Function
-concern: the sibling `../ogmo-cf` repo deploys an Auth `onDelete` trigger
+concern: the backend Cloud Functions project deploys an Auth `onDelete` trigger
 (`onUserDeleted`, region `asia-southeast1`, in `src/onUserDelelted.ts`) that fires when the
 Auth user is removed and deletes the user's **RevenueCat customer** (the shared "Min"
 balance). This mirrors iOS, which also deletes only Auth + local. Keeping the client simple
 avoids duplicating cleanup logic and needing extra Firestore client-delete permissions.
 
-> **Follow-up (out of scope, ogmo-cf):** `onUserDeleted` does **not** currently purge the
+> **Follow-up (out of scope, backend Cloud Functions project):** `onUserDeleted` does **not** currently purge the
 > user's share-to-web Firestore session docs. If that's wanted, extend the existing trigger in
-> `ogmo-cf` (branch off its `main`, emulator-test) — it is not an app change.
+> the backend Cloud Functions project (branch off its `main`, emulator-test) — it is not an app change.
 
 ### Proactive per-provider re-authentication
 Firebase's `user.delete()` throws `requiresRecentLogin` when the session is stale, and Apple
@@ -78,23 +78,23 @@ this uid's rows/audio are touched — another signed-out user's data on a shared
 
 ### Returning to sign-in is free
 The flow ends in `MacAuthManager.signOut()`, which clears `userID` and sets `guestMode=false`.
-`OgmoMacApp`'s gate (`hasCompletedOnboarding && (auth.isSignedIn || isGuestMode)`) then falls
+`OpenCaptionsApp`'s gate (`hasCompletedOnboarding && (auth.isSignedIn || isGuestMode)`) then falls
 to `MacOnboardingView`. `signOut()` also already tears down billing (`discardActiveSession` +
 `clearPendingDeduction` + RevenueCat `logOut`). The delete sheet observes `auth.isSignedIn`
 flipping false to dismiss and close the Settings window (same idiom as Sign Out).
 
 ## Files
 
-- `OgmoMac/Utility/Auth/MacAuthManager.swift` — added observable `isDeleting` / `deletionError`.
-- `OgmoMac/Utility/Auth/MacAuthManager+AccountDeletion.swift` — **new.** `MacAuthProviderKind`,
+- `OpenCaptions/Utility/Auth/MacAuthManager.swift` — added observable `isDeleting` / `deletionError`.
+- `OpenCaptions/Utility/Auth/MacAuthManager+AccountDeletion.swift` — **new.** `MacAuthProviderKind`,
   `MacDeletionReauth`, `MacDeletionError`, `deleteAccount(reauth:modelContainer:)`, Google
   silent/interactive reauth, and the local+audio wipe.
-- `OgmoMac/Views/Settings/MacDeleteAccountSheet.swift` — **new.** Confirmation-gated,
+- `OpenCaptions/Views/Settings/MacDeleteAccountSheet.swift` — **new.** Confirmation-gated,
   provider-aware sheet.
-- `OgmoMac/Views/Settings/MacAccountSettingsView.swift` — Delete Account button (signed-in
+- `OpenCaptions/Views/Settings/MacAccountSettingsView.swift` — Delete Account button (signed-in
   pane) + sheet presentation.
-- `OgmoMac/Views/Settings/MacSettingsView.swift` — header/comment tidy.
+- `OpenCaptions/Views/Settings/MacSettingsView.swift` — header/comment tidy.
 
 ## Notes / deferrals
-- Strings are hardcoded English (OgmoMac has no `LanguageManager`).
+- Strings are hardcoded English (Open Captions has no `LanguageManager`).
 - Password reset / email verification remain deferred under #103.

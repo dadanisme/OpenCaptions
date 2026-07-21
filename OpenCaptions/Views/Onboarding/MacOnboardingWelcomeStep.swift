@@ -1,6 +1,6 @@
 //
 //  MacOnboardingWelcomeStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 1: the value proposition. A hero header plus three feature highlights.
 //
@@ -13,7 +13,7 @@ struct MacOnboardingWelcomeStep: View {
             MacOnboardingHeader(
                 assetName: "opencaptions-logo",
                 title: "Real-time transcription, right on your Mac",
-                subtitle: "Ogmo turns anything you hear into clean, searchable text — with speakers, summaries, and action items."
+                subtitle: "Open Captions turns anything you hear into clean, searchable text — with speakers, summaries, and action items."
             )
 
             VStack(alignment: .leading, spacing: 16) {
@@ -25,7 +25,7 @@ struct MacOnboardingWelcomeStep: View {
                 feature(
                     "person.2.wave.2",
                     "Automatic speaker labels",
-                    "Know who said what — Ogmo separates voices as they talk."
+                    "Know who said what — Open Captions separates voices as they talk."
                 )
                 feature(
                     "sparkles",

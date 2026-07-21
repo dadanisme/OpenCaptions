@@ -63,8 +63,18 @@ struct SummaryAPIError: Decodable {
 @Observable
 final class SummaryService {
     
-    private var summarizeFunctionURL: String = "https://asia-southeast1-ogmo-491906.cloudfunctions.net/summarizeTranscript"
-    
+    private var summarizeFunctionURL: String {
+        guard
+            let url = Bundle.main.infoDictionary?["SUMMARIZE_URL"] as? String,
+            !url.isEmpty
+        else {
+            fatalError(
+                "SUMMARIZE_URL not found in Info.plist. Make sure it is set in the .xcconfig file."
+            )
+        }
+        return url
+    }
+
     private var summarizeAPIToken: String {
         guard
             let apiKey = Bundle.main.infoDictionary?["SUMMARIZE_API_TOKEN"]

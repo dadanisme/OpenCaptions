@@ -1,6 +1,6 @@
 //
 //  HotKeyAction.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The three transcription actions controllable by a global hotkey (issue #249).
 //  Each is a TOGGLE — one chord flips between the two states (start⇄stop,
@@ -71,5 +71,5 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
     }
 
     /// UserDefaults key holding this action's persisted binding (JSON).
-    var defaultsKey: String { "ogmo.hotkey.\(rawValue)" }
+    var defaultsKey: String { "opencaptions.hotkey.\(rawValue)" }
 }

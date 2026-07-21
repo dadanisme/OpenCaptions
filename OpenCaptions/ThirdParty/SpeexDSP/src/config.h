@@ -1,17 +1,17 @@
 /*
  * config.h — build configuration for the vendored SpeexDSP subset used by
- * OgmoMac's software echo canceller (see ../README-OPENCAPTIONS.md).
+ * OpenCaptions's software echo canceller (see ../README-OPENCAPTIONS.md).
  *
  * Upstream SpeexDSP generates this file with autotools/CMake. We hand-write the
  * minimal set of knobs the echo-canceller + preprocessor + KISS-FFT backend
- * need, so the sources compile as plain files in the OgmoMac target with no
+ * need, so the sources compile as plain files in the OpenCaptions target with no
  * build system of their own. It is pulled in by the SpeexDSP `.c` files via
  * `#ifdef HAVE_CONFIG_H #include "config.h"`, and HAVE_CONFIG_H=1 is set on the
- * OgmoMac target (so only these sources see it).
+ * OpenCaptions target (so only these sources see it).
  */
 
-#ifndef OGMO_SPEEXDSP_CONFIG_H
-#define OGMO_SPEEXDSP_CONFIG_H
+#ifndef OPENCAPTIONS_SPEEXDSP_CONFIG_H
+#define OPENCAPTIONS_SPEEXDSP_CONFIG_H
 
 /* Float32 build (our whole pipeline is Float32) — mutually exclusive with
    FIXED_POINT; arch.h #errors if neither/both are set. */
@@ -26,4 +26,4 @@
    directly into the app, so no attribute is needed — define it away. */
 #define EXPORT
 
-#endif /* OGMO_SPEEXDSP_CONFIG_H */
+#endif /* OPENCAPTIONS_SPEEXDSP_CONFIG_H */

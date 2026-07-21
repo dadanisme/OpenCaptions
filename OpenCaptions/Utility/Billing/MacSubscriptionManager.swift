@@ -1,6 +1,6 @@
 //
 //  MacSubscriptionManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  RevenueCat wrapper + consumable-minute balance for the standalone macOS app.
 //  Ported from the iOS `SubscriptionManager` but rebuilt as an `@Observable`
@@ -45,8 +45,7 @@ final class MacSubscriptionManager {
     /// Virtual-currency code the minute balance is read from.
     static let currencyCode = "Min"
     /// Minutes granted per package, keyed by RevenueCat **package** identifier
-    /// (platform-agnostic — the macOS `extra_3/10/25_hours` and iOS
-    /// `com.ogmo.minutes_*` products both attach to these packages).
+    /// (platform-agnostic — the store's minute products attach to these packages).
     static let packageMinutes: [String: Int] = ["starter": 180, "plus": 600, "pro": 1500]
 
     // MARK: - Observed state

@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+Firestore.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Firestore share-to-web bridging for the live macOS transcription flow.
 //  Sharing is per-session and explicit: a recording starts unsynced and only

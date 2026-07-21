@@ -1,6 +1,6 @@
 //
 //  AppTextSize.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-WIDE font-size scaling for the general macOS UI (sidebar, session list,
 //  session detail + summary, settings, sign-in) — INDEPENDENT of the transcript /

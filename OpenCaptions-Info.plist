@@ -22,16 +22,26 @@
 	<string>$(SONIOX_API_KEY)</string>
 	<key>SUMMARIZE_API_TOKEN</key>
 	<string>$(SUMMARIZE_API_TOKEN)</string>
-	<!-- RevenueCat public SDK key for the Mac App Store app. Distinct from the iOS
-	     REVENUECAT_API_KEY: the two apps share one RevenueCat project (so the "Min"
-	     minute balance is shared per Firebase uid), but each store app has its own
-	     public SDK key. Supplied per-developer via the git-ignored Config.xcconfig. -->
+	<!-- Transcript summarization endpoint (Cloud Function). Bearer is SUMMARIZE_API_TOKEN. -->
+	<key>SUMMARIZE_URL</key>
+	<string>$(SUMMARIZE_URL)</string>
+	<!-- RevenueCat public SDK key for the Mac App Store app. Supplied per-developer
+	     via the git-ignored Config.xcconfig. -->
 	<key>REVENUECAT_API_KEY_MACOS</key>
 	<string>$(REVENUECAT_API_KEY_MACOS)</string>
 	<!-- Minute-usage deduction endpoint (Cloud Function). Bearer is SUMMARIZE_API_TOKEN
-	     (reused; there is no separate deduction token). Same backend as iOS. -->
+	     (reused; there is no separate deduction token). -->
 	<key>DEDUCT_MINUTES_URL</key>
 	<string>$(DEDUCT_MINUTES_URL)</string>
+	<!-- Base URL of the read-only web session viewer (no trailing slash); the share
+	     link is <SESSION_SHARE_BASE_URL>/<sessionId>. Supplied per-deployment via the
+	     git-ignored Config.xcconfig. -->
+	<key>SESSION_SHARE_BASE_URL</key>
+	<string>$(SESSION_SHARE_BASE_URL)</string>
+	<!-- Support inbox surfaced in Settings → Support. Supplied per-deployment via the
+	     git-ignored Config.xcconfig. -->
+	<key>SUPPORT_EMAIL</key>
+	<string>$(SUPPORT_EMAIL)</string>
 	<!-- Google Sign-In OAuth callback. The value is the Firebase app's
 	     REVERSED_CLIENT_ID; kept generic here and supplied per-developer via the
 	     git-ignored Config.xcconfig (REVERSED_CLIENT_ID = com.googleusercontent.apps.…). -->

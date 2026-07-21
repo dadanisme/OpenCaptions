@@ -1,13 +1,13 @@
 //
 //  MacAuthManager+AccountDeletion.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  In-app account deletion — required for the Mac App Store (App Review Guideline
 //  5.1.1(v)). Ported from the iOS `AuthManager+AccountDeletion`, but macOS supports
 //  THREE providers (Google, email/password, Apple), so the reauth step dispatches on
 //  the current provider. The app deletes only the Firebase Auth user + this user's
 //  LOCAL data; backend cleanup (the RevenueCat customer) is handled server-side by the
-//  `onUserDeleted` Auth trigger in the sibling ogmo-cf repo. See
+//  `onUserDeleted` Auth trigger in the backend Cloud Functions project. See
 //  docs/2026-07-14-macos-account-deletion.md.
 //
 //  Apple requires token revocation for "Sign in with Apple" accounts (5.1.1); the

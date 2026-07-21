@@ -1,6 +1,6 @@
 //
 //  MacSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The macOS Settings window (Cmd+,). Home for advanced account actions. The
 //  General tab gathers all preferences (appearance, recording, captions); the
@@ -161,7 +161,7 @@ struct MacSettingsView: View {
     /// Explanatory note under the Offline Mode toggle.
     private var offlineModeFootnote: String {
         if auth.isGuest {
-            return "You're using Ogmo offline — transcription runs entirely on this Mac (English only). Sign in from the Account tab to enable cloud transcription with speaker labels."
+            return "You're using Open Captions offline — transcription runs entirely on this Mac (English only). Sign in from the Account tab to enable cloud transcription with speaker labels."
         }
         if !offlineFilesReady {
             return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."

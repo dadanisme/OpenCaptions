@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+Billing.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Minute metering for cloud (Soniox) sessions. Distilled from the iOS
 //  LiveTranscriptionView billing logic, but hoisted onto the view model (not a

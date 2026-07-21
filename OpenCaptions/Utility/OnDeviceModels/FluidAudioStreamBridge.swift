@@ -1,6 +1,6 @@
 //
 //  FluidAudioStreamBridge.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Stateless helpers that bridge FluidAudio's streaming managers to the engine-agnostic
 //  `TranscriptionToken` pipeline. `makeBuffer(from:)` wraps the app's 16 kHz Float32 PCM

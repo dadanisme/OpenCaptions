@@ -1,6 +1,6 @@
 # macOS Mic + System-Audio Mix with Echo Cancellation (VPIO) — #189
 
-**Date:** 2026-07-05 · **Target:** OgmoMac · **Epic:** #103 · **Depends on:** #176 (Phase 1)
+**Date:** 2026-07-05 · **Target:** OpenCaptions · **Epic:** #103 · **Depends on:** #176 (Phase 1)
 
 ## Problem
 
@@ -57,4 +57,4 @@ Edited: `AudioCaptureSource.swift` (enum case + factory + `requiresMicrophone`),
 
 ## Verification
 
-Build the **OgmoMac** scheme in Xcode. Pick "Microphone + System Audio" → grant Microphone + Screen Recording (relaunch on first screen grant) → play another app's audio while speaking → confirm one transcript with **both** the system audio and your voice, and that the system audio is **not** transcribed twice on built-in speakers. Test denied states for each grant; test live switching among all three sources (socket + transcript preserved). Validate on a **stably-signed** build inside the sandbox. CI: `scripts/check-file-length.sh OgmoMac`.
+Build the **OpenCaptions** scheme in Xcode. Pick "Microphone + System Audio" → grant Microphone + Screen Recording (relaunch on first screen grant) → play another app's audio while speaking → confirm one transcript with **both** the system audio and your voice, and that the system audio is **not** transcribed twice on built-in speakers. Test denied states for each grant; test live switching among all three sources (socket + transcript preserved). Validate on a **stably-signed** build inside the sandbox. CI: `scripts/check-file-length.sh OpenCaptions`.

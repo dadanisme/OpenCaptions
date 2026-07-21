@@ -17,7 +17,7 @@
 	     $(AppIdentifierPrefix) resolves to the signing team's prefix. -->
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.muhammadramdan.OgmoMac</string>
+		<string>$(AppIdentifierPrefix)com.muhammadramdan.OpenCaptions</string>
 	</array>
 	<key>com.apple.security.device.audio-input</key>
 	<true/>

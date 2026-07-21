@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+AudioSource.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Builds the selected capture source and hot-swaps it live. Kept out of the
 //  main view-model file (near the per-file line limit) — the main file just

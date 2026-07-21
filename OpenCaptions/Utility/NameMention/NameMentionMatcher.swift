@@ -1,6 +1,6 @@
 //
 //  NameMentionMatcher.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Word-boundary, case-insensitive matcher for the signed-in user's display name.
 //  The single source of truth for how a name becomes a regex, shared by the two

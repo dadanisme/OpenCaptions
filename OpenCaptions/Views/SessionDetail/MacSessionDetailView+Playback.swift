@@ -1,6 +1,6 @@
 //
 //  MacSessionDetailView+Playback.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The audio player bar and the playback-synced transcript: highlights the line
 //  under the playhead, auto-scrolls to it, and lets a line's timestamp be tapped

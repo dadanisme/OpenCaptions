@@ -1,6 +1,6 @@
 //
 //  MacAuthManager+Email.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  First-class Firebase email/password sign-in. On iOS this same mechanism
 //  exists but is gated behind `#if DEBUG` (a QA aid); here it ships as a real

@@ -1,6 +1,6 @@
 //
 //  MacAuthManager+Onboarding.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Onboarding completion + account-mode state, ported from the iOS
 //  `AuthManager+Profile` per-user pattern and extended for macOS's "use without

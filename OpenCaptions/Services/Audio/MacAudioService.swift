@@ -1,6 +1,6 @@
 //
 //  MacAudioService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Microphone capture for macOS. Reuses the proven iOS DSP pipeline
 //  (AVAudioEngine input tap → AVAudioConverter → 16 kHz mono Float32),

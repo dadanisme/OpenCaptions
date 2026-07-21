@@ -2,12 +2,12 @@
 
 **Date:** 2026-07-08
 **Issue:** #231 (follow-up to #208 — the software echo canceller from `docs/2026-07-06-macos-mic-system-audio-fix.md`)
-**Scope:** OgmoMac only
+**Scope:** OpenCaptions only
 
 ## Problem
 
 The "Microphone + System Audio" mixed source runs software acoustic echo
-cancellation (`OgmoAEC`, SpeexDSP-backed) to strip the system audio's
+cancellation (`OpenCaptionsAEC`, SpeexDSP-backed) to strip the system audio's
 speaker-bleed out of the mic before summing the two streams. It was engaged
 unconditionally in `MixedAudioCaptureService+Mic.swift`. If the canceller
 regresses in the field (over-cancels, distorts, or CPU-regresses on some
@@ -21,7 +21,7 @@ Wrap AEC engagement in a new remote feature flag, `FeatureFlag.aecEnabled`
 stays an uncancelled plain sum — the pre-existing `aec == nil` fallback path.
 The default is `true`, so with no remote config the behavior is unchanged.
 
-- **Flag off at session start** → `configureMicEngine` skips `OgmoAEC` init; `aec`
+- **Flag off at session start** → `configureMicEngine` skips `OpenCaptionsAEC` init; `aec`
   stays nil; `handleMicBuffer` sums mic + system with no cancellation.
 - **Flag flipped off mid-session** → the running canceller is released and the mix
   falls back to plain sum for the rest of the session.
@@ -33,7 +33,7 @@ The default is `true`, so with no remote config the behavior is unchanged.
 ## Why the flag lives partly in the service and partly in the view model
 
 The **build gate** stays in `configureMicEngine` (`+Mic`) per the issue — that is
-where the OgmoAEC was already constructed. The **flag observer** and the
+where the OpenCaptionsAEC was already constructed. The **flag observer** and the
 thread-safe setter live in a new `MixedAudioCaptureService+AEC.swift`, mirroring
 `FirestoreSyncService.observeSessionSharingFlag` (a service that owns its own flag
 observer). The view model arms the observer from `makeAudioSource` — the single
@@ -61,10 +61,10 @@ now touch AEC state, so:
   strong local under the lock, then calls `process`/`processReverse` on that local.
   A concurrent `setAECEnabled(false)` (main actor) nils the instance's reference,
   but the object outlives the local, so it is never deallocated mid-`process`.
-  OgmoAEC's "single thread drives process/processReverse" rule still holds — only
+  OpenCaptionsAEC's "single thread drives process/processReverse" rule still holds — only
   the render thread ever calls them; the main actor only releases the reference.
 - **Build-vs-flip race:** if the flag flips off while `configureMicEngine` is
-  constructing the OgmoAEC, the post-build assignment is re-checked under the lock
+  constructing the OpenCaptionsAEC, the post-build assignment is re-checked under the lock
   (`if aecEnabled { aec = canceller }`) and the just-built canceller is dropped
   before any tap is installed.
 
@@ -80,25 +80,25 @@ nothing left to watch.
 
 ## Files touched
 
-- `OgmoMac/Model/FeatureFlag.swift` — new `case aecEnabled = "Mac_aec_enabled"`.
-- `OgmoMac/Services/Audio/MixedAudioCaptureService.swift` — `aecEnabled` snapshot +
+- `OpenCaptions/Model/FeatureFlag.swift` — new `case aecEnabled = "Mac_aec_enabled"`.
+- `OpenCaptions/Services/Audio/MixedAudioCaptureService.swift` — `aecEnabled` snapshot +
   `aecLock`; doc updates on `aec`.
-- `OgmoMac/Services/Audio/MixedAudioCaptureService+Mic.swift` — flag-gated build,
+- `OpenCaptions/Services/Audio/MixedAudioCaptureService+Mic.swift` — flag-gated build,
   locked render-thread snapshot, locked teardown release.
-- `OgmoMac/Services/Audio/MixedAudioCaptureService+AEC.swift` — new: `setAECEnabled` +
+- `OpenCaptions/Services/Audio/MixedAudioCaptureService+AEC.swift` — new: `setAECEnabled` +
   `observeAECFlag`.
-- `OgmoMac/ViewModel/MacTranscriptionViewModel+AudioSource.swift` — arm the
+- `OpenCaptions/ViewModel/MacTranscriptionViewModel+AudioSource.swift` — arm the
   observer in `makeAudioSource`.
 
 ## Verification
 
-- Build the `OgmoMac` scheme in Xcode.
+- Build the `OpenCaptions` scheme in Xcode.
 - On a physical Mac, "Microphone + System Audio" over the built-in speakers:
-  - **Flag on** (or absent): Console.app (subsystem `com.muhammadramdan.OgmoMac`,
-    category `MixedAudio`) logs *"OgmoAEC ready … engaged"*; other participants are
+  - **Flag on** (or absent): Console.app (subsystem `com.muhammadramdan.OpenCaptions`,
+    category `MixedAudio`) logs *"OpenCaptionsAEC ready … engaged"*; other participants are
     transcribed once.
   - **Flag `Mac_aec_enabled = false`** in `config/featureFlags` before start: logs
-    *"OgmoAEC disabled by feature flag — mix uncancelled (plain sum)"*; the mix is a
+    *"OpenCaptionsAEC disabled by feature flag — mix uncancelled (plain sum)"*; the mix is a
     plain sum (speaker-bleed doubles the remote audio on built-in speakers).
   - **Flip the flag off mid-session:** cancellation stops within the listener's
     round-trip; the session continues as a plain sum.

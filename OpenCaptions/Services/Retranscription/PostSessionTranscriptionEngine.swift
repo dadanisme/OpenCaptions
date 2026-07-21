@@ -1,6 +1,6 @@
 //
 //  PostSessionTranscriptionEngine.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The pluggable PROTOCOL for re-transcribing a completed session's saved audio
 //  for improved accuracy. It mirrors the live `RealtimeTranscriptionEngine`

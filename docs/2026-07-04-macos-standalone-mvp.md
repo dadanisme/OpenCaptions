@@ -7,9 +7,9 @@
 ## Decision
 
 The first native macOS deliverable (#171) is built as a **fully standalone target
-(`OgmoMac/`) that shares NO source with the iOS `unmute` target.** Everything the
+(`OpenCaptions/`) that shares NO source with the iOS `unmute` target.** Everything the
 Mac app needs is either copied-and-adapted from `unmute/` or written fresh under
-`OgmoMac/`.
+`OpenCaptions/`.
 
 This **overrides the issue's original "shares Model/Services/ViewModel" wording** —
 the product owner chose standalone during implementation.
@@ -22,7 +22,7 @@ the product owner chose standalone during implementation.
 - **No fragile project surgery.** The project uses Xcode 16 synchronized folder
   groups (`PBXFileSystemSynchronizedRootGroup`). Sharing `unmute/` into a second
   target means hand-editing membership exception sets — fragile. Standalone avoids it
-  entirely: files dropped under `OgmoMac/` are auto-compiled into the target.
+  entirely: files dropped under `OpenCaptions/` are auto-compiled into the target.
 - **No dependencies.** A standalone minimal Soniox app needs only system frameworks
   (SwiftData, AVFoundation, Foundation/URLSession). **No Firebase, no RevenueCat, no
   SPM.** Summarization is a plain `URLSession` POST with a bearer token, so it needs
@@ -68,16 +68,16 @@ history lists all local sessions.
   limits, CJK-safe boundaries) ported verbatim, minus Firestore/Live Activity/
   subscription/reconnection/periodic-reset. Instantiates the Soniox engine directly
   (no multi-engine factory).
-- UI: `OgmoMacApp` (schema container, no Firebase), `ContentView`
+- UI: `OpenCaptionsApp` (schema container, no Firebase), `ContentView`
   (`NavigationSplitView` list + detail), `MacLiveTranscriptionView` (record/stop +
   live transcript), `MacSessionDetailView` (summary + transcript).
 
-## Build settings (`OgmoMac` target)
+## Build settings (`OpenCaptions` target)
 
 - `MACOSX_DEPLOYMENT_TARGET = 14.0` (was 26.5; issue floor + SwiftData).
 - `SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated` (was `MainActor`) — the ported
   non-`@MainActor` engine/protocol assume the iOS concurrency model.
-- **Entitlements via `OgmoMac.entitlements`** (repo root, `CODE_SIGN_ENTITLEMENTS`):
+- **Entitlements via `OpenCaptions.entitlements`** (repo root, `CODE_SIGN_ENTITLEMENTS`):
   `com.apple.security.app-sandbox`, `.device.audio-input`, `.network.client`.
   `.device.audio-input` alone authorizes the whole capture path (plain `AVAudioEngine`
   mic tap *and* the Core Audio process-tap system-audio path). **Historical note /
@@ -94,10 +94,10 @@ history lists all local sessions.
   Guideline 2.4.5(i).
 - `INFOPLIST_KEY_NSMicrophoneUsageDescription` (a known key — merges into the
   generated Info.plist fine).
-- **API keys via a dedicated `OgmoMac-Info.plist`** (repo root), mirroring the iOS
-  target's `Ogmo-Info.plist`: it holds `SONIOX_API_KEY = $(SONIOX_API_KEY)` and
+- **API keys via a dedicated `OpenCaptions-Info.plist`** (repo root), mirroring the original iOS
+  target's Info.plist: it holds `SONIOX_API_KEY = $(SONIOX_API_KEY)` and
   `SUMMARIZE_API_TOKEN = $(SUMMARIZE_API_TOKEN)`, set via `INFOPLIST_FILE =
-  "OgmoMac-Info.plist"` alongside `GENERATE_INFOPLIST_FILE = YES` (Xcode merges the
+  "OpenCaptions-Info.plist"` alongside `GENERATE_INFOPLIST_FILE = YES` (Xcode merges the
   file's `$(VAR)` keys with the generated keys). `Config.xcconfig` is project-level,
   so `$(VAR)` resolves for the Mac target.
   - **Why not `INFOPLIST_KEY_SONIOX_API_KEY`:** `GENERATE_INFOPLIST_FILE` only emits
@@ -105,12 +105,12 @@ history lists all local sessions.
     dropped, so `SonioxSecrets` `fatalError`ed at launch. The file-based approach is
     the fix.
 
-`scripts/check-file-length.sh` now also scans `OgmoMac/`.
+`scripts/check-file-length.sh` now also scans `OpenCaptions/`.
 
 ## Verification (physical Mac required)
 
 1. iOS target builds & runs unchanged (no `unmute/` files touched).
-2. `OgmoMac` builds; launches in a resizable window on macOS 14+.
+2. `OpenCaptions` builds; launches in a resizable window on macOS 14+.
 3. Record → mic prompt → live Soniox transcript with speaker labels.
 4. Stop → session saved, listed, and reopens with its transcript.
 5. Summarize → AI summary persisted.

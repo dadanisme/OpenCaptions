@@ -1,6 +1,6 @@
 //
 //  MacOnboardingPermissionsStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 5: request recording permissions up front. Always requests the microphone
 //  (both capture choices need it). When the choice includes system audio, it also
@@ -32,8 +32,8 @@ struct MacOnboardingPermissionsStep: View {
                 systemImage: micGranted ? "checkmark.shield" : "mic",
                 title: "Enable recording",
                 subtitle: capturesSystemAudio
-                    ? "Ogmo needs your microphone, plus permission to record system audio for meetings and videos. Nothing is recorded until you start a session."
-                    : "Ogmo needs microphone access to transcribe what you say. Nothing is recorded until you start a session.",
+                    ? "Open Captions needs your microphone, plus permission to record system audio for meetings and videos. Nothing is recorded until you start a session."
+                    : "Open Captions needs microphone access to transcribe what you say. Nothing is recorded until you start a session.",
                 isComplete: micGranted
             )
 
@@ -100,8 +100,8 @@ struct MacOnboardingPermissionsStep: View {
             }
         } footnote: {
             systemAudioPrimed
-                ? "If macOS asked to record audio, allow it so Ogmo can capture other apps."
-                : "Lets Ogmo hear meetings, calls, and videos on this Mac."
+                ? "If macOS asked to record audio, allow it so Open Captions can capture other apps."
+                : "Lets Open Captions hear meetings, calls, and videos on this Mac."
         }
     }
 

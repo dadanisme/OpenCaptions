@@ -1,6 +1,6 @@
 //
 //  MacAuthManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Authentication for the standalone macOS app. Ported from the iOS `AuthManager`
 //  (Sign in with Apple → Firebase, email/password, launch reconcile), minus the

@@ -1,6 +1,6 @@
 //
 //  RetranscriptionManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-lifetime owner of post-session re-transcription runs (#245). A singleton so a
 //  run SURVIVES leaving/closing the session-detail window — the work continues in the

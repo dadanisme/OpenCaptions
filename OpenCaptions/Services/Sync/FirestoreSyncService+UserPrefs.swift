@@ -1,6 +1,6 @@
 //
 //  FirestoreSyncService+UserPrefs.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Writes to the per-user profile doc (`users/{uid}`), kept apart from the
 //  session-sync writes. Covers the Offline Mode preference (#274) and the

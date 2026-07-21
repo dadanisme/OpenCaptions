@@ -1,14 +1,14 @@
 //
 //  MacNameMentionNotifier.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Alerts the signed-in user when their name is spoken in a live transcription
 //  (issue #255). This is net-new product surface — iOS only *highlights* the name,
 //  it never notifies.
 //
-//  Focus-gated hybrid: when Ogmo is the frontmost app the user is looking at the
+//  Focus-gated hybrid: when Open Captions is the frontmost app the user is looking at the
 //  transcript, so a transient in-app HUD badge (the same overlay the hotkeys use)
-//  is enough; when Ogmo is backgrounded, a macOS local notification reaches them in
+//  is enough; when Open Captions is backgrounded, a macOS local notification reaches them in
 //  whatever app they're in. Fires only on FINALIZED sentences (never the noisy
 //  partial) and debounces so a name repeated in quick succession doesn't spam.
 //

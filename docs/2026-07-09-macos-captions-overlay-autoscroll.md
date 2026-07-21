@@ -1,7 +1,7 @@
 # macOS transcript auto-scroll fix (issue #239)
 
 **Date:** 2026-07-09
-**Scope:** `OgmoMac` target — captions overlay (primary) + main live view (secondary).
+**Scope:** `OpenCaptions` target — captions overlay (primary) + main live view (secondary).
 **Status:** implemented — imperative `scrollTo` to the newest real line.
 `.defaultScrollAnchor(.bottom)` was tried first and **rejected** (it hung the app on
 a flush); see below.

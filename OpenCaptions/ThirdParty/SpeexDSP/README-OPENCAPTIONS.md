@@ -1,8 +1,8 @@
 # Vendored SpeexDSP (echo-cancellation subset)
 
-Third-party code — **not** first-party OgmoMac source. A minimal subset of
+Third-party code — **not** first-party OpenCaptions source. A minimal subset of
 [xiph/speexdsp](https://github.com/xiph/speexdsp) (BSD-3-Clause, see `COPYING`),
-vendored to back `OgmoMac/AEC/OgmoAEC.mm`'s software acoustic echo canceller for
+vendored to back `OpenCaptions/AEC/OpenCaptionsAEC.mm`'s software acoustic echo canceller for
 the "Microphone + System Audio" mixed source (issue #205 Part C / #208).
 
 ## Why vendored source (not a binary / SPM package)
@@ -10,8 +10,8 @@ the "Microphone + System Audio" mixed source (issue #205 Part C / #208).
 The alternative — WebRTC AEC3 — has to be built from source into a large
 `.xcframework` (the public prebuilt WebRTC doesn't expose the AEC classes).
 SpeexDSP's echo canceller is pure C and tiny, so we compile a handful of `.c`
-files directly into the OgmoMac target: no binary to build, host, or code-sign,
-no SPM dependency. `OgmoAEC`'s API is deliberately AEC3-shaped so a WebRTC
+files directly into the OpenCaptions target: no binary to build, host, or code-sign,
+no SPM dependency. `OpenCaptionsAEC`'s API is deliberately AEC3-shaped so a WebRTC
 engine can replace Speex behind it later without touching call sites.
 
 ## What's here
@@ -19,18 +19,18 @@ engine can replace Speex behind it later without touching call sites.
 - `src/*.c` — the **six** compiled sources: the echo canceller (`mdf.c`), the
   residual-echo preprocessor (`preprocess.c`), the FFT wrapper (`fftwrap.c`),
   `filterbank.c`, and the self-contained KISS FFT backend (`kiss_fft.c`,
-  `kiss_fftr.c`). These auto-join the target's Compile Sources (OgmoMac is an
+  `kiss_fftr.c`). These auto-join the target's Compile Sources (OpenCaptions is an
   Xcode synchronized folder).
 - `src/*.h` — every upstream internal header (only a subset is `#include`d; the
   rest are copied so no include can go missing).
 - `src/config.h` — **hand-written** build config (upstream autogenerates it):
   `FLOATING_POINT`, `USE_KISS_FFT`, `EXPORT` away. Pulled in via `HAVE_CONFIG_H`,
-  which is set on the OgmoMac target.
+  which is set on the OpenCaptions target.
 - `include/speex/` — the public headers, plus a hand-written
   `speexdsp_config_types.h` (on Apple the types resolve via `speexdsp_types.h`'s
   own branch, so it's only a fallback safety net).
 
-## Build wiring (OgmoMac target build settings)
+## Build wiring (OpenCaptions target build settings)
 
 - `HEADER_SEARCH_PATHS` += `.../ThirdParty/SpeexDSP/include` and `.../src`
 - `GCC_PREPROCESSOR_DEFINITIONS` += `HAVE_CONFIG_H=1`

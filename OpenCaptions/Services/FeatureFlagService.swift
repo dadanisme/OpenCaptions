@@ -1,6 +1,6 @@
 //
 //  FeatureFlagService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Real-time feature-flag reader for the macOS app. Subscribes to a single
 //  Firestore doc (`config/featureFlags`) so the team can toggle features

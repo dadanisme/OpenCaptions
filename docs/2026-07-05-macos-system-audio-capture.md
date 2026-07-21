@@ -1,19 +1,19 @@
 # macOS System-Audio Capture (ScreenCaptureKit) — #176
 
-**Date:** 2026-07-05 · **Target:** OgmoMac · **Epic:** #103 · **Depends on:** #171 (MVP)
+**Date:** 2026-07-05 · **Target:** OpenCaptions · **Epic:** #103 · **Depends on:** #171 (MVP)
 
 ## Problem
 
-On the desktop the highest-value transcription source is often *other apps'* audio (video calls, meetings, media) — which iOS can't capture but macOS can. #176 adds selectable system-audio capture to OgmoMac, feeding the existing Soniox pipeline.
+On the desktop the highest-value transcription source is often *other apps'* audio (video calls, meetings, media) — which iOS can't capture but macOS can. #176 adds selectable system-audio capture to Open Captions, feeding the existing Soniox pipeline.
 
 ## Delivery (phased)
 
 - **Phase 1 (this work):** Microphone **or** whole-system audio as a selectable, live-switchable source. Satisfies the issue's core acceptance criteria at low risk.
-- **Phase 2 ([#189](https://github.com/ogmo-team/ogmo-app/issues/189)):** Microphone **+** system audio *mixed*, with acoustic echo cancellation so the mic's speaker-bleed doesn't double the system audio. Higher risk (needs on-device verification), split out.
+- **Phase 2 (#189):** Microphone **+** system audio *mixed*, with acoustic echo cancellation so the mic's speaker-bleed doesn't double the system audio. Higher risk (needs on-device verification), split out.
 
 ## Architecture
 
-Provider-agnostic capture behind `AudioCaptureSource` (`OgmoMac/Services/Audio/AudioCaptureSource.swift`):
+Provider-agnostic capture behind `AudioCaptureSource` (`OpenCaptions/Services/Audio/AudioCaptureSource.swift`):
 `onInterruption`, `start() async throws -> AsyncStream<AudioFrame>`, `stop()`, `pause()`, `resume() throws`. Both `MacAudioService` (mic) and `SystemAudioCaptureService` (SCK) conform and emit the identical 16 kHz / mono / Float32 `AudioFrame`, so `MacTranscriptionViewModel`'s chunking / Soniox-send / pause-resume machinery is source-agnostic. Source kinds map to services via `AudioSource` (enum, persisted rawValue) + `AudioCaptureSourceFactory`. `MacTranscriptionViewModel.audio` is typed `any AudioCaptureSource`; `start(...)` takes a `source:`; live switching is `MacTranscriptionViewModel+AudioSource.switchAudioSource(to:)` (reuses the `pushGeneration` teardown to keep the Soniox socket + transcript). UI: transport-pill `Menu` over `AudioSource.allCases` (Phase 2's third case appears automatically).
 
 ## Key decisions & findings
@@ -23,7 +23,7 @@ Provider-agnostic capture behind `AudioCaptureSource` (`OgmoMac/Services/Audio/A
 - **Permission is pure runtime TCC — no entitlement, no Info.plist key.** `CGPreflightScreenCaptureAccess()` to check, `CGRequestScreenCaptureAccess()` to prompt. **On macOS 14 the first grant requires an app relaunch** before an `SCStream` will start → a dedicated "needs relaunch" state. Denied/relaunch UI mirrors the mic-denied `ContentUnavailableView` (`MacAudioPermissionView`); deep-link `x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture`. Mid-session revocation surfaces via `SCStreamDelegate.stream(_:didStopWithError:)` → `onInterruption` → `failSession` (keeps the transcript).
 - **No SCStream pause.** Soft-pause gates frame delivery with an `isPaused` flag (early-return before conversion), composing with the existing keepalive-during-pause design.
 - **Sandbox / App Store.** SCK ships in sandboxed MAS apps using only public API; the existing entitlements suffice (no `com.apple.security.screen-capture` — it doesn't exist). The orange recording indicator is always shown. **Highest risk: verify capture actually flows inside the App Sandbox on a stably-signed build** — dev/ad-hoc signing "forgets" the TCC grant each launch and looks like a bug.
-- **New files auto-compile.** `OgmoMac` is a `PBXFileSystemSynchronizedRootGroup`, so new `.swift` files under `OgmoMac/` need no pbxproj Sources edits.
+- **New files auto-compile.** `OpenCaptions` is a `PBXFileSystemSynchronizedRootGroup`, so new `.swift` files under `OpenCaptions/` need no pbxproj Sources edits.
 
 ## Echo cancellation for Phase 2 (VPIO) — researched, recorded in #189
 
@@ -42,4 +42,4 @@ Edited: `MacAudioService.swift`, `MacTranscriptionViewModel.swift`, `MacLiveTran
 
 ## Verification
 
-Build the **OgmoMac** scheme in Xcode. Pick System Audio → grant Screen Recording → relaunch → play another app's audio → confirm a live transcript; test denied state + deep-link; test live mic↔system switching (socket + transcript preserved); confirm the mic-only path is unchanged; **validate on a stably-signed build inside the sandbox**. CI: `scripts/check-file-length.sh OgmoMac`.
+Build the **OpenCaptions** scheme in Xcode. Pick System Audio → grant Screen Recording → relaunch → play another app's audio → confirm a live transcript; test denied state + deep-link; test live mic↔system switching (socket + transcript preserved); confirm the mic-only path is unchanged; **validate on a stably-signed build inside the sandbox**. CI: `scripts/check-file-length.sh OpenCaptions`.

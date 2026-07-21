@@ -1,6 +1,6 @@
 //
 //  PostSessionRetranscriber.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The shared core for post-session re-transcription: runs a chosen engine over a
 //  saved recording, replaces the session transcript, meters a cloud engine, and

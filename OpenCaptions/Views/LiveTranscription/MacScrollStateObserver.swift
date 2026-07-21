@@ -1,6 +1,6 @@
 //
 //  MacScrollStateObserver.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  AppKit bridge that detects USER-driven scrolling in a SwiftUI ScrollView so the
 //  live transcript and captions overlay can stop force-scrolling to the newest line

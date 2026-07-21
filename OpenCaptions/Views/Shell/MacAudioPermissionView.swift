@@ -1,6 +1,6 @@
 //
 //  MacAudioPermissionView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "access needed" screen shown in place of the live transcript when the mic
 //  is denied at session start. Only the microphone has a public preflight, so

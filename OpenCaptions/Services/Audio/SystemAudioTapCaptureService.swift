@@ -1,6 +1,6 @@
 //
 //  SystemAudioTapCaptureService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Captures system / other-app audio via a Core Audio PROCESS TAP and exposes it
 //  as the unified 16 kHz / mono / Float32 `AudioFrame` stream (identical contract
@@ -40,14 +40,14 @@ final class SystemAudioTapCaptureService: AudioCaptureSource {
     var continuation: AsyncStream<AudioFrame>.Continuation?
     var onInterruption: (() -> Void)?
 
-    let log = Logger(subsystem: "com.muhammadramdan.OgmoMac", category: "SystemAudioTap")
+    let log = Logger(subsystem: "com.muhammadramdan.OpenCaptions", category: "SystemAudioTap")
 
     // MARK: - Core Audio objects
 
     var tapID = AudioObjectID(kAudioObjectUnknown)
     var aggregateID = AudioObjectID(kAudioObjectUnknown)
     var ioProcID: AudioDeviceIOProcID?
-    let ioQueue = DispatchQueue(label: "com.ogmo.system-audio-tap", qos: .userInteractive)
+    let ioQueue = DispatchQueue(label: "com.opencaptions.system-audio-tap", qos: .userInteractive)
     /// Retained so it can be removed on teardown (the API keys removal on the block).
     var outputDeviceListener: AudioObjectPropertyListenerBlock?
 

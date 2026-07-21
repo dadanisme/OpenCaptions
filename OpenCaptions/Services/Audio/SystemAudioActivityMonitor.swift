@@ -1,6 +1,6 @@
 //
 //  SystemAudioActivityMonitor.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Option-1 source-app attribution: samples, on a background timer, which apps
 //  are currently OUTPUTTING audio (Core Audio process objects whose
@@ -24,7 +24,7 @@ import OSLog
 final class SystemAudioActivityMonitor {
 
     /// One sample: the session-relative ms it was taken at, and the bundle ids
-    /// outputting audio at that instant (OGMO itself excluded).
+    /// outputting audio at that instant (Open Captions itself excluded).
     private struct Sample {
         let ms: Int
         let bundleIDs: [String]
@@ -32,7 +32,7 @@ final class SystemAudioActivityMonitor {
 
     /// All timer + `anchor` access happens on this queue; `samples` is additionally
     /// lock-guarded because `dominantApp` reads it from the main actor.
-    private let queue = DispatchQueue(label: "com.ogmo.audio-activity-monitor", qos: .utility)
+    private let queue = DispatchQueue(label: "com.opencaptions.audio-activity-monitor", qos: .utility)
     private let lock = NSLock()
     private var samples: [Sample] = []
     private var timer: DispatchSourceTimer?
@@ -41,7 +41,7 @@ final class SystemAudioActivityMonitor {
     /// process instead of every tick. Queue-confined.
     private var bundleIDCache: [AudioObjectID: String] = [:]
 
-    private let log = Logger(subsystem: "com.muhammadramdan.OgmoMac", category: "AudioActivity")
+    private let log = Logger(subsystem: "com.muhammadramdan.OpenCaptions", category: "AudioActivity")
 
     /// CFAbsoluteTime anchor matching the view model's `sessionStart`, so sample
     /// ms line up with the line `startMs`/`endMs` stamped from `totalActiveTime`.
@@ -157,7 +157,7 @@ final class SystemAudioActivityMonitor {
 
     // MARK: - Core Audio (on `queue`)
 
-    /// Bundle ids of every process currently outputting audio, excluding OGMO.
+    /// Bundle ids of every process currently outputting audio, excluding Open Captions.
     /// Runs on `queue`; caches the per-process resolution.
     private func outputActiveBundleIDs() -> [String] {
         guard let processes = try? CoreAudioTapUtils.processObjectList() else { return [] }

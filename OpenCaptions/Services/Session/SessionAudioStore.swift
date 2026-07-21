@@ -1,6 +1,6 @@
 //
 //  SessionAudioStore.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  On-disk location + lifecycle for recorded session audio.
 //

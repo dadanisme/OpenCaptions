@@ -2,18 +2,18 @@
 
 **Date:** 2026-07-05
 **Issue:** #180 (epic #103) — "macOS: Sign in with Apple and per-user data scoping"
-**Target:** `OgmoMac` (standalone native macOS app)
+**Target:** `OpenCaptions` (standalone native macOS app)
 
 ## Problem
 
-The OgmoMac MVP (#171) shipped with no authentication: every session saved with
+The Open Captions MVP (#171) shipped with no authentication: every session saved with
 `userId == nil` and the sidebar listed all local sessions unscoped. #180 asks to
 bring the iOS auth story to the Mac — Sign in with Apple + Firebase UID + per-user
 scoping. Product added a second requirement: **email sign-in** alongside Apple, a
 profile block pinned to the **bottom of the sidebar** (identity + logout), and
 advanced account actions in a native **macOS Settings window**.
 
-## The gating decision: adding Firebase to OgmoMac
+## The gating decision: adding Firebase to Open Captions
 
 The MVP was deliberately **system-frameworks-only — no Firebase, no RevenueCat, no
 SPM** (`docs/2026-07-04-macos-standalone-mvp.md`). But **email sign-in requires an
@@ -25,7 +25,7 @@ A native-Apple-only path (scope by `ASAuthorizationAppleIDCredential.user`, no
 Firebase) would keep the zero-dependency posture but **cannot satisfy the email
 requirement** and would put macOS UIDs in a different namespace than iOS.
 
-**Decision:** add **`FirebaseAuth` only** to OgmoMac (it transitively pulls
+**Decision:** add **`FirebaseAuth` only** to Open Captions (it transitively pulls
 `FirebaseCore`). No Firestore / Functions / Analytics / RevenueCat. This is the
 minimum to satisfy #180, keeps macOS UIDs in the **same namespace as iOS** (same
 Firebase project → shared user records), and lets the credential-exchange logic be
@@ -72,28 +72,28 @@ here and reflected in CLAUDE.md.
 
 ## Build / provisioning (one-time, done outside code)
 
-- **`OgmoMac.entitlements`**: added `com.apple.developer.applesignin` = `["Default"]`
-  and `keychain-access-groups` = `["$(AppIdentifierPrefix)com.wentao.unmute.OgmoMac"]`.
+- **`OpenCaptions.entitlements`**: added `com.apple.developer.applesignin` = `["Default"]`
+  and `keychain-access-groups` = `["$(AppIdentifierPrefix)com.wentao.unmute.OpenCaptions"]`.
   The keychain group is **required** — under App Sandbox, FirebaseAuth's keychain
   persistence fails with `errSecMissingEntitlement (-34018)` without it.
   (`$(AppIdentifierPrefix)` resolves to the signing team's prefix, so this works
   under a local placeholder team too.)
-- **`project.pbxproj`**: `FirebaseAuth` linked to the OgmoMac target (per-target
+- **`project.pbxproj`**: `FirebaseAuth` linked to the OpenCaptions target (per-target
   `XCSwiftPackageProductDependency` + `PBXBuildFile`; the `firebase-ios-sdk` package
   ref already existed at project level).
-- **Firebase console** (shared `ogmo-491906` project, same as iOS): the prod Apple
-  app is registered under bundle id `com.wentao.unmute.OgmoMac`; its
-  `GoogleService-Info.plist` is dropped into `OgmoMac/` (git-ignored). The **Apple**
+- **Firebase console** (the Firebase project, shared with iOS): the prod Apple
+  app is registered under bundle id `com.wentao.unmute.OpenCaptions`; its
+  `GoogleService-Info.plist` is dropped into `OpenCaptions/` (git-ignored). The **Apple**
   and **Email/Password** providers must be enabled.
 - **Apple Developer**: enable **Sign in with Apple** on App ID
-  `com.wentao.unmute.OgmoMac` under team **`YN8NVQ69WY`** (shared with the iOS target).
+  `com.wentao.unmute.OpenCaptions` under team **`YN8NVQ69WY`** (shared with the iOS target).
 
 ### Bundle id / team: prod vs local placeholder
 
-Prod OgmoMac signs as **`com.wentao.unmute.OgmoMac`** under team **`YN8NVQ69WY`**
+Prod Open Captions signs as **`com.wentao.unmute.OpenCaptions`** under team **`YN8NVQ69WY`**
 (shared with iOS). A developer without access to that team may **locally** override
 the target's `DEVELOPMENT_TEAM` + `PRODUCT_BUNDLE_IDENTIFIER` in `project.pbxproj` to
-their own account (e.g. `com.muhammadramdan.unmute.OgmoMac` / `C4SQMCY5WT`) to build
+their own account (e.g. `com.muhammadramdan.unmute.OpenCaptions` / `C4SQMCY5WT`) to build
 and run — this change stays **uncommitted**. With the prod `GoogleService-Info.plist`
 (registered under `com.wentao…`), Firebase logs a harmless bundle-id-mismatch warning
 under a placeholder id, and **email/password sign-in works regardless**. Sign in with

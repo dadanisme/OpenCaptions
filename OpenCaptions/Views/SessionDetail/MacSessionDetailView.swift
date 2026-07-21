@@ -1,6 +1,6 @@
 //
 //  MacSessionDetailView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Saved-session detail: AI summary + full transcript, with a toolbar action
 //  to (re)generate the summary via the cloud function.

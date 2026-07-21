@@ -1,6 +1,6 @@
 //
 //  MacAuthManager+Google.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Sign in with Google → Firebase. Uses the GoogleSignIn SDK's macOS flow
 //  (`signIn(withPresenting: NSWindow)`, backed by ASWebAuthenticationSession) to

@@ -1,6 +1,6 @@
 //
 //  AppIconResolver.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Resolves a source-app bundle id to its app icon + display name for the
 //  transcript's source-app glyph (`SourceAppIcon`). Results are cached — icon

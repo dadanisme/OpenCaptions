@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+Accumulator.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Token → bubble accumulation for the diarization-on (Soniox) path. Ported
 //  verbatim from the iOS `OnlineViewModel+Accumulator`/`+TokenProcessing`,
@@ -115,7 +115,7 @@ extension MacTranscriptionViewModel {
         }
 
         // Alert the user if this finalized sentence mentions their name — an in-app
-        // HUD badge when Ogmo is frontmost, else an OS notification (issue #255).
+        // HUD badge when Open Captions is frontmost, else an OS notification (issue #255).
         // Finalized-lines only (this is the finalized-sentence commit point) and
         // debounced inside the notifier; `serviceGeneration` scopes it per session.
         // Gated on `isRunning` so the tail flush at stop() (which runs after stop

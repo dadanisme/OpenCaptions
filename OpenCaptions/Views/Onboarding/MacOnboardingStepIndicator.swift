@@ -1,6 +1,6 @@
 //
 //  MacOnboardingStepIndicator.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The row of progress dots at the top of the onboarding card: a stretched accent
 //  capsule for the current step, a filled accent dot for completed steps, and a

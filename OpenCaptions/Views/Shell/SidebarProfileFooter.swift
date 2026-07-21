@@ -1,6 +1,6 @@
 //
 //  SidebarProfileFooter.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The profile block pinned to the bottom of the sidebar: signed-in identity
 //  plus a cog that opens the Settings window. Kept deliberately minimal — Sign

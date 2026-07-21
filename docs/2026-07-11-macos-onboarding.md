@@ -1,11 +1,11 @@
-# macOS Onboarding & Offline Guest Mode (OgmoMac)
+# macOS Onboarding & Offline Guest Mode (OpenCaptions)
 
-**Date:** 2026-07-11 · **Issue:** #243 (epic #103) · **Target:** `OgmoMac`
+**Date:** 2026-07-11 · **Issue:** #243 (epic #103) · **Target:** `OpenCaptions`
 
 ## Summary
 
 A first-run **setup assistant** for the standalone macOS app that guides a new
-user through choosing how to use Ogmo, signing in (or going offline), granting
+user through choosing how to use Open Captions, signing in (or going offline), granting
 recording permissions, and picking a capture source — then drops them into the
 app. It also introduces a **"use without an account" offline guest mode**, at the
 user's request ("offline mode … skip login, and download models").
@@ -28,7 +28,7 @@ Welcome → Mode → { Sign in | Download } → Capture → Permissions → Read
 - **Setup** — cloud shows the sign-in controls (`MacSignInControls`); offline
   downloads the on-device model. Offline **blocks Continue** until both FluidAudio
   models are on disk, because recording hard-fails without them.
-- **Capture** — Microphone vs Microphone + System Audio (writes `ogmo.audioSource`).
+- **Capture** — Microphone vs Microphone + System Audio (writes `opencaptions.audioSource`).
 - **Permissions** — requests the microphone, and (when the choice includes system
   audio) surfaces the macOS **"Audio Recording"** prompt up front rather than
   deferring it to the first recording.
@@ -47,10 +47,10 @@ Mirrors the iOS `AuthManager+Profile` per-user pattern, extended for guests
 |---|---|
 | `hasCompletedOnboarding` (global) | Gate flag. |
 | `"{owner}_hasCompletedOnboarding"` | Per-owner completion; `owner` = uid or `"local"`. |
-| `ogmo.guestMode` | Deliberate offline guest vs signed-out/expired cloud user. |
-| `ogmo.offlineMode.enabled` | Forced **on** for guests. |
+| `opencaptions.guestMode` | Deliberate offline guest vs signed-out/expired cloud user. |
+| `opencaptions.offlineMode.enabled` | Forced **on** for guests. |
 
-**Gate** (`OgmoMacApp`, via `@AppStorage` so it re-renders on write):
+**Gate** (`OpenCaptionsApp`, via `@AppStorage` so it re-renders on write):
 
 ```
 if hasCompletedOnboarding && (auth.isSignedIn || guestMode) → ContentView

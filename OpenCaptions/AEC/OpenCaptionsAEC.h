@@ -1,6 +1,6 @@
 //
 //  OpenCaptionsAEC.h
-//  OgmoMac
+//  OpenCaptions
 //
 //  Software acoustic echo canceller for the "Microphone + System Audio" mixed
 //  source (issue #205, Part C / #208). When you're on a call over the built-in
@@ -26,7 +26,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface OgmoAEC : NSObject
+@interface OpenCaptionsAEC : NSObject
 
 /// Create a canceller for the pipeline's unified format. Returns nil for any
 /// unsupported format so the caller can fall back to a plain (no-AEC) mix.

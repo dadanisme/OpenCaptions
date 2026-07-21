@@ -1,10 +1,10 @@
-# macOS app-wide font size (OgmoMac) — independent of transcript size
+# macOS app-wide font size (OpenCaptions) — independent of transcript size
 
-**Date:** 2026-07-10 · **Issue:** #270 · **Target:** OgmoMac only (iOS `unmute` unaffected)
+**Date:** 2026-07-10 · **Issue:** #270 · **Target:** OpenCaptions only (iOS `unmute` unaffected)
 
 ## Problem
 
-OgmoMac had exactly one text-size control — the **transcript / captions** multiplier
+Open Captions had exactly one text-size control — the **transcript / captions** multiplier
 (`LiveSessionStore.transcriptTextSizeKey`, applied via `Font.transcript(_:multiplier:)`).
 The rest of the app chrome (sidebar, session list, session detail + summary, settings,
 sign-in) rendered at a fixed system size with no way to scale it. macOS does **not** honor
@@ -19,7 +19,7 @@ two never affect each other.
 
 | Concern | Choice |
 |---|---|
-| Storage key | `ogmo.app.textSizeMultiplier` (`LiveSessionStore.appTextSizeKey`) — distinct from `ogmo.transcript.textSizeMultiplier` |
+| Storage key | `opencaptions.app.textSizeMultiplier` (`LiveSessionStore.appTextSizeKey`) — distinct from `opencaptions.transcript.textSizeMultiplier` |
 | Slider stops | `AppTextSize.steps` = **80,90,…,150, 200, 300 %** — fine 10% increments through 150% for everyday tuning, then coarse 200%/300% jumps for large-text accessibility. Because the jumps are non-uniform, the Settings slider runs on the stop **index** (a uniform-`step` slider can't express 150→200→300). Default 100% = `TranscriptTextSize.defaultMultiplier` (shared). The Settings row shows a live "%" read-out that flags "· Default" at 100%, plus a **Reset** button |
 | Scaling math | `Font.scaled(_:multiplier:design:)` — factored out of the old `Font.transcript`, which is now a thin alias. Reads `NSFont.preferredFont(forTextStyle:)`, multiplies its point size, and **preserves its weight** (via the descriptor's weight trait), so each semantic role keeps its system-defined size *and* weight — e.g. `.headline` stays semibold instead of collapsing into regular `.body` (both are 13pt on macOS) |
 | Default (1.0) | Pixel-identical to the platform's own point sizes — no appearance change at the default |
@@ -32,13 +32,13 @@ two never affect each other.
 - **`.scaleEffect`** — scales layout and raster too, overflows the window, and blurs; it is
   not a font-size control.
 
-## Mechanism (`OgmoMac/Utility/Appearance/AppTextSize.swift`)
+## Mechanism (`OpenCaptions/Utility/Appearance/AppTextSize.swift`)
 
 Coverage is **broad** (the whole chrome, not just text we author):
 
 1. **`\.appTextScale`** — an `EnvironmentKey` (default `1.0`) carrying the live multiplier.
 2. **`.appTextScaling()`** — a root modifier applied once per window/scene root
-   (`OgmoMacApp`'s main `Window` content group + the `Settings` scene). It reads
+   (`OpenCaptionsApp`'s main `Window` content group + the `Settings` scene). It reads
    `@AppStorage(appTextSizeKey)` (reactive — moving the slider re-renders every root across
    windows) and does two things:
    - injects `\.appTextScale`, and
@@ -53,7 +53,7 @@ Coverage is **broad** (the whole chrome, not just text we author):
 
 ### New coding convention
 
-For **OgmoMac general-UI** text, use **`.appScaledFont(<style>)`** instead of
+For **Open Captions general-UI** text, use **`.appScaledFont(<style>)`** instead of
 `.font(<style>)` so it honors the app-wide setting. This is documented in `CLAUDE.md`.
 Two things are deliberately exempt and keep `.font(.transcript(...))`:
 

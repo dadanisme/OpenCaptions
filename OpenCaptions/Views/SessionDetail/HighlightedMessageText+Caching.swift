@@ -1,6 +1,6 @@
 //
 //  HighlightedMessageText+Caching.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Sentence-boundary scanner, name matcher, and segment cache backing
 //  `HighlightedMessageText`. Ported from the iOS implementation: question

@@ -1,6 +1,6 @@
 //
 //  MacOnboardingCard.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  A large selectable option card used by the Mode and Capture onboarding steps:
 //  a leading SF Symbol chip, a title with an optional badge, a description, and a

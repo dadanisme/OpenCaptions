@@ -1,14 +1,14 @@
 # macOS Post-Session Re-Transcription (pluggable protocol)
 
 **Date:** 2026-07-16
-**Issue:** [#245](https://github.com/ogmo-team/ogmo-app/issues/245)
-**Target:** OgmoMac (standalone macOS app) only. iOS `unmute` untouched.
+**Issue:** #245
+**Target:** Open Captions (standalone macOS app) only. iOS `unmute` untouched.
 
 ## Context
 
 A live/realtime STT pass must emit text incrementally with limited look-ahead, so it
 is inherently less accurate than a batch/async pass that sees the whole recording.
-OgmoMac already persists each session's audio (`Application Support/SessionAudio/<uuid>.m4a`,
+Open Captions already persists each session's audio (`Application Support/SessionAudio/<uuid>.m4a`,
 referenced by `TranscriptionSession.audioFileName` — see
 `docs/2026-07-08-macos-session-audio-playback.md`), so we can **re-transcribe a finished
 session** for higher accuracy without re-recording.
@@ -46,7 +46,7 @@ plus a manual trigger and an automatic-after-recording option.
 
 ## The protocol
 
-`PostSessionTranscriptionEngine` (`OgmoMac/Services/Retranscription/`) is one-shot/batch —
+`PostSessionTranscriptionEngine` (`OpenCaptions/Services/Retranscription/`) is one-shot/batch —
 it takes a finished audio file and returns the full ordered token list in a single async
 call (vs. the streaming `RealtimeTranscriptionEngine`):
 

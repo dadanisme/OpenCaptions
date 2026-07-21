@@ -1,6 +1,6 @@
 # macOS System-Audio Capture Pitched Up — Aggregate Rate Fix — #304
 
-**Date:** 2026-07-16 · **Target:** OgmoMac · **Epic:** #103 · **Fixes:** #304
+**Date:** 2026-07-16 · **Target:** OpenCaptions · **Epic:** #103 · **Fixes:** #304
 
 ## Problem
 
@@ -105,19 +105,19 @@ regresses a currently-working path into a start failure.
 
 ## Files
 
-- `OgmoMac/Services/Audio/CoreAudioTapUtils.swift` — add `nominalSampleRate(_:)`.
-- `OgmoMac/Services/Audio/SystemAudioTapCaptureService+IO.swift` — derive
+- `OpenCaptions/Services/Audio/CoreAudioTapUtils.swift` — add `nominalSampleRate(_:)`.
+- `OpenCaptions/Services/Audio/SystemAudioTapCaptureService+IO.swift` — derive
   `sourceFormat`'s rate from the aggregate after creation.
-- `OgmoMac/Services/Audio/SystemAudioTapCaptureService.swift` — updated
+- `OpenCaptions/Services/Audio/SystemAudioTapCaptureService.swift` — updated
   `sourceFormat` doc comment.
 
 ## Verification
 
-Build the **OgmoMac** scheme in Xcode. On a machine whose **default output device
+Build the **OpenCaptions** scheme in Xcode. On a machine whose **default output device
 runs at 44.1 kHz** (the failing case): pick **System Audio** (and **Microphone +
 System Audio**), play reference music/speech, record, Stop & Save, and confirm
 playback is at natural pitch. Re-confirm on a 48 kHz output device (no regression),
 and confirm **Microphone-only** is unchanged. To force 44.1 kHz for the test, set
 the output device rate in **Audio MIDI Setup**. Validate on a **stably-signed**
 build inside the sandbox (dev signing forgets the Audio-Recording TCC grant each
-launch). CI: `scripts/check-file-length.sh OgmoMac`.
+launch). CI: `scripts/check-file-length.sh OpenCaptions`.

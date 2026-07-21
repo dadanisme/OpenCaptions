@@ -1,6 +1,6 @@
 //
 //  ParakeetPostSessionEngine.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  On-device (offline) post-session re-transcription via FluidAudio's batch
 //  `AsrManager` over the Parakeet TDT v2 model (`parakeet-tdt-0.6b-v2`, English-only,

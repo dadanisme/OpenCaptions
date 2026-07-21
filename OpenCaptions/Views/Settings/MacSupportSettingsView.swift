@@ -1,6 +1,6 @@
 //
 //  MacSupportSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The Settings → Support pane (#252). Gives users an in-app way to reach us —
 //  Send Feedback, Report a Problem, and Contact Support — each opening the default
@@ -16,7 +16,10 @@ struct MacSupportSettingsView: View {
     @Environment(MacAuthManager.self) private var auth
 
     /// Single support inbox for all three actions (distinguished by subject line).
-    private let supportEmail = "support@ogmo.app"
+    /// Supplied per-deployment via the git-ignored Config.xcconfig (SUPPORT_EMAIL).
+    private var supportEmail: String {
+        Bundle.main.infoDictionary?["SUPPORT_EMAIL"] as? String ?? ""
+    }
 
     var body: some View {
         Form {
@@ -25,19 +28,19 @@ struct MacSupportSettingsView: View {
                     title: "Send Feedback",
                     subtitle: "Share ideas and feature suggestions.",
                     systemImage: "lightbulb"
-                ) { openMailto(subject: "Ogmo for Mac - Feedback") }
+                ) { openMailto(subject: "Open Captions for Mac - Feedback") }
 
                 supportRow(
                     title: "Report a Problem",
                     subtitle: "Something not working? Tell us what happened.",
                     systemImage: "exclamationmark.bubble"
-                ) { openMailto(subject: "Ogmo for Mac - Bug Report", body: bugReportBody) }
+                ) { openMailto(subject: "Open Captions for Mac - Bug Report", body: bugReportBody) }
 
                 supportRow(
                     title: "Contact Support",
-                    subtitle: "Get in touch with the Ogmo team.",
+                    subtitle: "Get in touch with the Open Captions team.",
                     systemImage: "envelope"
-                ) { openMailto(subject: "Ogmo for Mac - Support") }
+                ) { openMailto(subject: "Open Captions for Mac - Support") }
             }
 
             Section {
@@ -104,7 +107,7 @@ struct MacSupportSettingsView: View {
 
         ---
         The details below help us investigate — please keep them.
-        App: Ogmo for Mac \(appVersionString)
+        App: Open Captions for Mac \(appVersionString)
         macOS: \(osVersionString)
         Account: \(auth.userEmail ?? "not signed in") · \(auth.userID ?? "—")
         """

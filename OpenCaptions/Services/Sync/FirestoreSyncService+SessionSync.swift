@@ -1,6 +1,6 @@
 //
 //  FirestoreSyncService+SessionSync.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Session-document sync for FirestoreSyncService: the shared session/
 //  backfill writer, speaker renames, AI summary fields, launch-time
@@ -18,7 +18,7 @@ extension FirestoreSyncService {
     /// `sessionIndex` lookup doc, and one line doc per backfill entry.
     ///
     /// The index doc maps the bare URL sessionId to its owner uid so
-    /// `https://session.ogmo.app/<sessionId>` resolves without exposing the
+    /// `<SESSION_SHARE_BASE_URL>/<sessionId>` resolves without exposing the
     /// uid in the URL. Written once; the session doc keeps the source of
     /// truth for everything else.
     func writeSessionDocs(

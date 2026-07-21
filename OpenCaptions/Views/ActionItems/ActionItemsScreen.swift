@@ -1,6 +1,6 @@
 //
 //  ActionItemsScreen.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "Action Items" sidebar section: a READ-ONLY rollup of every action item
 //  across the signed-in user's sessions, grouped by source session. The only
@@ -105,7 +105,7 @@ struct ActionItemsScreen: View {
     }
 
     /// Toggles completion and persists immediately — the only write this view
-    /// performs. Explicit `save()` matches every other OgmoMac write path rather
+    /// performs. Explicit `save()` matches every other OpenCaptions write path rather
     /// than relying on autosave.
     private func toggle(_ item: ActionItem) {
         item.isCompleted.toggle()

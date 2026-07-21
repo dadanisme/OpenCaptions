@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView+AudioSource.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Source selection + permission glue for the live recording screen, split out
 //  to keep MacLiveTranscriptionView under the per-file line limit. Owns the

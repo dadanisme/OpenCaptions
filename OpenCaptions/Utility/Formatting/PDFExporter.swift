@@ -1,6 +1,6 @@
 //
 //  PDFExporter.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Exports a session summary as a PDF and saves it via NSSavePanel.
 //  Ported from the iOS `PDFExporter`, swapping the UIKit render path

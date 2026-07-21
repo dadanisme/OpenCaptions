@@ -1,8 +1,8 @@
 # macOS: Mark & notify when the user's name is mentioned; bias the engine dictionary
 
 **Date:** 2026-07-15
-**Issue:** [#255](https://github.com/ogmo-team/ogmo-app/issues/255)
-**Target:** OgmoMac (standalone macOS app)
+**Issue:** #255
+**Target:** OpenCaptions (standalone macOS app)
 
 ## Summary
 
@@ -83,7 +83,7 @@ focus-gated hybrid, defer}: **focus-gated hybrid**.
 ## 3. Dictionary — bias Soniox toward the name
 
 `MacTranscriptionViewModel.makeSonioxConfig()` took no parameters and hardcoded
-`terms: ["Ogmo", "Soniox", "Apple Developer Academy"]`. It now takes
+`terms: ["Open Captions", "Soniox", "Apple Developer Academy"]`. It now takes
 `userName: String?` and appends the trimmed name to `terms` (self-guarding — a
 blank/nil name appends nothing, and `SonioxConfig.toDictionary()` omits empty
 context anyway). Threaded from the sole call site in the `@MainActor start()` via
@@ -96,7 +96,7 @@ out of scope, and neither platform previously injected the user's name.
 ## Account-settings note
 
 The Settings → Account **Name** field gained a caption advising the user to set the
-name people actually call them, because Ogmo listens for it and alerts them when
+name people actually call them, because Open Captions listens for it and alerts them when
 it's spoken. A short calling name works better than a full legal name for both
 recognition and the mention alert.
 
@@ -111,7 +111,7 @@ nickname-vs-legal-name. That is a distinct flow, not a bolt-on to #255.
 ## Not done / follow-ups
 
 - Localization: macOS UI strings (including the new HUD/notification/settings copy)
-  remain hardcoded English, consistent with the rest of OgmoMac (no `LanguageManager`
+  remain hardcoded English, consistent with the rest of OpenCaptions (no `LanguageManager`
   on macOS yet).
 - No `UNUserNotificationCenterDelegate` for foreground banner presentation — not
   needed, since OS notifications are only posted when the app is *not* active.

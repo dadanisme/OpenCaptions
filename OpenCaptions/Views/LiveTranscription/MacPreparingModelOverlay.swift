@@ -1,6 +1,6 @@
 //
 //  MacPreparingModelOverlay.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  A lightweight dimming overlay shown over the live transcript while an on-device engine loads
 //  its CoreML model in `connectAndStart()` (`MacTranscriptionViewModel.isPreparingEngine`). The

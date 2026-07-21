@@ -1,16 +1,16 @@
 # macOS Global Hotkeys for Transcription Control (#249)
 
 **Date:** 2026-07-10
-**Target:** OgmoMac (standalone native macOS app)
+**Target:** OpenCaptions (standalone native macOS app)
 **Status:** Implemented
 
 ## Problem
 
-Controlling OgmoMac required the window to be frontmost (menu shortcuts) or a trip
+Controlling Open Captions required the window to be frontmost (menu shortcuts) or a trip
 to the menu-bar item. For a background transcription utility used while the user is
 in a meeting/video in another app, that context-switch defeats the purpose. We want
 **system-wide** hotkeys to start/stop/pause/resume recording and toggle the captions
-overlay — working even when Ogmo is in the background or its window is closed —
+overlay — working even when Open Captions is in the background or its window is closed —
 plus brief on-screen feedback and a Settings pane to rebind them.
 
 ## Why Carbon `RegisterEventHotKey`, not `NSEvent.addGlobalMonitorForEvents`
@@ -54,7 +54,7 @@ Carbon key event ─▶ hotKeyEventCallback (C, main thread)
   window closed. Two small state-respecting helpers were added: `pause()` / `resume()`
   (return whether they acted), alongside the existing `togglePause()`.
 - **No new dependency, no new entitlement.** The existing sandbox entitlements
-  (`OgmoMac.entitlements`) are sufficient.
+  (`OpenCaptions.entitlements`) are sufficient.
 
 ## Actions and default chords
 
@@ -111,9 +111,9 @@ warning explains if it isn't active.
 
 ## Persistence & launch
 
-Each binding is JSON-encoded under `ogmo.hotkey.<action>` in `UserDefaults`; corrupt or
+Each binding is JSON-encoded under `opencaptions.hotkey.<action>` in `UserDefaults`; corrupt or
 missing data falls back to the action's default. `HotKeyManager.start()` (idempotent,
-called from `OgmoMacApp`'s launch task) loads bindings, installs the one Carbon handler,
+called from `OpenCaptionsApp`'s launch task) loads bindings, installs the one Carbon handler,
 and registers everything — so hotkeys are live from launch and survive relaunch.
 
 ## Edge cases

@@ -1,6 +1,6 @@
 //
 //  MacHUDOverlayController.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Owns the transient HUD badge shown when a global hotkey fires (issue #249):
 //  a borderless, non-activating, always-on-top `NSPanel` that fades in near the

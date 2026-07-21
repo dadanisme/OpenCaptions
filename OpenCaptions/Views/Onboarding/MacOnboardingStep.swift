@@ -1,6 +1,6 @@
 //
 //  MacOnboardingStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The onboarding state machine's step + account-mode types, shared by the
 //  coordinator (`MacOnboardingView`) and its step subviews.
@@ -30,7 +30,7 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }
 }
 
-/// How the user chose to use Ogmo. `nil` until they pick on the Mode step.
+/// How the user chose to use Open Captions. `nil` until they pick on the Mode step.
 enum OnboardingMode: Equatable {
     /// Signed-in cloud transcription (Soniox): synced, diarized, metered minutes.
     case cloud

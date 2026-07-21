@@ -1,6 +1,6 @@
 //
 //  SystemAudioTapCaptureService+Listeners.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Mid-session interruption detection for process-tap capture — the equivalent
 //  of the old SCK `SCStreamDelegate.didStopWithError`. A process tap's aggregate

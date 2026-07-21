@@ -1,6 +1,6 @@
 //
 //  KeyPointsScreen.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "Key Points" sidebar section: a READ-ONLY rollup of every key point across
 //  the signed-in user's sessions, grouped by source session. Key points are plain

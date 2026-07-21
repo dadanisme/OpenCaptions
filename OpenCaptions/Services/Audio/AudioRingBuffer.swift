@@ -1,6 +1,6 @@
 //
 //  AudioRingBuffer.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  A bounded, thread-safe FIFO of 16 kHz mono Float32 samples used to realign the
 //  asynchronous system-audio stream (Core Audio process tap) to the microphone's

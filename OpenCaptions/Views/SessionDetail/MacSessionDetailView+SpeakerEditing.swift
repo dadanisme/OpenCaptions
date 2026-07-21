@@ -1,6 +1,6 @@
 //
 //  MacSessionDetailView+SpeakerEditing.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Speaker-rename support for a SAVED session's detail view: derives the
 //  session's distinct diarized speakers for the edit sheet, then persists the

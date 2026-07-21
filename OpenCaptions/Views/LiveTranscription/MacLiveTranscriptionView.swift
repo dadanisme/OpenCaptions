@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Live recording screen: requests mic access, streams a Soniox transcript with
 //  speaker labels, supports pause/resume, and on stop saves the session. Shown
@@ -23,7 +23,7 @@ struct MacLiveTranscriptionView: View {
     /// audio + socket) survive this view — and the whole window — being torn down.
     let viewModel: MacTranscriptionViewModel
     /// Persisted capture-source choice (rawValue). The app's first @AppStorage.
-    @AppStorage("ogmo.audioSource") var sourceRaw = AudioSource.microphone.rawValue
+    @AppStorage("opencaptions.audioSource") var sourceRaw = AudioSource.microphone.rawValue
     /// Shared transcript font-size multiplier — scales the live transcript's
     /// semantic fonts (see `TranscriptTextSize`). Same key the pill/menu-bar/
     /// Settings write, so a change from any surface reflects here live.

@@ -1,6 +1,6 @@
 # macOS: Email capture + marketing consent, and a Support section
 
-**Date:** 2026-07-15 · **Scope:** OgmoMac (native macOS) only · **Issues:** [#251](https://github.com/ogmo-team/ogmo-app/issues/251) (capture email + consent), [#252](https://github.com/ogmo-team/ogmo-app/issues/252) (Support section) · **Epic:** #103
+**Date:** 2026-07-15 · **Scope:** OpenCaptions (native macOS) only · **Issues:** #251 (capture email + consent), #252 (Support section) · **Epic:** #103
 
 Two related additions to the macOS Settings scene (`MacSettingsView`, Cmd+,).
 
@@ -28,23 +28,23 @@ No Cloud Function seeds `users/{uid}` (`onUserCreated` only provisions RevenueCa
 This is why `syncOfflineMode` was refactored to route through the same helper (previously it merged `updatedAt`/`updatedBy` only, assuming some other writer had created the doc — which nothing did).
 
 ### Firestore rules
-No change needed. `match /users/{userId} { allow read, write: if request.auth.uid == userId }` in `../ogmo-cf/firestore.rules` already lets the owner write arbitrary fields.
+No change needed. `match /users/{userId} { allow read, write: if request.auth.uid == userId }` in the backend Cloud Functions project's `firestore.rules` already lets the owner write arbitrary fields.
 
 ## #252 — Support section
 
-A new **Support** tab in `MacSettingsView`'s `TabView` (`MacSupportSettingsView`), placed **before** the conditional Usage tab (which must stay last — a middle conditional tab drops a sibling's icon on macOS). Three actions, each opening the default mail client via a prefilled `mailto:` to a single inbox **`support@ogmo.app`** (distinguished by subject):
+A new **Support** tab in `MacSettingsView`'s `TabView` (`MacSupportSettingsView`), placed **before** the conditional Usage tab (which must stay last — a middle conditional tab drops a sibling's icon on macOS). Three actions, each opening the default mail client via a prefilled `mailto:` to a single inbox, **the support inbox (SUPPORT_EMAIL)** (distinguished by subject):
 
-- **Send Feedback** — subject "Ogmo for Mac - Feedback".
-- **Report a Problem** — subject "Ogmo for Mac - Bug Report", body prefilled with a description prompt plus diagnostics (app version + build, macOS version, signed-in email + uid) for triage.
-- **Contact Support** — subject "Ogmo for Mac - Support".
+- **Send Feedback** — subject "Open Captions for Mac - Feedback".
+- **Report a Problem** — subject "Open Captions for Mac - Bug Report", body prefilled with a description prompt plus diagnostics (app version + build, macOS version, signed-in email + uid) for triage.
+- **Contact Support** — subject "Open Captions for Mac - Support".
 
 A version/OS footer shows the same diagnostics inline. `mailto:` URLs are built with `URLComponents` (correct percent-encoding of spaces/newlines) and opened with `NSWorkspace.shared.open`.
 
 The Support tab is unconditional (available to offline guests too); for a guest the bug-report diagnostics read "not signed in".
 
-## Follow-up (backend, filed in ogmo-cf)
-The *consumption* side — segmenting users by `marketingOptIn` (Firestore) joined to the **email from Firebase Auth** (Admin SDK) by uid, and actually sending mail — lives in the backend and is tracked in `ogmo-team/ogmo-cf` (issue #6). No email is stored in Firestore for this.
+## Follow-up (backend Cloud Functions project)
+The *consumption* side — segmenting users by `marketingOptIn` (Firestore) joined to the **email from Firebase Auth** (Admin SDK) by uid, and actually sending mail — lives in the backend and is tracked in the backend Cloud Functions project. No email is stored in Firestore for this.
 
 ## Deferred / not done
-- Localization: macOS UI strings (including these) remain hardcoded English (no `LanguageManager` on macOS yet), consistent with the rest of OgmoMac.
+- Localization: macOS UI strings (including these) remain hardcoded English (no `LanguageManager` on macOS yet), consistent with the rest of Open Captions.
 - No email mirrored to Firestore and no editable "contact email" (both considered, dropped — the email already lives in Firebase Auth; only consent needed a home).

@@ -1,6 +1,6 @@
 //
 //  SessionAudioOrphanSweep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Launch-time cleanup of recorded-audio files no saved session references —
 //  clears partial/unplayable files left by a crash or a never-saved recording.

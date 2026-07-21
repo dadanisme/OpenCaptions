@@ -1,6 +1,6 @@
 //
 //  CaptionsOverlayController.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Owns the floating captions panel — a borderless, translucent, always-on-top
 //  `NSPanel` that renders the live transcript over every other app (including
@@ -68,7 +68,7 @@ final class CaptionsOverlayController {
         panel.isOpaque = false
         panel.hasShadow = true
         // Persist position/size across sessions and launches.
-        panel.setFrameAutosaveName("OgmoCaptionsOverlay")
+        panel.setFrameAutosaveName("OpenCaptionsCaptionsOverlay")
         // First-run placement: top-right of the main screen, below the menu bar.
         if panel.frame.origin == .zero, let screen = NSScreen.main {
             let visible = screen.visibleFrame

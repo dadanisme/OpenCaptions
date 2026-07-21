@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+Lifecycle.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Pause / resume for the standalone macOS transcription flow. A soft pause
 //  stops mic capture but holds the Soniox socket open via keepalive, so a

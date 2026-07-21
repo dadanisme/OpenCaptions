@@ -12,18 +12,18 @@ is a **separate implementation issue** (see **Out of scope**).
 | Question | Decision |
 |---|---|
 | Distribution channel | **Mac App Store** (not Developer-ID / DMG) |
-| Bundle id | **`com.muhammadramdan.OgmoMac`** |
+| Bundle id | **`com.muhammadramdan.OpenCaptions`** |
 | Signing team | **`C4SQMCY5WT`** (Ramdan's account — the currently committed config) |
 | Hardened Runtime | **Not enabled** — not required for MAS; only Developer-ID/notarized apps need it |
 | Notarization | **Not needed** — the App Store review pipeline handles it |
-| Entitlements | **Finalized as-is** — the current `OgmoMac.entitlements` set is MAS-clean; no change |
-| Monetization products | **Consumable "minutes" IAPs** (`com.ogmo.minutes_180/600/1500`), *not* the `student`/`studentplus` subscriptions the issue text names (stale — see below) |
+| Entitlements | **Finalized as-is** — the current `OpenCaptions.entitlements` set is MAS-clean; no change |
+| Monetization products | **Consumable "minutes" IAPs** (the store's minute products), *not* the `student`/`studentplus` subscriptions the issue text names (stale — see below) |
 
 ## 1. Distribution channel: Mac App Store
 
 **Chosen: Mac App Store.** Rationale, strongest first:
 
-1. **StoreKit in-app purchases require App Store distribution.** Ogmo monetizes by
+1. **StoreKit in-app purchases require App Store distribution.** Open Captions monetizes by
    selling **consumable minute packs** through StoreKit (via RevenueCat). A
    Developer-ID app distributed outside the App Store (DMG/direct download)
    **cannot use StoreKit for IAP** — it would have to switch to a non-Apple payment
@@ -46,16 +46,16 @@ familiar distribution/update channel shared with the iOS app's audience.
 
 ## 2. Signing & Hardened Runtime
 
-Current committed build settings for the `OgmoMac` target (verified in
+Current committed build settings for the `OpenCaptions` target (verified in
 `unmute.xcodeproj/project.pbxproj`):
 
 | Setting | Value |
 |---|---|
 | `CODE_SIGN_STYLE` | `Automatic` |
 | `DEVELOPMENT_TEAM` | `C4SQMCY5WT` |
-| `PRODUCT_BUNDLE_IDENTIFIER` | `com.muhammadramdan.OgmoMac` |
-| `PRODUCT_NAME` | `Ogmo` (artifact is `Ogmo.app`) |
-| `CODE_SIGN_ENTITLEMENTS` | `OgmoMac.entitlements` (repo root) |
+| `PRODUCT_BUNDLE_IDENTIFIER` | `com.muhammadramdan.OpenCaptions` |
+| `PRODUCT_NAME` | `OpenCaptions` (artifact is `OpenCaptions.app`) |
+| `CODE_SIGN_ENTITLEMENTS` | `OpenCaptions.entitlements` (repo root) |
 | `MACOSX_DEPLOYMENT_TARGET` | `14.4` |
 | `INFOPLIST_KEY_LSApplicationCategoryType` | `public.app-category.productivity` (required for a MAS listing) |
 | `ENABLE_HARDENED_RUNTIME` | *(unset — 0 occurrences in the project)* |
@@ -64,14 +64,14 @@ Current committed build settings for the `OgmoMac` target (verified in
   MAS one. Leaving it unset is correct; do **not** add it.
 - **Signing for release** needs, one-time in the Apple Developer account
   `C4SQMCY5WT`: an **Apple Distribution** certificate and a **Mac App Store**
-  provisioning profile for `com.muhammadramdan.OgmoMac`. With `CODE_SIGN_STYLE =
+  provisioning profile for `com.muhammadramdan.OpenCaptions`. With `CODE_SIGN_STYLE =
   Automatic`, Xcode provisions both when you archive while signed into that account.
 - **Upload path:** Xcode Organizer → *Distribute App → App Store Connect*, or
   Transporter, or `xcrun altool`/App Store Connect API from CI.
 
 ## 3. Entitlements — finalized (no change)
 
-The current `OgmoMac.entitlements` is already the correct, minimal MAS set. Each key
+The current `OpenCaptions.entitlements` is already the correct, minimal MAS set. Each key
 and its MAS standing:
 
 | Entitlement / key | Purpose | MAS standing |
@@ -80,10 +80,10 @@ and its MAS standing:
 | `com.apple.security.device.audio-input` | Mic tap **and** Core Audio process-tap system-audio path | Allowed ✓ |
 | `com.apple.security.network.client` | Soniox WSS, summary POST, Google Sign-In `ASWebAuthenticationSession` | Allowed ✓ |
 | `com.apple.security.files.user-selected.read-write` | PDF export via `NSSavePanel` (Powerbox) | Allowed ✓ |
-| `keychain-access-groups` = `$(AppIdentifierPrefix)com.muhammadramdan.OgmoMac` | FirebaseAuth keychain persistence (else `errSecMissingEntitlement -34018`) | Allowed ✓ |
+| `keychain-access-groups` = `$(AppIdentifierPrefix)com.muhammadramdan.OpenCaptions` | FirebaseAuth keychain persistence (else `errSecMissingEntitlement -34018`) | Allowed ✓ |
 | `com.apple.developer.applesignin` = `["Default"]` | Sign in with Apple (button currently hidden, capability retained) | Allowed ✓ |
 
-Info.plist (`OgmoMac-Info.plist`) items that matter for the store:
+Info.plist (`OpenCaptions-Info.plist`) items that matter for the store:
 
 - `ITSAppUsesNonExemptEncryption = false` — only standard TLS; suppresses the
   per-upload export-compliance question. ✓
@@ -114,15 +114,17 @@ Issue #177 says *"enable the `student` / `studentplus` subscription products
 
 **Products to enable for macOS** (the consumables, from `unmute/product.storekit`):
 
-| Product ID | Pack | Price |
-|---|---|---|
-| `com.ogmo.minutes_180` | 3 hours | $1.99 |
-| `com.ogmo.minutes_600` | 10 hours | $4.99 |
-| `com.ogmo.minutes_1500` | 25 hours | $9.99 |
+| Pack | Price |
+|---|---|
+| 3 hours | $1.99 |
+| 10 hours | $4.99 |
+| 25 hours | $9.99 |
+
+These are the store's minute products (consumable IAPs); enable the three packs above.
 
 ### Cross-account nuance (important)
 
-OgmoMac ships under **Ramdan's account (`C4SQMCY5WT`, `com.muhammadramdan.OgmoMac`)**,
+Open Captions ships under **Ramdan's account (`C4SQMCY5WT`, `com.muhammadramdan.OpenCaptions`)**,
 which is **separate** from the iOS app's org account (`YN8NVQ69WY`,
 `com.wentao.unmute`). Consequences:
 
@@ -137,7 +139,7 @@ which is **separate** from the iOS app's org account (`YN8NVQ69WY`,
   purchase on either platform credits the same balance. **→ Verify this cross-account
   setup in the RevenueCat dashboard** when wiring it up; if it turns out a shared
   balance isn't achievable across the two Apple accounts, the fallback is a
-  per-platform balance (worse UX) or moving OgmoMac under the org account.
+  per-platform balance (worse UX) or moving Open Captions under the org account.
 
 ## 5. CI for the macOS build
 
@@ -159,10 +161,10 @@ which is **separate** from the iOS app's org account (`YN8NVQ69WY`,
 
 Performed by the account owner in dashboards — **not** code:
 
-- **Apple Developer (`C4SQMCY5WT`):** App ID `com.muhammadramdan.OgmoMac` already
+- **Apple Developer (`C4SQMCY5WT`):** App ID `com.muhammadramdan.OpenCaptions` already
   exists (auth work); create an **Apple Distribution** certificate and a **Mac App
   Store** provisioning profile.
-- **App Store Connect:** create the macOS app record for `com.muhammadramdan.OgmoMac`;
+- **App Store Connect:** create the macOS app record for `com.muhammadramdan.OpenCaptions`;
   category = Productivity; fill metadata + privacy nutrition labels (microphone, audio
   capture, account/email); create the three **consumable** IAPs above; export
   compliance already answered via the plist.
@@ -170,7 +172,7 @@ Performed by the account owner in dashboards — **not** code:
   its App Store Connect credentials; map the three products into the **"credits"**
   offering and grant the **"Min"** virtual currency (mirror iOS). Record the macOS
   RevenueCat API key for the future billing port.
-- **Firebase:** the macOS app (`com.muhammadramdan.OgmoMac`) is already registered
+- **Firebase:** the macOS app (`com.muhammadramdan.OpenCaptions`) is already registered
   (see `docs/2026-07-05-macos-auth-and-scoping.md`).
 
 ## 7. Acceptance-criteria status
@@ -186,10 +188,10 @@ Performed by the account owner in dashboards — **not** code:
 
 ## Out of scope (separate follow-ups)
 
-- **Billing port to OgmoMac** — add RevenueCat (+ RevenueCatUI) to the target, port
+- **Billing port to Open Captions** — add RevenueCat (+ RevenueCatUI) to the target, port
   `SubscriptionManager` / `MinuteDeductionService`, configure `Purchases` with the
   Firebase uid, add a paywall, and gate `MacTranscriptionViewModel` session start +
-  minute deduction. OgmoMac currently has **no billing** (deferred at MVP,
+  minute deduction. Open Captions currently has **no billing** (deferred at MVP,
   `docs/2026-07-04-macos-standalone-mvp.md`). This is Swift work, not #177.
 - **macOS release CI workflow** — add once signing secrets are provisioned.
 - **Confirm RevenueCat cross-account shared-balance feasibility** (§4).

@@ -1,14 +1,14 @@
 # macOS: Import audio & video files for transcription
 
 **Date:** 2026-07-16
-**Issue:** [#302](https://github.com/ogmo-team/ogmo-app/issues/302)
-**Target:** OgmoMac (standalone macOS app) only. iOS `unmute` untouched.
-**Depends on:** [#245](https://github.com/ogmo-team/ogmo-app/issues/245) (post-session
+**Issue:** #302
+**Target:** OpenCaptions (standalone macOS app) only. iOS `unmute` untouched.
+**Depends on:** #245 (post-session
 re-transcription platform), which shipped the `PostSessionTranscriptionEngine` stack.
 
 ## Context
 
-OgmoMac could only transcribe **live** mic/system audio. Users often already have
+OpenCaptions could only transcribe **live** mic/system audio. Users often already have
 recordings — meeting captures, voice memos, lecture videos — with no way to bring them
 in. This adds a file-import entry point that ingests an existing audio **or video** file,
 extracts/normalizes its audio, transcribes it, and saves a normal `TranscriptionSession`
@@ -101,7 +101,7 @@ coordinator + the UI entry points.
   in flight for that session. The list shows only a per-row spinner — no banner.
 - **Wiring:** `TranscriptionsScreen` (toolbar button, `.fileImporter`, error alert,
   `focusedSceneValue(\.importMedia)`, list-row spinner OR — no list banner); `MacFocusedValues`
-  (`importMedia` key); `OgmoCommands` (File-menu command); `MacSessionDetailView`
+  (`importMedia` key); `OpenCaptionsCommands` (File-menu command); `MacSessionDetailView`
   (`postSessionBanner` overlay; re-transcribe menu disabled while importing);
   `RetranscriptionManager.launch` (defensive import guard); `FeatureFlag` (`fileImport`);
   `SessionAudioRecorder` (shared `aacSettings`).

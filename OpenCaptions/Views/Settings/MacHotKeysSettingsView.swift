@@ -1,6 +1,6 @@
 //
 //  MacHotKeysSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "Shortcuts" Settings pane (issue #249): rebind each global hotkey by
 //  RECORDING it — click a row, then press the chord you want. Capture uses a
@@ -13,7 +13,7 @@
 //  slot's own current chord) would be consumed by Carbon and fire the action
 //  instead of being captured; (2) the local monitor is app-wide, so we cancel
 //  recording the moment the Settings window loses key focus, or a keystroke in
-//  another Ogmo window could be swallowed and silently bound.
+//  another Open Captions window could be swallowed and silently bound.
 //
 //  Each row shows the current chord and a warning when a binding can't be
 //  registered (no modifier, duplicate, or claimed elsewhere). Changes apply and
@@ -33,7 +33,7 @@ struct MacHotKeysSettingsView: View {
     @State private var monitor: Any?
     /// Whether the Settings window is key. Recording is cancelled the moment it
     /// isn't, so the app-wide capture monitor can't swallow keystrokes meant for
-    /// another Ogmo window.
+    /// another Open Captions window.
     @Environment(\.controlActiveState) private var controlActiveState
 
     var body: some View {
@@ -51,7 +51,7 @@ struct MacHotKeysSettingsView: View {
             } header: {
                 Text("Global Shortcuts")
             } footer: {
-                Text("These work system-wide, even when Ogmo is in the background or its window is closed. Click a shortcut, then press the keys you want (include at least one of ⌃ ⌥ ⌘). A brief badge on screen confirms every press.")
+                Text("These work system-wide, even when Open Captions is in the background or its window is closed. Click a shortcut, then press the keys you want (include at least one of ⌃ ⌥ ⌘). A brief badge on screen confirms every press.")
                     .appScaledFont(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -1,6 +1,6 @@
 //
 //  FirestoreSyncService+LineSync.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Line-commit and in-flight accumulator sync for FirestoreSyncService,
 //  including the 1-write/sec accumulator throttle with trailing flush.

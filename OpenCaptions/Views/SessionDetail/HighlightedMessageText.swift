@@ -1,6 +1,6 @@
 //
 //  HighlightedMessageText.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Renders transcript text with two layered highlights (macOS parity with iOS):
 //  • Question sentences get a `Color.DS.questionHighlight` background tint.

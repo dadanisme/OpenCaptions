@@ -1,6 +1,6 @@
 //
 //  MacPaywallView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Native minute-pack purchase sheet. Reads the `credits` offering packages from
 //  `MacSubscriptionManager` and buys via RevenueCat. Hand-rolled (not RevenueCatUI)
@@ -101,7 +101,7 @@ struct MacPaywallView: View {
                     .foregroundStyle(.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text("Minutes are shared across your Ogmo apps and never expire. Offline Mode transcribes free on this Mac.")
+            Text("Minutes never expire, and Offline Mode transcribes free on this Mac.")
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

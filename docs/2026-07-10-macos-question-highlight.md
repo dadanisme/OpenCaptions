@@ -1,6 +1,6 @@
 # macOS transcript question highlighting (parity with iOS)
 
-**Issue:** #254 · **Target:** OgmoMac (native macOS app)
+**Issue:** #254 · **Target:** OpenCaptions (native macOS app)
 
 Ports the iOS "highlight sentences that end in `?`" transcript treatment to the
 standalone macOS app so questions stand out at a glance, live and in saved
@@ -9,14 +9,14 @@ sessions. Detection is purely string-based — **no** `TranscriptionLine` change
 
 ## What shipped
 
-- **`OgmoMac/Views/SessionDetail/HighlightedMessageText.swift`** — a `View` that renders a
+- **`OpenCaptions/Views/SessionDetail/HighlightedMessageText.swift`** — a `View` that renders a
   transcript string, tinting question sentences. Fast-paths to a plain `Text` when
   there is nothing to highlight (the common case), so non-question lines render
   byte-for-byte as before.
-- **`OgmoMac/Views/SessionDetail/HighlightedMessageText+Caching.swift`** — the sentence scanner
+- **`OpenCaptions/Views/SessionDetail/HighlightedMessageText+Caching.swift`** — the sentence scanner
   (`findQuestionRanges`, verbatim from iOS), `buildSegments`, `buildAttributedString`,
   and a 200-entry segment cache. Split out to respect the 250-line limit.
-- **`OgmoMac/Views/Common/DesignTokens.swift`** — a new macOS design-token namespace whose
+- **`OpenCaptions/Views/Common/DesignTokens.swift`** — a new macOS design-token namespace whose
   only member today is `Color.DS.questionHighlight`.
 - Five render sites swapped from `Text(...)` to `HighlightedMessageText(...)`:
   saved-session playback rows, live committed bubbles, the live partial line, and

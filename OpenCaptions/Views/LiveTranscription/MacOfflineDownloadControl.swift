@@ -1,6 +1,6 @@
 //
 //  MacOfflineDownloadControl.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The trailing accessory shown on the Offline Mode row while the on-device files aren't
 //  ready yet: a prominent Download button, or a compact progress read-out

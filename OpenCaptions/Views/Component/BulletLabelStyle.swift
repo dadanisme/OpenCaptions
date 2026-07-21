@@ -1,6 +1,6 @@
 //
 //  BulletLabelStyle.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Renders a small bullet before the label text. Used by the session-detail
 //  summary's "Key Points" list. Extracted from MacSessionDetailView to keep that

@@ -1,6 +1,6 @@
-# macOS Onboarding Clipping Fix (OgmoMac)
+# macOS Onboarding Clipping Fix (Open Captions)
 
-**Date:** 2026-07-16 · **Issue:** #312 (epic #103) · **Target:** `OgmoMac`
+**Date:** 2026-07-16 · **Issue:** #312 (epic #103) · **Target:** `OpenCaptions`
 
 ## Summary
 
@@ -12,7 +12,7 @@ since the button can't be pressed until it's revealed.
 
 ## Root cause
 
-The main scene (`OgmoMacApp.swift`) is a single `Window` with **no
+The main scene (`OpenCaptionsApp.swift`) is a single `Window` with **no
 `.windowResizability`**, so it defaulted to `.automatic`. `.automatic` does **not**
 enforce the content's minimum size on the AppKit window — the window can open (or
 restore a persisted frame) **shorter** than the content needs. `MacOnboardingView`
@@ -22,12 +22,12 @@ so the fixed top (`MacOnboardingStepIndicator`) and bottom (`actionBar`) chrome
 fall off **both** edges symmetrically while the middle step content stays visible.
 
 Verified via SwiftUI layout algebra: min-frames only **floor**, never cap, so the
-outer `.frame(minHeight: 400)` (OgmoMacApp) does not hide the inner 600 — the
+outer `.frame(minHeight: 400)` (OpenCaptionsApp) does not hide the inner 600 — the
 content min compounds to `max(600, 400) = 600` during onboarding.
 
 ## Fix (two parts)
 
-1. **Window sizing** — `OgmoMacApp.swift`: add `.windowResizability(.contentMinSize)`
+1. **Window sizing** — `OpenCaptionsApp.swift`: add `.windowResizability(.contentMinSize)`
    to the `Window` scene. The window now **floors at** the current content's minimum
    and **opens at** its content-fit ideal, so it can no longer open/restore shorter
    than the onboarding content. `.contentMinSize` (not `.contentSize`) sets **only**
@@ -78,7 +78,7 @@ while chrome stays pinned; (d) no one-frame scroller flash when stepping.
 
 ## Files
 
-- `OgmoMac/OgmoMacApp.swift` — `.windowResizability(.contentMinSize)` on the `Window` scene.
-- `OgmoMac/Views/Onboarding/MacOnboardingView.swift` — pinned chrome + scrolling middle; `minHeight: 400, idealHeight: 600`.
+- `OpenCaptions/OpenCaptionsApp.swift` — `.windowResizability(.contentMinSize)` on the `Window` scene.
+- `OpenCaptions/Views/Onboarding/MacOnboardingView.swift` — pinned chrome + scrolling middle; `minHeight: 400, idealHeight: 600`.
 
 See also `docs/2026-07-11-macos-onboarding.md` (the onboarding flow itself).

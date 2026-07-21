@@ -1,6 +1,6 @@
 //
 //  MacHUDOverlayView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The content of the brief HUD badge shown when a global hotkey fires (issue
 //  #249) — a system-volume-style card with an icon + one-line message. Rendered

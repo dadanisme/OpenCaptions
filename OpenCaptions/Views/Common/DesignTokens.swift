@@ -1,6 +1,6 @@
 //
 //  DesignTokens.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Design-system color tokens for the native macOS app. Unlike the iOS target's
 //  fixed light-mode palette, macOS follows the system appearance (no forced mode),

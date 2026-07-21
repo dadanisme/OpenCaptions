@@ -1,6 +1,6 @@
 //
 //  SystemAudioTapCaptureService+IO.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The Core Audio tap/aggregate/IOProc half of process-tap system-audio capture:
 //  builds a whole-system tap + a private aggregate device, installs the IOProc,
@@ -26,7 +26,7 @@ extension SystemAudioTapCaptureService {
         // future TTS/alert sounds aren't captured back into the transcript).
         let excluded = [CoreAudioTapUtils.ownProcessObjectID()].compactMap { $0 }
         let desc = CATapDescription(monoGlobalTapButExcludeProcesses: excluded)
-        desc.name = "OGMO System Audio Tap"
+        desc.name = "Open Captions System Audio Tap"
         desc.isPrivate = true
         desc.muteBehavior = .unmuted   // don't mute the actual speakers while tapping
 
@@ -44,7 +44,7 @@ extension SystemAudioTapCaptureService {
         // sub-tap, auto-started so the IOProc receives frames.
         let outputUID = try CoreAudioTapUtils.defaultOutputDeviceUID()
         let aggDesc: [String: Any] = [
-            kAudioAggregateDeviceNameKey: "OGMO-System-Aggregate",
+            kAudioAggregateDeviceNameKey: "OpenCaptions-System-Aggregate",
             kAudioAggregateDeviceUIDKey: UUID().uuidString,
             kAudioAggregateDeviceMainSubDeviceKey: outputUID,
             kAudioAggregateDeviceIsPrivateKey: true,

@@ -1,6 +1,6 @@
 //
 //  NemotronTranscriberService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  On-device (offline) speech-to-text via NVIDIA Nemotron Speech Streaming (560 ms), run
 //  through FluidAudio's `NemotronStreamingAsrManager`. Conforms to `RealtimeTranscriptionEngine`

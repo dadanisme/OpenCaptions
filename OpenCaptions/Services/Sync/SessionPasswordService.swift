@@ -1,9 +1,9 @@
 //
 //  SessionPasswordService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Owner-side session password management (issue #116). Wraps the two
-//  Firebase callable functions deployed in `ogmo-cf`:
+//  Firebase callable functions deployed in the backend Cloud Functions project:
 //
 //    setSessionPassword({sessionId, password}) → {ok: true}
 //    removeSessionPassword({sessionId})        → {ok: true}

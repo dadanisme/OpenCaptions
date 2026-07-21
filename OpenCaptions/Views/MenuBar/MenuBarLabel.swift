@@ -1,8 +1,8 @@
 //
 //  MenuBarLabel.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  The system menu-bar item's icon: the rounded Ogmo logo with a small badge
+//  The system menu-bar item's icon: the rounded Open Captions logo with a small badge
 //  signalling recording state (red dot while recording, orange pause bars while
 //  paused, nothing when idle).
 //

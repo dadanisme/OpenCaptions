@@ -1,6 +1,6 @@
 //
 //  HotKeyManager+Carbon.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The low-level Carbon glue for `HotKeyManager`: installs one process-wide
 //  `kEventHotKeyPressed` handler, and registers/unregisters each action's chord
@@ -16,8 +16,8 @@ import Carbon.HIToolbox
 
 extension HotKeyManager {
 
-    /// Four-char code ("Ogmo") tagging this app's hotkey registrations.
-    static var signature: OSType { 0x4F676D6F }
+    /// Four-char code ("OpCp") tagging this app's hotkey registrations.
+    static var signature: OSType { 0x4F704370 }
 
     /// Installs the single Carbon handler that fires for every registered chord.
     /// Idempotent — installs at most once.

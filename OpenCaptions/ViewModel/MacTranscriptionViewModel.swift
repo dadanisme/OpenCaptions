@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Standalone macOS transcription state machine. Drives the Soniox engine +
 //  MacAudioService and feeds tokens through the (diarization-on) accumulator

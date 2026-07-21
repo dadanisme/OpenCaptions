@@ -1,6 +1,6 @@
 //
 //  CaptionsOverlayView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Caption strip rendered inside the floating overlay panel
 //  (`CaptionsOverlayController`). Shows the live transcript — all in-memory lines

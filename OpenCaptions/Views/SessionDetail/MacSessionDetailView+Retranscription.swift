@@ -1,6 +1,6 @@
 //
 //  MacSessionDetailView+Retranscription.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The manual "Re-transcribe" toolbar action and its overlays (confirmation, a
 //  non-blocking progress banner, error alert, paywall) for the saved-session detail

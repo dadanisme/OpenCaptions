@@ -1,6 +1,6 @@
 //
 //  MediaAudioExtractor.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Normalizes an imported audio OR video file into the app's canonical session
 //  `.m4a` (AAC-LC, 16 kHz, mono, 32 kbps — the exact format `SessionAudioRecorder`

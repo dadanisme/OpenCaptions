@@ -1,8 +1,8 @@
 # macOS Session Audio Persistence + Synced Transcript Playback
 
-**Date:** 2026-07-08 · **Scope:** OgmoMac (native macOS) only · **Issue:** [#198](https://github.com/ogmo-team/ogmo-app/issues/198) · **Epic:** #103
+**Date:** 2026-07-08 · **Scope:** Open Captions (native macOS) only · **Issue:** #198 · **Epic:** #103
 
-Persists each OgmoMac transcription session's audio to disk and adds a playback UI on the saved-session detail screen (`MacSessionDetailView`): a player bar (play/pause, scrubber, elapsed/total) plus a transcript that highlights the line under the playhead, auto-scrolls to it, and lets you tap any bubble to seek there. Every `TranscriptionLine` already stored `startMs`/`endMs`, so only the audio itself and the UI were missing.
+Persists each Open Captions transcription session's audio to disk and adds a playback UI on the saved-session detail screen (`MacSessionDetailView`): a player bar (play/pause, scrubber, elapsed/total) plus a transcript that highlights the line under the playhead, auto-scrolls to it, and lets you tap any bubble to seek there. Every `TranscriptionLine` already stored `startMs`/`endMs`, so only the audio itself and the UI were missing.
 
 ## Audio format — AAC-LC `.m4a`, 16 kHz mono, ~32 kbps
 
@@ -26,7 +26,7 @@ The capture pipeline already delivers 16 kHz mono Float32 (the exact stream sent
 Recording happens only when **both** are on:
 
 - **Remote flag** `FeatureFlag.sessionPlayback` = `Mac_session_playback` (default **ON**). Gates the recorder, the player bar, and the transcript's playback affordances (highlight + tap-to-seek). A self-re-arming `withObservationTracking` kill switch tears down an in-progress recording (deleting the partial file) if the flag flips off mid-session.
-- **Local Settings toggle** "Save session audio for playback" (`LiveSessionStore.sessionAudioKey`, default **ON**, registered in `OgmoMacApp.init`, read at record time).
+- **Local Settings toggle** "Save session audio for playback" (`LiveSessionStore.sessionAudioKey`, default **ON**, registered in `OpenCaptionsApp.init`, read at record time).
 
 > **Observation gotcha:** the self-re-arming kill-switch pattern (copied from `FirestoreSyncService.observeSessionSharingFlag`) is safe on singletons but leaks a per-session object if the `onChange` closure captures `self` strongly — `FeatureFlagService.shared`'s registrar is immortal. `[weak self]` MUST be on the **outer** `onChange` closure (a nested `Task { [weak self] }` does not prevent the outer strong capture).
 
@@ -66,4 +66,4 @@ Two earlier approaches were tried and discarded:
 
 ## Known issue
 
-Mixed **Microphone + System Audio** mode records glitched system audio on playback (mic-only and system-only are clean) — tracked separately in [#229](https://github.com/ogmo-team/ogmo-app/issues/229). The artifact is in the mixed capture path (`MixedAudioCaptureService`), not the recorder.
+Mixed **Microphone + System Audio** mode records glitched system audio on playback (mic-only and system-only are clean) — tracked separately in #229. The artifact is in the mixed capture path (`MixedAudioCaptureService`), not the recorder.

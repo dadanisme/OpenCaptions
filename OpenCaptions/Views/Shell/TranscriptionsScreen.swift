@@ -1,6 +1,6 @@
 //
 //  TranscriptionsScreen.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "Transcriptions" section: a list of saved sessions with a top-right
 //  Record button. Recording replaces the list AS THE NAVIGATION-STACK ROOT

@@ -1,6 +1,6 @@
 //
 //  FileImportManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-lifetime owner of "import a media file → saved session" runs (#302). A
 //  singleton so an import SURVIVES leaving/closing the window — the transcode +

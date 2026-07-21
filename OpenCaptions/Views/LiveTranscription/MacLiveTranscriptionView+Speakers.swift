@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView+Speakers.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Speaker-display + rename helpers for the live recording screen, split out of
 //  MacLiveTranscriptionView to keep it under the per-file line limit (same pattern

@@ -1,6 +1,6 @@
 //
 //  MacUsageSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The Settings → Usage pane: shows the remaining transcription-minute balance
 //  and a button to buy more (opens the native paywall). Minutes meter cloud
@@ -36,7 +36,7 @@ struct MacUsageSettingsView: View {
                 }
             }
             Section {
-                Text("Minutes are consumed by cloud transcription (with speaker labels) and are shared across your Ogmo apps. Offline Mode transcribes entirely on this Mac and is free — it never uses minutes.")
+                Text("Minutes are consumed by cloud transcription (with speaker labels). Offline Mode transcribes entirely on this Mac and is free — it never uses minutes.")
                     .appScaledFont(.caption)
                     .foregroundStyle(.secondary)
             }

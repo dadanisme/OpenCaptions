@@ -19,7 +19,7 @@ resumes by scrolling back down).
 
 ### `MacScrollStateObserver` (new)
 
-`OgmoMac/Views/LiveTranscription/MacScrollStateObserver.swift` — an
+`OpenCaptions/Views/LiveTranscription/MacScrollStateObserver.swift` — an
 `NSViewRepresentable` dropped as a zero-size `.background` inside each SwiftUI
 `ScrollView`. It:
 
@@ -93,6 +93,6 @@ scrolling the captions strip while the main window is active pauses auto-scroll.
 
 ## Files
 
-- `OgmoMac/Views/LiveTranscription/MacScrollStateObserver.swift` (new)
-- `OgmoMac/Views/LiveTranscription/MacLiveTranscriptionView.swift`
-- `OgmoMac/Views/LiveTranscription/CaptionsOverlayView.swift`
+- `OpenCaptions/Views/LiveTranscription/MacScrollStateObserver.swift` (new)
+- `OpenCaptions/Views/LiveTranscription/MacLiveTranscriptionView.swift`
+- `OpenCaptions/Views/LiveTranscription/CaptionsOverlayView.swift`

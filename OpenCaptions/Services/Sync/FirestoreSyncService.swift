@@ -1,10 +1,10 @@
 //
 //  FirestoreSyncService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Mirrors live transcription sessions to Firestore so they can be viewed
-//  from a read-only web client. See docs/2026-05-19-firestore-sync.md and
-//  https://github.com/ogmo-team/ogmo-app/issues/105 for the wire format.
+//  from a read-only web client. See docs/2026-05-19-firestore-sync.md for the
+//  wire format.
 //
 
 import Foundation

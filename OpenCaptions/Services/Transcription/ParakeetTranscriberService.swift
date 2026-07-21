@@ -1,6 +1,6 @@
 //
 //  ParakeetTranscriberService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  On-device (offline) speech-to-text via NVIDIA Parakeet TDT v2 (parakeet-tdt-0.6b-v2 — the
 //  highest-accuracy English model), driven in real time by FluidAudio's `SlidingWindowAsrManager`.

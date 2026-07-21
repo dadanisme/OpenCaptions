@@ -1,6 +1,6 @@
 //
 //  FluidAudioModelLoader.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Stateless helpers for locating, downloading, checking, loading, and cleaning the on-device
 //  FluidAudio CoreML models used by the macOS Parakeet (TDT v2) and Nemotron (560 ms) engines.

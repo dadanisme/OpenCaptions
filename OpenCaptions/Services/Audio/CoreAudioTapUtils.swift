@@ -1,6 +1,6 @@
 //
 //  CoreAudioTapUtils.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Small Core Audio HAL helpers shared by the process-tap system-audio capture
 //  (`SystemAudioTapCaptureService`): reading object properties, translating our

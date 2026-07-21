@@ -1,13 +1,13 @@
 //
 //  MixedAudioCaptureService+AEC.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Remote feature-flag control for the mixed-source software echo canceller
-//  (`OgmoAEC`). Lets the team disable AEC from Firestore (`Mac_aec_enabled`)
+//  (`OpenCaptionsAEC`). Lets the team disable AEC from Firestore (`Mac_aec_enabled`)
 //  without shipping a build, falling back to the uncancelled plain-sum mix if the
 //  canceller regresses in the field (issue #231).
 //
-//  The gate itself (build-or-skip the OgmoAEC) lives in `+Mic`'s
+//  The gate itself (build-or-skip the OpenCaptionsAEC) lives in `+Mic`'s
 //  `configureMicEngine`; this file just keeps `aecEnabled`/`aec` in sync with the
 //  remote flag. `setAECEnabled` is the thread-safe seam both the observer and the
 //  render/setup paths cross; `observeAECFlag` is the self-re-arming kill switch.
