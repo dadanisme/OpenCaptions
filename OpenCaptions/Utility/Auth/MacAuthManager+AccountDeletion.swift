@@ -6,7 +6,7 @@
 //  5.1.1(v)). macOS supports
 //  THREE providers (Google, email/password, Apple), so the reauth step dispatches on
 //  the current provider. The app deletes only the Firebase Auth user + this user's
-//  LOCAL data; backend cleanup (the RevenueCat customer) is handled server-side by the
+//  LOCAL data; any backend cleanup is handled server-side by the
 //  `onUserDeleted` Auth trigger in the backend Cloud Functions project. See
 //  docs/2026-07-14-macos-account-deletion.md.
 //
@@ -114,7 +114,7 @@ extension MacAuthManager {
                 try await Auth.auth().revokeToken(withAuthorizationCode: appleAuthCode)
             }
 
-            // 3. Delete the Firebase user (fires the server `onUserDeleted` trigger → RC cleanup).
+            // 3. Delete the Firebase user (fires the server `onUserDeleted` trigger).
             try await user.delete()
             firebaseUserDeleted = true
 

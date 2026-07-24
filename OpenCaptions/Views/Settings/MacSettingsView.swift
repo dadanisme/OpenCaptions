@@ -50,13 +50,6 @@ struct MacSettingsView: View {
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             MacSupportSettingsView()
                 .tabItem { Label("Support", systemImage: "questionmark.circle") }
-            // Usage/billing is meaningless for an offline guest, so hide it for them.
-            // Kept LAST and conditional so toggling it never shifts another tab's
-            // position — a middle conditional tab dropped a sibling's icon on macOS.
-            if !auth.isGuest {
-                MacUsageSettingsView()
-                    .tabItem { Label("Usage", systemImage: "creditcard") }
-            }
         }
         .frame(width: 480, height: 460)
     }
@@ -125,8 +118,7 @@ struct MacSettingsView: View {
         Section("Offline Mode") {
             if offlineFilesReady {
                 // Files are on disk — plain on/off toggle. Locked ON for an offline
-                // guest: the cloud path is unavailable without an account (and its
-                // balance gate fails open when RevenueCat isn't configured).
+                // guest: the cloud path is unavailable without an account.
                 Toggle("Enable Offline Mode", isOn: $offlineModeEnabled)
                     .disabled(auth.isGuest)
                     .onChange(of: offlineModeEnabled) { _, newValue in
@@ -151,7 +143,7 @@ struct MacSettingsView: View {
         if FeatureFlagService.shared.isEnabled(.postSessionRetranscription) {
             Section("Re-transcription") {
                 Toggle("Automatically re-transcribe after recording", isOn: $autoRetranscribe)
-                Text("After each recording is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (free, English only, no speaker labels), or cloud Soniox when it's off (speaker labels; uses minutes). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+                Text("After each recording is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
                     .appScaledFont(.caption)
                     .foregroundStyle(.secondary)
             }

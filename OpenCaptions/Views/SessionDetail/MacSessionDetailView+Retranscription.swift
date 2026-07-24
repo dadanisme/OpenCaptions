@@ -3,7 +3,7 @@
 //  OpenCaptions
 //
 //  The manual "Re-transcribe" toolbar action and its overlays (confirmation, a
-//  non-blocking progress banner, error alert, paywall) for the saved-session detail
+//  non-blocking progress banner, error alert) for the saved-session detail
 //  screen. The actual work runs in the app-lifetime `RetranscriptionManager`, so it
 //  keeps going if the user leaves this window. Split from MacSessionDetailView to keep
 //  that file under the line limit.
@@ -28,7 +28,7 @@ extension MacSessionDetailView {
             let offlineModelMissing = kind == .parakeet && !FluidAudioModelLoader.isParakeetDownloaded()
             // Disabled while a re-transcription OR a file import is filling in this
             // session — both drive PostSessionRetranscriber.run over it, so they must
-            // never overlap (which would double-meter and corrupt the transcript).
+            // never overlap (which would corrupt the transcript).
             let running = RetranscriptionManager.shared.isRunning(session.persistentModelID)
                 || FileImportManager.shared.isRunning(session.persistentModelID)
             Button {
@@ -40,8 +40,8 @@ extension MacSessionDetailView {
             .help(offlineModelMissing
                 ? "Download the offline model in Settings → General → Offline Mode"
                 : (kind == .parakeet
-                    ? "Re-transcribe offline on this Mac (free, English only)"
-                    : "Re-transcribe in the cloud with speaker labels (uses minutes)"))
+                    ? "Re-transcribe offline on this Mac (English only)"
+                    : "Re-transcribe in the cloud with speaker labels"))
         }
     }
 
@@ -67,13 +67,12 @@ extension MacSessionDetailView {
 
 // MARK: - Overlays
 
-/// Installs the re-transcription confirmation dialog, error alert, and paywall on the
+/// Installs the re-transcription confirmation dialog and error alert on the
 /// detail view. Applied once in `MacSessionDetailView.mainContent`. The progress banner
 /// itself is the shared `postSessionBanner` overlay (which also covers file imports);
 /// this modifier only carries the interaction chrome.
 struct RetranscriptionModifier: ViewModifier {
     @Binding var pendingKind: RetranscriptionEngineKind?
-    @Binding var showPaywall: Bool
     let session: TranscriptionSession
     let context: ModelContext
 
@@ -96,7 +95,7 @@ struct RetranscriptionModifier: ViewModifier {
                 Button("Re-transcribe", role: .destructive) {
                     let kind = pendingKind
                     pendingKind = nil
-                    Task { await begin(kind) }
+                    begin(kind)
                 }
                 Button("Cancel", role: .cancel) { pendingKind = nil }
             } message: { kind in
@@ -112,23 +111,11 @@ struct RetranscriptionModifier: ViewModifier {
             } message: {
                 Text(errorMessage ?? "")
             }
-            .sheet(isPresented: $showPaywall) {
-                MacPaywallView(onPurchased: { Task { await begin(RetranscriptionEngineKind.forCurrentMode) } })
-            }
     }
 
-    /// Cloud paywall pre-check on the full estimated cost, then hand off to the
-    /// background manager. Called from the confirmation and from a post-top-up retry.
-    private func begin(_ kind: RetranscriptionEngineKind?) async {
+    /// Hands the run off to the background manager. Called from the confirmation dialog.
+    private func begin(_ kind: RetranscriptionEngineKind?) {
         guard let kind else { return }
-        if kind.isMetered, let fileName = session.audioFileName {
-            let audioURL = SessionAudioStore.url(for: fileName)
-            let minutes = Int(ceil(await PostSessionRetranscriber.audioDurationSeconds(audioURL) / 60.0))
-            guard await MacSubscriptionManager.shared.canAfford(minutes: minutes) else {
-                showPaywall = true
-                return
-            }
-        }
         manager.startManual(sessionID: sessionID, kind: kind, context: context)
     }
 
@@ -142,12 +129,12 @@ struct RetranscriptionModifier: ViewModifier {
         var parts = ["This replaces the current transcript and summary for this session. It runs in the background — you can leave this window."]
         switch kind {
         case .parakeet:
-            parts.append("It runs offline on this Mac (English only) and is free.")
+            parts.append("It runs offline on this Mac (English only).")
             if session.lines.contains(where: { $0.speakerId > 0 }) {
                 parts.append("Speaker labels will be removed — offline re-transcription produces a single unlabeled transcript.")
             }
         case .soniox:
-            parts.append("It runs in the cloud with speaker labels and uses minutes from your balance (about 1 minute per minute of audio).")
+            parts.append("It runs in the cloud with speaker labels.")
         }
         return parts.joined(separator: " ")
     }

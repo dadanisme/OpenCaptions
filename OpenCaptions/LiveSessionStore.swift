@@ -102,11 +102,6 @@ final class LiveSessionStore {
     /// menu command's Show/Hide label tracks it.
     private(set) var captionsVisible = false
 
-    /// Set true when a metered (cloud) recording is blocked for want of a minute
-    /// balance — by either the in-window Record action or the headless menu-bar
-    /// start. `TranscriptionsScreen` presents the paywall for it and resets it.
-    var pendingPaywall = false
-
     /// True while a session exists (used to gate reopen-time reconcile + new-record).
     var isActive: Bool { viewModel != nil }
 
@@ -170,10 +165,6 @@ final class LiveSessionStore {
     @discardableResult
     func startHeadlessRecording() async -> Bool {
         guard !isActive, let container = modelContainer else { return false }
-        // Clear any stale paywall request so it reflects only THIS attempt — otherwise
-        // a leftover true (from an earlier block whose paywall was never dismissed)
-        // would make a later mic-denied start misreport as "out of minutes".
-        pendingPaywall = false
 
         let source = AudioSource(
             rawValue: UserDefaults.standard.string(forKey: Self.audioSourceKey) ?? ""
@@ -187,16 +178,6 @@ final class LiveSessionStore {
         // System-audio capture (process tap) has no preflight — the OS shows the
         // "Audio Recording" prompt on the first capture start, so it needs no
         // headless gate here.
-
-        // Gate metered (cloud) recordings on the minute balance. Offline Mode is
-        // free. On a block, raise the window + request the paywall (there's no
-        // headless purchase UI) and report failure so the caller opens the window.
-        let offline = UserDefaults.standard.bool(forKey: Self.offlineModeKey)
-        guard await MacSubscriptionManager.shared.canStartSession(metered: !offline) else {
-            pendingPaywall = true
-            openMainWindow?()
-            return false
-        }
 
         let vm = makeSession()
         await vm.start(modelContainer: container, userId: MacAuthManager.shared.ownerId, source: source)
@@ -217,11 +198,6 @@ final class LiveSessionStore {
     func clearSession() {
         setCaptions(visible: false, for: nil)
         clearMenuBar()
-        // Settle billing for a metered session even on an abandon path that skips
-        // stop() (e.g. Back after a failure): deduct the minutes used and clear the
-        // session-active suppression flag. Idempotent — a prior stop()/discard()
-        // already ran endBilling, so this is a no-op then.
-        viewModel?.endBilling()
         viewModel = nil
         // Session fully gone — release the App Nap assertion synchronously.
         // Belt-and-suspenders alongside the observation-driven release, which has
@@ -231,12 +207,8 @@ final class LiveSessionStore {
 
     /// Tears down any live session synchronously on sign-out, BEFORE the auth cache
     /// is cleared. Without this, the window-independent session keeps running past
-    /// sign-out — its 30 s billing checkpoint would re-arm `pending_minutes_to_deduct`
-    /// and re-sign-in's balance refresh would flush it against the NEXT user. Discards
-    /// (doesn't save) the in-progress transcript — signing out mid-recording abandons
-    /// it — while `discard()` → `endBilling()` stops the billing clock and clears the
-    /// session-active flag. The caller (`MacAuthManager.signOut`) then clears pending
-    /// so the outgoing user's last partial minute isn't charged to the next user.
+    /// sign-out. Discards (doesn't save) the in-progress transcript — signing out
+    /// mid-recording abandons it.
     func discardActiveSession() {
         guard let vm = viewModel else { return }
         vm.discard()

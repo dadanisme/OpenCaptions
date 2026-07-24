@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase into this standalone project, now fully separated with its own independent backend. Uses Firebase (Auth, Firestore, Functions), RevenueCat (consumable-minutes billing), Google Sign-In, and FluidAudio (on-device inference).
+**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase into this standalone project, now fully separated with its own independent backend. Uses Firebase (Auth, Firestore, Functions), Google Sign-In, and FluidAudio (on-device inference). All transcription is **free and unmetered** — there is no billing, metering, or paywall.
 
-Core flow: capture mic **and/or** other apps' system audio → stream to a real-time STT engine → render a live diarized transcript → save to local SwiftData → optional AI summary. A fully on-device **Offline Mode** (Nemotron via FluidAudio) needs no network and is unmetered.
+Core flow: capture mic **and/or** other apps' system audio → stream to a real-time STT engine → render a live diarized transcript → save to local SwiftData → optional AI summary. A fully on-device **Offline Mode** (Nemotron via FluidAudio) needs no network.
 
 ## Naming — fully renamed to Open Captions
 
@@ -17,26 +17,26 @@ The app was extracted from a larger multi-platform codebase and has since been *
 - **Code symbols:** `OpenCaptionsApp` (the `@main` struct in `OpenCaptionsApp.swift`), `OpenCaptionsCommands`, and `OpenCaptionsAEC` (the Obj-C class in `OpenCaptionsAEC.{h,mm}`, exposed through `OpenCaptions-Bridging-Header.h`). Type names now match their file names.
 - **UI copy:** every user-facing string reads "Open Captions".
 - **Misc identifiers:** Carbon four-char hotkey code `'OpCp'` (`0x4F704370`); window autosave name `"OpenCaptionsCaptionsOverlay"`; UserDefaults keys `opencaptions.*`; the SpeexDSP include guard `OPENCAPTIONS_SPEEXDSP_CONFIG_H`.
-- **Backend / services:** the app depends on an **independent** Firebase project, RevenueCat project, Google Sign-In OAuth client, and Cloud Functions — all supplied per-deployment via the git-ignored `Config.xcconfig` and `GoogleService-Info.plist`; **no infra is hardcoded in committed source.** The summarization endpoint, web-share base URL, and support email are config-driven (`SUMMARIZE_URL`, `SESSION_SHARE_BASE_URL`, `SUPPORT_EMAIL`). A developer moving to their own backend must re-register these services against their new bundle id and fill in the two git-ignored files.
+- **Backend / services:** the app depends on an **independent** Firebase project, Google Sign-In OAuth client, and Cloud Functions — all supplied per-deployment via the git-ignored `Config.xcconfig` and `GoogleService-Info.plist`; **no infra is hardcoded in committed source.** The support email is config-driven (`SUPPORT_EMAIL`). The former summarization endpoint (`SUMMARIZE_URL`) and web-share base URL (`SESSION_SHARE_BASE_URL`) config keys were **removed** — AI summaries await migration to a direct Gemini call, so `SummaryService` currently has no endpoint. A developer moving to their own backend must re-register these services against their new bundle id and fill in the two git-ignored files.
 
 ## Build & Run
 
 Open `OpenCaptions.xcodeproj` in Xcode (macOS 14.4+ SDK), select the **`OpenCaptions`** scheme, build & run. There are **no unit tests**. Build in Xcode — do not rely on a `xcodebuild` CLI flow.
 
-The committed signing team is `C4SQMCY5WT`; a different developer must set their own team (and, to run live services, their own bundle id + re-registered Firebase/Google/RevenueCat).
+The committed signing team is `C4SQMCY5WT`; a different developer must set their own team (and, to run live services, their own bundle id + re-registered Firebase/Google).
 
 **Filesystem-synchronized groups** (Xcode 16 `PBXFileSystemSynchronizedRootGroup`): new files added anywhere under `OpenCaptions/` are picked up **automatically** — never hand-edit `project.pbxproj` to add a file. Only *build-setting paths* (Info.plist, entitlements, bridging header, header search paths) live in the pbxproj.
 
 ### Credentials (both git-ignored)
 
-- **`Config.xcconfig`** (repo root) — injected into the build; keys: `SONIOX_API_KEY`, `SUMMARIZE_API_TOKEN` (also the bearer for minute deduction), `SUMMARIZE_URL`, `DEDUCT_MINUTES_URL`, `SESSION_SHARE_BASE_URL` (web-viewer base, no trailing slash), `SUPPORT_EMAIL`, `REVENUECAT_API_KEY_MACOS`, `REVERSED_CLIENT_ID` (Google OAuth callback). Copy `Config.xcconfig.example` to start.
+- **`Config.xcconfig`** (repo root) — injected into the build; keys: `SONIOX_API_KEY`, `SUPPORT_EMAIL`, `REVERSED_CLIENT_ID` (Google OAuth callback). Copy `Config.xcconfig.example` to start.
 - **`OpenCaptions/GoogleService-Info.plist`** — Firebase config, loaded from the bundle at launch.
 
 ## Architecture (MVVM + Services)
 
 Source is under `OpenCaptions/` (`Model/`, `Services/`, `ViewModel/`, `Views/`, `Utility/`, `AEC/`, `ThirdParty/`). The pieces that need several files to understand:
 
-- **Transcription state machine** — `MacTranscriptionViewModel` (+ ~9 `+` extension files: `+Accumulator`, `+AudioSource`, `+AudioRecording`, `+Billing`, `+Engine`, `+Firestore`, `+Lifecycle`, `+AppMonitor`) drives a session. A session **outlives its window**, so session-scoped state (billing clock, keepalive) lives on the view model / stores, never on a view. `failSession(message:)` is the single abort path (connection loss, mic failure, audio-route change): it stops capture and closes the socket **while keeping the transcript**, so Stop & Save still persists what was captured.
+- **Transcription state machine** — `MacTranscriptionViewModel` (+ 7 `+` extension files: `+Accumulator`, `+AudioSource`, `+AudioRecording`, `+Engine`, `+Firestore`, `+Lifecycle`, `+AppMonitor`) drives a session. A session **outlives its window**, so session-scoped state (the keepalive) lives on the view model / stores, never on a view. `failSession(message:)` is the single abort path (connection loss, mic failure, audio-route change): it stops capture and closes the socket **while keeping the transcript**, so Stop & Save still persists what was captured.
 
 - **Cloud STT (Soniox)** — `Services/Transcription/OnlineTranscriberService` (+`+ConnectionHealth`, `+Messages`) is a `URLSessionWebSocketTask` client to `wss://stt-rt.soniox.com`. The JSON config is sent as the **first frame** right after `resume()` (sends queue FIFO until open — no startup sleep). During a soft pause a 15 s `RunLoop` keepalive holds the idle socket under Soniox's ~20 s timeout; because macOS **App Nap** throttles that timer when backgrounded, a `ProcessInfo.beginActivity(.userInitiated)` assertion is held for the whole running-or-paused session (also disables idle sleep).
 
@@ -44,7 +44,7 @@ Source is under `OpenCaptions/` (`Model/`, `Services/`, `ViewModel/`, `Views/`, 
 
 - **Audio capture** — `Services/Audio/`. Mic via an `AVAudioEngine` input tap → 16 kHz mono (no `AVAudioSession` — macOS has none). **System audio uses Core Audio process taps** (`SystemAudioTapCaptureService` + `CoreAudioTapUtils`), **not** ScreenCaptureKit. The mixed mic+system source (`MixedAudioCaptureService`) uses a **plain** mic engine (no VPIO — the mic tap must stay passive/read-only) and cancels speaker bleed **in software** via `OpenCaptionsAEC` — an Obj-C++ bridge (`AEC/OpenCaptionsAEC.{h,mm}`, exposed through `OpenCaptions-Bridging-Header.h`) over a **vendored six-file SpeexDSP subset** (`ThirdParty/SpeexDSP/`, pure C, BSD-3, compiled into the target — not SPM).
 
-- **Billing** — only **cloud Soniox** sessions are metered; Offline Mode is free. `MacSubscriptionManager` (+`+Offerings`) + `MacMinuteDeductionService` mirror a RevenueCat "credits" offering / "Min" virtual currency; the billing clock is on `MacTranscriptionViewModel+Billing`. Deduction runs once at teardown (`ceil` minutes) to `DEDUCT_MINUTES_URL`; a hand-rolled paywall gates a blocked/exhausted start.
+- **Metering** — none. All transcription (cloud Soniox and Offline Mode) is free and unmetered: there is no minute balance, deduction, gate, or paywall. RevenueCat and the whole billing subsystem (`MacSubscriptionManager`, `MacMinuteDeductionService`, the `MacTranscriptionViewModel+Billing` clock, `MacPaywallView`, `MacUsageSettingsView`) were removed; every session start, re-transcription, and file import is always-allowed.
 
 - **Auth & scoping** — `Utility/Auth/MacAuthManager` (+`+Apple`, `+Email`, `+Google`, `+Onboarding`, `+AccountDeletion`). Sign-in is **required** (`OpenCaptionsApp` gates the main UI vs sign-in). **Google Sign-In is the primary path**; email/password works; the Apple button exists but is **hidden**. Sessions are scoped by Firebase uid; `SessionOwnerBackfill` claims legacy rows at launch.
 

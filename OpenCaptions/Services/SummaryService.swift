@@ -63,25 +63,30 @@ struct SummaryAPIError: Decodable {
 @Observable
 final class SummaryService {
     
-    private var summarizeFunctionURL: String {
+    // The summarization Cloud Function config (SUMMARIZE_URL / SUMMARIZE_API_TOKEN)
+    // was removed pending migration to a direct Gemini call (see CLAUDE.md). Missing
+    // config now THROWS a graceful error — surfaced as "Couldn't Summarize" — instead
+    // of the old `fatalError` that crashed the app on auto-summarize. Do not restore
+    // the fatalError; the Gemini migration will replace these reads.
+    private func summarizeFunctionURL() throws -> String {
         guard
             let url = Bundle.main.infoDictionary?["SUMMARIZE_URL"] as? String,
             !url.isEmpty
         else {
-            fatalError(
-                "SUMMARIZE_URL not found in Info.plist. Make sure it is set in the .xcconfig file."
+            throw SessionSummaryError.networkError(
+                "Summaries are unavailable — the summarization endpoint isn't configured."
             )
         }
         return url
     }
 
-    private var summarizeAPIToken: String {
+    private func summarizeAPIToken() throws -> String {
         guard
-            let apiKey = Bundle.main.infoDictionary?["SUMMARIZE_API_TOKEN"]
-                as? String
+            let apiKey = Bundle.main.infoDictionary?["SUMMARIZE_API_TOKEN"] as? String,
+            !apiKey.isEmpty
         else {
-            fatalError(
-                "SUMMARIZE_API_TOKEN not found in Info.plist. Make sure it is set in the .xcconfig file."
+            throw SessionSummaryError.networkError(
+                "Summaries are unavailable — the summarization token isn't configured."
             )
         }
         return apiKey
@@ -118,13 +123,14 @@ final class SummaryService {
     // MARK: - Private
 
     private func callSummarizeAPI(transcript: String) async throws -> SummaryAPIResponse {
-        guard let url = URL(string: summarizeFunctionURL) else {
+        guard let url = URL(string: try summarizeFunctionURL()) else {
             throw SessionSummaryError.networkError("Invalid function URL.")
         }
+        let token = try summarizeAPIToken()
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(summarizeAPIToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let language = "English" // standalone macOS MVP is English-only (LanguageManager deferred)

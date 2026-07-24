@@ -11,9 +11,9 @@ import Foundation
 
 /// The available post-session (re-transcription) engines.
 enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
-    /// On-device FluidAudio Parakeet TDT v2 — offline, free, English-only, no diarization.
+    /// On-device FluidAudio Parakeet TDT v2 — offline, English-only, no diarization.
     case parakeet
-    /// Cloud Soniox `stt-async-v5` — diarized, multi-language, billable.
+    /// Cloud Soniox `stt-async-v5` — diarized, multi-language.
     case soniox
 
     var id: String { rawValue }
@@ -33,9 +33,6 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
         case .soniox: return "cloud"
         }
     }
-
-    /// Whether this engine bills minutes (cloud) vs. runs free (on-device).
-    var isMetered: Bool { self == .soniox }
 
     /// Whether re-transcription with this engine yields per-speaker labels.
     var supportsDiarization: Bool { self == .soniox }

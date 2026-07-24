@@ -78,15 +78,6 @@ struct TranscriptionsScreen: View {
             menuBar.startRecording = startRecordingAction
         }
         .onDisappear { menuBar.startRecording = nil }
-        // Paywall for a metered recording blocked on an empty balance — set from
-        // either the in-window Record action or the headless menu-bar start.
-        .sheet(isPresented: paywallPresented) { MacPaywallView() }
-    }
-
-    /// Binding to the store's paywall request (the store is an `@Observable`
-    /// environment object, so we bridge it into an `isPresented` binding by hand).
-    private var paywallPresented: Binding<Bool> {
-        Binding(get: { store.pendingPaywall }, set: { store.pendingPaywall = $0 })
     }
 
     /// The menu-bar "New Recording" action, or nil while a session is active so
@@ -102,18 +93,8 @@ struct TranscriptionsScreen: View {
     /// store makes the live screen appear (below) and, crucially, keeps it alive
     /// if the window is later closed.
     private func startNewRecording() {
-        // Gate metered (cloud) recordings on the minute balance before creating a
-        // session, so a blocked start shows the paywall instead of an empty live
-        // screen. Offline Mode is free and always proceeds.
-        Task {
-            let offline = UserDefaults.standard.bool(forKey: LiveSessionStore.offlineModeKey)
-            guard await MacSubscriptionManager.shared.canStartSession(metered: !offline) else {
-                store.pendingPaywall = true
-                return
-            }
-            path.removeAll()
-            store.makeSession()
-        }
+        path.removeAll()
+        store.makeSession()
     }
 
     @ViewBuilder

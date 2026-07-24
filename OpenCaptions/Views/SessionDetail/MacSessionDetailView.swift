@@ -47,11 +47,10 @@ struct MacSessionDetailView: View {
     /// that sets it lives in the `MacSessionDetailView+Playback` extension.
     @State var renameTarget: SpeakerRenameTarget?
     /// Manual re-transcription UI state. The run itself lives in the
-    /// app-lifetime `RetranscriptionManager`; these only drive the confirmation +
-    /// paywall. Not `private`: the menu (sets `pendingRetranscribeKind`) + overlays
+    /// app-lifetime `RetranscriptionManager`; this only drives the confirmation.
+    /// Not `private`: the menu (sets `pendingRetranscribeKind`) + overlays
     /// live in the `MacSessionDetailView+Retranscription` extension.
     @State var pendingRetranscribeKind: RetranscriptionEngineKind?
-    @State var showRetranscribePaywall = false
 
     enum Tab: Hashable { case summary, transcript }
 
@@ -198,10 +197,9 @@ struct MacSessionDetailView: View {
         // are mutually exclusive (import blocks re-transcribe), so one slot renders both.
         // Floats over the top (not a safeAreaInset) so it doesn't push content down.
         .overlay(alignment: .top) { postSessionBanner }
-        // Re-transcription confirmation, error alert, paywall (its banner is above).
+        // Re-transcription confirmation + error alert.
         .modifier(RetranscriptionModifier(
             pendingKind: $pendingRetranscribeKind,
-            showPaywall: $showRetranscribePaywall,
             session: session,
             context: modelContext))
     }

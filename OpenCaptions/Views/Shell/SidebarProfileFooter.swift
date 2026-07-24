@@ -11,7 +11,6 @@ import SwiftUI
 
 struct SidebarProfileFooter: View {
     @Environment(MacAuthManager.self) private var auth
-    @Environment(MacSubscriptionManager.self) private var billing
 
     var body: some View {
         HStack(spacing: 10) {
@@ -36,8 +35,6 @@ struct SidebarProfileFooter: View {
 
             Spacer(minLength: 0)
 
-            balanceChip
-
             SettingsLink {
                 Image(systemName: "gearshape")
                     .imageScale(.large)
@@ -50,21 +47,6 @@ struct SidebarProfileFooter: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(.bar)
-    }
-
-    /// Remaining transcription minutes, shown once the balance has loaded. Purely
-    /// informational — buying happens in Settings → Usage (the cog beside it).
-    @ViewBuilder
-    private var balanceChip: some View {
-        if billing.loadState == .loaded {
-            Text("\(billing.remainingMinutes) min")
-                .appScaledFont(.caption).monospacedDigit()
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Capsule().fill(Color.primary.opacity(0.08)))
-                .help("Transcription minutes remaining")
-        }
     }
 
     /// The signed-in user's photo (Google supplies one; Apple/email don't), falling

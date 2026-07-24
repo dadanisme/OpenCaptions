@@ -7,7 +7,7 @@
 //  into an in-memory TranscriberModel, then persists on stop.
 //
 //  A focused state machine that omits Firestore sync, Live
-//  Activity, subscription/minute billing, reconnection, periodic connection
+//  Activity, reconnection, periodic connection
 //  reset, pause/resume, and the multi-engine factory (Soniox only here).
 //
 
@@ -38,13 +38,6 @@ final class MacTranscriptionViewModel {
     var isPreparingEngine = false
     /// When the current session began; drives the working (pre-summary) title.
     var sessionStartDate = Date()
-    /// True when this session runs on cloud Soniox and is therefore metered against
-    /// the minute balance. Offline Mode (on-device) sessions are free — this stays
-    /// false and no gating/deduction occurs. Set in `start()`; see `+Billing`.
-    var isMeteredSession = false
-    /// Live low-balance / out-of-time banner for the recording UI. Only ever set for
-    /// metered sessions. Drives the banner in `MacLiveTranscriptionView`.
-    var billingBanner: BillingBanner = .none
 
     /// Placeholder title shown in the window title bar during recording and
     /// persisted on save (until an AI summary replaces it). Matches the format
@@ -79,26 +72,6 @@ final class MacTranscriptionViewModel {
     @ObservationIgnored var lastAudioLevelUpdate: CFAbsoluteTime = 0
     @ObservationIgnored var lastPartialLineUpdate: CFAbsoluteTime = 0
     @ObservationIgnored var sessionStart: CFAbsoluteTime = 0
-    // Billing clock (metered sessions only) — see MacTranscriptionViewModel+Billing.
-    /// Whole seconds recorded while running (paused seconds don't count). Drives the
-    /// minute deduction (ceil to whole minutes) and cap enforcement.
-    @ObservationIgnored var billedSeconds = 0
-    /// Unflushed pending minutes captured at session start (crash-recovery carryover),
-    /// added on top of this session's usage at deduction time.
-    @ObservationIgnored var sessionBaselinePending = 0
-    /// Per-session cap in seconds (budget × 60). Meaningful only when
-    /// `billingCapActive` is true; a value of 0 with the cap active means the budget
-    /// is already exhausted (→ immediate out-of-time), NOT "unlimited".
-    @ObservationIgnored var sessionAllowedSeconds = 0
-    /// Whether the cap should be enforced. True only when metering started against a
-    /// LOADED balance; false when the balance was still unresolved (cold-launch
-    /// fail-open — record uncapped, still deduct at stop). Replaces the old
-    /// `sessionAllowedSeconds > 0` overload so a genuinely-0 budget is enforced.
-    @ObservationIgnored var billingCapActive = false
-    /// One-shot guard so the <5-min low-balance banner fires once per budget.
-    @ObservationIgnored var lowWarningShown = false
-    /// 1 s RunLoop.main clock; kept alive by LiveSessionStore's App-Nap assertion.
-    @ObservationIgnored var billingTimer: Timer?
     /// Bumped on every service swap/stop to invalidate stale callbacks. Also
     /// serves as a "has this session ever started" signal (0 == never started),
     /// so a reopened window rebinds to a running/paused/failed session instead of
@@ -200,10 +173,6 @@ final class MacTranscriptionViewModel {
         }
 
         service.startZombieCheck()
-        // Start the billing clock for metered (cloud Soniox) sessions. Offline Mode
-        // (on-device) is free — startBilling no-ops. The pre-record gate has already
-        // ensured a positive balance for metered starts.
-        startBilling(metered: !kind.isOnDevice)
         sendData()
     }
 
@@ -216,8 +185,6 @@ final class MacTranscriptionViewModel {
         isRunning = false
         isPaused = false
         audioLevel = 0.0
-        // Deduct the metered minutes used this session (no-op for Offline Mode).
-        endBilling()
 
         // Invalidate stale callbacks so a late final can't append after the flush.
         serviceGeneration += 1
@@ -274,9 +241,6 @@ final class MacTranscriptionViewModel {
         isRunning = false
         isPaused = false
         audioLevel = 0.0
-        // The cloud minutes were still consumed on Soniox — deduct them even though
-        // the transcript is thrown away (no-op for Offline Mode).
-        endBilling()
         serviceGeneration += 1
         transcriptionService?.onTokens = nil
         transcriptionService?.stopZombieCheck()
@@ -308,10 +272,6 @@ final class MacTranscriptionViewModel {
         isRunning = false
         isPaused = false
         audioLevel = 0.0
-        // Freeze the billing clock but DON'T deduct yet: the transcript is kept, and
-        // the eventual Stop & Save (stop()) does the single deduction. This avoids
-        // double-charging if failSession and stop both ran.
-        stopBillingTimer()
         errorMessage = message
         serviceGeneration += 1
         transcriptionService?.onTokens = nil

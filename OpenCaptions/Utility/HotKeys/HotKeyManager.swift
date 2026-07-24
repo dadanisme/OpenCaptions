@@ -153,11 +153,6 @@ final class HotKeyManager {
         Task {
             if await store.startHeadlessRecording() {
                 hud.show(.recordingStarted)
-            } else if store.pendingPaywall {
-                // Blocked on an empty minute balance, not a permission problem —
-                // startHeadlessRecording already raised the window for the paywall.
-                hud.show(.outOfMinutes)
-                raiseApp()
             } else {
                 hud.show(.permissionNeeded)
                 raiseAppForPermission()
