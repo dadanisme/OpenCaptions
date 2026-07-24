@@ -98,8 +98,10 @@ final class ParakeetTranscriberService: RealtimeTranscriptionEngine {
 
         let mgr = SlidingWindowAsrManager(config: config.slidingConfig)
         do {
-            // Starts the background recognizer, which waits on the manager's input stream.
-            try await mgr.start(models: models)
+            // Load the models, then start the background recognizer (which waits on the
+            // manager's input stream). `startStreaming` replaces the old combined `start`.
+            try await mgr.loadModels(models)
+            try await mgr.startStreaming()
         } catch {
             onError?(.connectionFailed(underlying: error))
             throw TranscriptionServiceError.connectionFailed(underlying: error)

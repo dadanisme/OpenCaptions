@@ -8,7 +8,7 @@
 //  and throw (surfacing a "download it in Settings" hint) rather than downloading on demand.
 //
 //  One instance per engine (`.parakeet`, `.nemotron`). Each dispatches to the matching
-//  `FluidAudioModelLoader` mechanism (AsrModels for Parakeet TDT v2, DownloadUtils for Nemotron).
+//  `FluidAudioModelLoader` mechanism (AsrModels for Parakeet TDT v2, ModelHub for Nemotron).
 //
 
 import Foundation
