@@ -1,12 +1,12 @@
 //
 //  MacTranscriptionEngineKind.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The internal transcription-engine descriptor + a small factory that builds the concrete
 //  `RealtimeTranscriptionEngine` for a chosen kind. Cloud Soniox (diarized) plus two on-device
 //  engines: Parakeet TDT v2 and Nemotron 560 ms.
 //
-//  This is no longer a user-facing picker (#274 replaced the engine selector with a binary
+//  This is no longer a user-facing picker (the engine selector was replaced with a binary
 //  Offline Mode toggle): `MacTranscriptionViewModel.start()` now selects `.nemotron` when Offline
 //  Mode is on and `.soniox` when off. The `.parakeet` case is retained for its `modelManager`
 //  (its download card + the offline-enable gate) and as the entry point for the upcoming offline

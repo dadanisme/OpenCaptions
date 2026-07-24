@@ -1,21 +1,21 @@
-# macOS Global Hotkeys for Transcription Control (#249)
+# macOS Global Hotkeys for Transcription Control
 
 **Date:** 2026-07-10
-**Target:** OgmoMac (standalone native macOS app)
+**Target:** OpenCaptions (standalone native macOS app)
 **Status:** Implemented
 
 ## Problem
 
-Controlling OgmoMac required the window to be frontmost (menu shortcuts) or a trip
+Controlling Open Captions required the window to be frontmost (menu shortcuts) or a trip
 to the menu-bar item. For a background transcription utility used while the user is
 in a meeting/video in another app, that context-switch defeats the purpose. We want
 **system-wide** hotkeys to start/stop/pause/resume recording and toggle the captions
-overlay — working even when Ogmo is in the background or its window is closed —
+overlay — working even when Open Captions is in the background or its window is closed —
 plus brief on-screen feedback and a Settings pane to rebind them.
 
 ## Why Carbon `RegisterEventHotKey`, not `NSEvent.addGlobalMonitorForEvents`
 
-The issue suggested either. We chose **Carbon's `RegisterEventHotKey`** (HIToolbox):
+Both are viable. We chose **Carbon's `RegisterEventHotKey`** (HIToolbox):
 
 | | Carbon `RegisterEventHotKey` | `NSEvent.addGlobalMonitorForEvents` |
 |---|---|---|
@@ -54,12 +54,12 @@ Carbon key event ─▶ hotKeyEventCallback (C, main thread)
   window closed. Two small state-respecting helpers were added: `pause()` / `resume()`
   (return whether they acted), alongside the existing `togglePause()`.
 - **No new dependency, no new entitlement.** The existing sandbox entitlements
-  (`OgmoMac.entitlements`) are sufficient.
+  (`OpenCaptions.entitlements`) are sufficient.
 
 ## Actions and default chords
 
 Three **toggle** actions — one chord per function, flipping between states (like OBS's
-single record/pause hotkeys) rather than the issue's five separate start/stop/pause/
+single record/pause hotkeys) rather than five separate start/stop/pause/
 resume keys. Each does the right thing for the current state and shows an honest HUD:
 
 | Action | Default | Behavior |
@@ -68,11 +68,11 @@ resume keys. Each does the right thing for the current state and shows an honest
 | Pause / Resume | `⌃⌥⌘P` | pauses when recording, resumes when paused; muted no-op note with no session or during the pre-connect window; shows "Couldn't resume" if the socket died during the pause |
 | Show / Hide Captions | `⌃⌥⌘C` | toggles the overlay; no-op with no session |
 
-**Why `⌃⌥⌘` ("hyper") defaults instead of the issue's suggested `⌘⇧R/S`:** a global
+**Why `⌃⌥⌘` ("hyper") defaults instead of `⌘⇧R/S`:** a global
 hotkey is captured *system-wide*, so `⌘⇧S` (Save As), `⌘⇧R` (hard-reload), etc. would be
 hijacked in every app. `⌃⌥⌘`+letter is essentially never used by macOS or by app menu
-shortcuts (which lean on `⌘`/`⌘⇧`/`⌘⌥`), so it satisfies the issue's stated goal —
-"avoid conflicts with common shortcuts" — better than its example did. Everything is
+shortcuts (which lean on `⌘`/`⌘⇧`/`⌘⌥`), so it meets the goal of avoiding conflicts with
+common shortcuts better than `⌘⇧R/S` would. Everything is
 user-rebindable in Settings.
 
 ## HUD feedback
@@ -111,9 +111,9 @@ warning explains if it isn't active.
 
 ## Persistence & launch
 
-Each binding is JSON-encoded under `ogmo.hotkey.<action>` in `UserDefaults`; corrupt or
+Each binding is JSON-encoded under `opencaptions.hotkey.<action>` in `UserDefaults`; corrupt or
 missing data falls back to the action's default. `HotKeyManager.start()` (idempotent,
-called from `OgmoMacApp`'s launch task) loads bindings, installs the one Carbon handler,
+called from `OpenCaptionsApp`'s launch task) loads bindings, installs the one Carbon handler,
 and registers everything — so hotkeys are live from launch and survive relaunch.
 
 ## Edge cases
@@ -131,7 +131,7 @@ and registers everything — so hotkeys are live from launch and survive relaunc
 - **Signed out:** Start is gated on `MacAuthManager.isSignedIn` (raises the app); the
   other actions can't fire because no session can exist.
 
-## Out of scope (as the issue notes)
+## Out of scope
 
 - Per-user hotkey profiles.
 - A dedicated floating-captions build — the captions overlay already exists; the hotkey

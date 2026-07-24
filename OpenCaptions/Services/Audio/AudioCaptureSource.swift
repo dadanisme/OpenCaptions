@@ -1,6 +1,6 @@
 //
 //  AudioCaptureSource.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The audio-source abstraction the transcription pipeline streams from. The
 //  microphone (`MacAudioService`, AVAudioEngine tap), system audio

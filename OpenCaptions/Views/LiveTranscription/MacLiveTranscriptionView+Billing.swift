@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView+Billing.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The in-session minute-billing UI: the low-balance / out-of-minutes banner and
 //  the top-up flow. Split out of MacLiveTranscriptionView to keep it under the

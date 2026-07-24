@@ -1,12 +1,12 @@
 //
 //  NemotronTranscriberService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  On-device (offline) speech-to-text via NVIDIA Nemotron Speech Streaming (560 ms), run
 //  through FluidAudio's `NemotronStreamingAsrManager`. Conforms to `RealtimeTranscriptionEngine`
 //  so it is interchangeable with cloud Soniox behind `MacTranscriptionViewModel`.
 //
-//  Ported from the iOS `unmute/Services/NemotronTranscriberService.swift`. Audio never leaves
+//  Audio never leaves
 //  the device and there is no socket. Nemotron emits punctuation and capitalization natively
 //  (and exposes no end-of-utterance signal), so this engine promotes each completed sentence to
 //  a final (the ViewModel flushes it into a bubble on punctuation) and shows the in-progress

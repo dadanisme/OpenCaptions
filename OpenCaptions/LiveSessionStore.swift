@@ -1,6 +1,6 @@
 //
 //  LiveSessionStore.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-level owner of the ACTIVE transcription session. The recording view model
 //  used to live as `@State` inside `MacLiveTranscriptionView`, so closing the
@@ -31,60 +31,59 @@ final class LiveSessionStore {
 
     /// UserDefaults key for the "show captions overlay when recording starts"
     /// preference. Shared with `MacSettingsView`'s `@AppStorage` toggle.
-    static let captionsAutoShowKey = "ogmo.captionsOverlay.autoShow"
+    static let captionsAutoShowKey = "opencaptions.captionsOverlay.autoShow"
 
     /// UserDefaults key for the persisted capture source. Mirrors the
-    /// `@AppStorage("ogmo.audioSource")` in `MacLiveTranscriptionView` so the
+    /// `@AppStorage("opencaptions.audioSource")` in `MacLiveTranscriptionView` so the
     /// menu-bar quick start reads the same choice the live screen writes.
-    static let audioSourceKey = "ogmo.audioSource"
+    static let audioSourceKey = "opencaptions.audioSource"
 
     /// UserDefaults key for the overlay's background opacity (0…1). Applied to the
     /// material fallback on macOS < 26; ignored when Liquid Glass is used. Shared
     /// between `MacSettingsView` and `CaptionsOverlayView`.
-    static let captionsOpacityKey = "ogmo.captionsOverlay.backgroundOpacity"
+    static let captionsOpacityKey = "opencaptions.captionsOverlay.backgroundOpacity"
 
     /// UserDefaults key for the transcript font-size MULTIPLIER (see
     /// `TranscriptTextSize`). Shared by every surface that reads or scales the
     /// transcript — the in-window live view, the captions overlay, the transport
     /// pill's slider, the menu-bar picker, and Settings — so a change from any one
-    /// reflects everywhere live. Default is `1.0` (registered in `OgmoMacApp`).
-    static let transcriptTextSizeKey = "ogmo.transcript.textSizeMultiplier"
+    /// reflects everywhere live. Default is `1.0` (registered in `OpenCaptionsApp`).
+    static let transcriptTextSizeKey = "opencaptions.transcript.textSizeMultiplier"
 
     /// UserDefaults key for the APP-WIDE UI font-size MULTIPLIER (see
     /// `AppTextSize.swift`). Deliberately SEPARATE from `transcriptTextSizeKey` so
     /// the general chrome and the transcript/captions scale independently — changing
     /// one never affects the other. Read reactively by `.appTextScaling()` and bound
     /// to Settings' General slider. Reuses `TranscriptTextSize.range/.step`; default
-    /// is `1.0` (registered in `OgmoMacApp`). Issue #270.
-    static let appTextSizeKey = "ogmo.app.textSizeMultiplier"
+    /// is `1.0` (registered in `OpenCaptionsApp`).
+    static let appTextSizeKey = "opencaptions.app.textSizeMultiplier"
 
     /// UserDefaults key for the "save session audio for playback" preference.
     /// Read at record time by `MacTranscriptionViewModel.start` (via a raw
     /// `UserDefaults.standard.bool` lookup) and bound to `MacSettingsView`'s
-    /// `@AppStorage` toggle. Default is `true` (registered in `OgmoMacApp`).
-    static let sessionAudioKey = "ogmo.sessionAudio.save"
+    /// `@AppStorage` toggle. Default is `true` (registered in `OpenCaptionsApp`).
+    static let sessionAudioKey = "opencaptions.sessionAudio.save"
 
     /// UserDefaults key (Bool) for AUTOMATIC re-transcription after a recording is
-    /// saved (#245). When on, the just-saved session is re-processed automatically; the
+    /// saved. When on, the just-saved session is re-processed automatically; the
     /// engine FOLLOWS Offline Mode (Parakeet offline / Soniox cloud) — there's no engine
     /// choice. Bound to `MacSettingsView`'s toggle and read by `RetranscriptionManager`.
     /// Only takes effect while the `postSessionRetranscription` remote flag is on. The
     /// MANUAL re-transcribe menu is independent — gated by the remote flag alone. Default
-    /// `false` (registered in `OgmoMacApp`).
-    static let retranscriptionAutoKey = "ogmo.retranscription.auto"
+    /// `false` (registered in `OpenCaptionsApp`).
+    static let retranscriptionAutoKey = "opencaptions.retranscription.auto"
 
     /// UserDefaults key for the Offline Mode toggle (Bool). Off → Soniox (cloud);
     /// on → on-device Nemotron transcription with no network. Read at session start
     /// by `MacTranscriptionViewModel.start` and by `MacSessionDetailView` to gate
     /// cloud summary generation. Bound to the toggle in Settings → Recording.
-    /// Default `false` (registered in `OgmoMacApp`). Issue #274.
-    static let offlineModeKey = "ogmo.offlineMode.enabled"
+    /// Default `false` (registered in `OpenCaptionsApp`).
+    static let offlineModeKey = "opencaptions.offlineMode.enabled"
 
     /// UserDefaults key (Bool) for the global "finished onboarding" gate flag. The
-    /// app gate (`OgmoMacApp`) shows the main UI only when this is set AND the user
+    /// app gate (`OpenCaptionsApp`) shows the main UI only when this is set AND the user
     /// is either signed in or a local guest. Written by `completeOnboarding` and
     /// mirrored from the per-owner key on sign-in (see `MacAuthManager+Onboarding`).
-    /// Mirrors the iOS `"hasCompletedOnboarding"` convention.
     static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     /// UserDefaults key (Bool) marking a "use without an account" local guest: a
@@ -92,7 +91,7 @@ final class LiveSessionStore {
     /// offline guest (enter the app) from a signed-out/expired cloud user (must
     /// re-authenticate). Cleared on any real sign-in. Guests are force-locked to the
     /// on-device engine. See `docs/2026-07-11-macos-onboarding.md`.
-    static let guestModeKey = "ogmo.guestMode"
+    static let guestModeKey = "opencaptions.guestMode"
 
     /// The active session's view model, or nil when idle. Non-nil is the single
     /// source of truth for "a session is live" (running, paused, or failed with a
@@ -116,7 +115,7 @@ final class LiveSessionStore {
     @ObservationIgnored private let captions = CaptionsOverlayController()
 
     /// The app's shared SwiftData container, stashed at launch (see
-    /// `OgmoMacApp`). Lets the store start a recording from the menu-bar item
+    /// `OpenCaptionsApp`). Lets the store start a recording from the menu-bar item
     /// without an on-screen view to supply `modelContext.container`.
     @ObservationIgnored var modelContainer: ModelContainer?
 
@@ -124,7 +123,7 @@ final class LiveSessionStore {
     /// app's root scene — the only place `@Environment(\.openWindow)` is
     /// available — so non-view code (the global-hotkey Start fallback, which must
     /// raise the mic-permission UI) can bring the window back even when it's
-    /// closed. See `OgmoMacApp`.
+    /// closed. See `OpenCaptionsApp`.
     @ObservationIgnored var openMainWindow: (() -> Void)?
 
     /// Process-activity assertion held for the duration of a live session
@@ -237,8 +236,7 @@ final class LiveSessionStore {
     /// (doesn't save) the in-progress transcript — signing out mid-recording abandons
     /// it — while `discard()` → `endBilling()` stops the billing clock and clears the
     /// session-active flag. The caller (`MacAuthManager.signOut`) then clears pending
-    /// so the outgoing user's last partial minute isn't charged to the next user
-    /// (matches iOS sign-out semantics). #242 review.
+    /// so the outgoing user's last partial minute isn't charged to the next user.
     func discardActiveSession() {
         guard let vm = viewModel else { return }
         vm.discard()
@@ -376,7 +374,7 @@ final class LiveSessionStore {
     }
 
     /// Observes the VM's `isRunning`/`isPaused` and re-arms itself on each change
-    /// (the SwiftData/Observation kill-switch pattern from iOS). Stops re-arming
+    /// (the SwiftData/Observation kill-switch pattern). Stops re-arming
     /// once the session is cleared.
     private func armStatusMirroring() {
         withObservationTracking {

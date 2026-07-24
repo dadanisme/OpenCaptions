@@ -1,6 +1,6 @@
 //
 //  MacShareSessionSheet.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Share dialog for a session (live or saved): the public link with a Copy
 //  button, plus password controls (set / change / remove). Operates purely on
@@ -29,7 +29,12 @@ struct MacShareSessionSheet: View {
     @State private var linkCopied = false
     @FocusState private var passwordFocused: Bool
 
-    private var shareURL: String { "https://session.ogmo.app/\(sessionId)" }
+    /// Base URL of the web session viewer, supplied per-deployment via the
+    /// git-ignored Config.xcconfig (SESSION_SHARE_BASE_URL, no trailing slash).
+    private var shareURL: String {
+        let base = Bundle.main.infoDictionary?["SESSION_SHARE_BASE_URL"] as? String ?? ""
+        return "\(base)/\(sessionId)"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {

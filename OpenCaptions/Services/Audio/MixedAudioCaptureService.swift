@@ -1,6 +1,6 @@
 //
 //  MixedAudioCaptureService.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  macOS audio capture: microphone + system audio MIXED into one 16 kHz / mono /
 //  Float32 `AudioFrame` stream so a user on a call is transcribed alongside the
@@ -14,9 +14,9 @@
 //  output node (that would replay it to the speakers and double the room audio).
 //  Conforms to `AudioCaptureSource`, so it drops straight into the view model.
 //
-//  Echo note (issue #205/#208): VPIO was removed because on macOS it seized the
+//  Echo note: VPIO was removed because on macOS it seized the
 //  shared mic and broke live switching, taking its hardware AEC with it. Echo is
-//  now cancelled in SOFTWARE (`OgmoAEC`, Speex) using the cleanly-captured system
+//  now cancelled in SOFTWARE (`OpenCaptionsAEC`, Speex) using the cleanly-captured system
 //  audio as the far-end reference, so on built-in speakers the other participants
 //  are transcribed once, not doubled. Headphones never had the bleed. The mixer
 //  yields `AEC(mic, reference: system) + system` = the user's voice (echo removed)
@@ -30,10 +30,10 @@ import OSLog
 final class MixedAudioCaptureService: AudioCaptureSource {
 
     /// Reports whether the software echo canceller came up at session start
-    /// (Console.app → subsystem `com.muhammadramdan.OgmoMac`, category `MixedAudio`),
+    /// (Console.app → subsystem `com.muhammadramdan.OpenCaptions`, category `MixedAudio`),
     /// so "single, clean transcript" can be confirmed as *the AEC engaged* rather
     /// than a silent fall-back to an uncancelled sum.
-    let log = Logger(subsystem: "com.muhammadramdan.OgmoMac", category: "MixedAudio")
+    let log = Logger(subsystem: "com.muhammadramdan.OpenCaptions", category: "MixedAudio")
 
     var onInterruption: (() -> Void)?
 
@@ -53,13 +53,13 @@ final class MixedAudioCaptureService: AudioCaptureSource {
     /// `n + this`, so after startup the mic-leads-system gap — and the AEC far-end
     /// reference's lag — collapses from the startup seed (up to the 500 ms ring cap)
     /// to this. 800 = 50 ms: comfortably above a ~10-12 ms aggregate IO block plus
-    /// drain jitter, and well inside OgmoAEC's 200 ms filter tail. Tune DOWN toward
+    /// drain jitter, and well inside OpenCaptionsAEC's 200 ms filter tail. Tune DOWN toward
     /// ~480 (30 ms) once the mic tap buffer size and drain jitter are measured on
     /// device (see the `mix align` Console log); raise if the reference goes choppy.
     /// See docs/2026-07-16-macos-mic-system-sync-fix.md.
     static let systemRefCushionSamples = 800
 
-    // MARK: - Mix-alignment instrumentation (issue #305 tuning)
+    // MARK: - Mix-alignment instrumentation
     /// Per-callback stats accumulated on the mic render thread (single-threaded, so
     /// unlocked) and flushed to Console (~1 s) so the mic tap buffer size, the
     /// steady-state ring occupancy, and the read-underrun ratio can be measured on
@@ -92,11 +92,11 @@ final class MixedAudioCaptureService: AudioCaptureSource {
     /// mic (built-in speakers) before the mix. Built at session start only when
     /// `aecEnabled` is on; nil (plain sum) if it can't init or the flag is off.
     /// `process`/`processReverse` are still driven only from the mic render thread
-    /// (OgmoAEC's single-thread rule), but the *reference* to this object is now
+    /// (OpenCaptionsAEC's single-thread rule), but the *reference* to this object is now
     /// touched from two threads — the render thread reads it, and the main-actor
     /// flag observer may release it mid-session — so every access goes through
     /// `aecLock`. See `+AEC` and docs/2026-07-08-macos-aec-feature-flag.md.
-    var aec: OgmoAEC?
+    var aec: OpenCaptionsAEC?
     /// Resolved `FeatureFlag.aecEnabled` snapshot. Written on the main actor by
     /// `observeAECFlag` (before `start()` and on each remote flip) and read by
     /// `configureMicEngine`'s init gate. Guarded by `aecLock` alongside `aec`.

@@ -1,21 +1,20 @@
 # macOS: harden the background WebSocket keepalive against App Nap
 
 **Date:** 2026-07-09
-**Issue:** #174 (parent epic #103, depends on the MVP #171)
-**Target:** `OgmoMac` (standalone native macOS app) only. The iOS `unmute` target is untouched.
+**Target:** `OpenCaptions` (standalone native macOS app).
 
 ## Problem
 
 macOS **App Nap** throttles a backgrounded or occluded app: it coalesces
 `RunLoop.main` timers (routinely deferring them by tens of seconds), lowers
 scheduling priority, and can defer timer-based network sends. A long
-transcription session in OgmoMac keeps the Soniox WebSocket alive with
+transcription session in Open Captions keeps the Soniox WebSocket alive with
 `RunLoop.main` timers, so App Nap can silently stall it while the window isn't
 frontmost.
 
 ### The sharp failure: a paused session
 
-`OgmoMac`'s connection health lives entirely on two `RunLoop.main` timers in
+`OpenCaptions`'s connection health lives entirely on two `RunLoop.main` timers in
 `OnlineTranscriberService`:
 
 | Timer | Interval | Runs when | App Nap risk |
@@ -50,11 +49,11 @@ timer (delaying — not causing — detection of a half-open socket).
 ### Prior state
 
 A repo-wide search found **no** App Nap / power-assertion / background-activity
-mitigation anywhere in `OgmoMac` (no `ProcessInfo.beginActivity`, no
-`NSAppSleepDisabled`, no power assertion). The only related hits were the iOS
-target's `UIBackgroundModes = audio`, which is a UIKit-only concept with no
-macOS equivalent — the iOS survival mechanism (audio background mode + an active
-`AVAudioSession`) does not transfer to the Mac.
+mitigation anywhere in `OpenCaptions` (no `ProcessInfo.beginActivity`, no
+`NSAppSleepDisabled`, no power assertion). macOS has no `UIBackgroundModes =
+audio` equivalent — that background-audio survival mechanism (a UIKit background
+mode + an active `AVAudioSession`) is UIKit-only and does not exist on the Mac,
+so the keepalive has to be handled with a macOS-native approach.
 
 ## Decision
 
@@ -118,7 +117,7 @@ suppress App Nap (and automatic/sudden termination); the difference is idle
 - `.userInitiatedAllowingIdleSystemSleep` — suppresses App Nap but **still lets
   the Mac idle-sleep**.
 
-We chose `.userInitiated`. Issue #174's headline is App Nap, but the product
+We chose `.userInitiated`. App Nap is the headline problem, but the product
 requirement is broader: **a recording must keep transcribing when the Mac would
 otherwise go idle**, not just when a window is occluded. `.userInitiated` covers
 both — App Nap suppression fixes the occluded-window stall, and disabling idle
@@ -148,7 +147,7 @@ Notes on scope and cost:
 ## Recovery if a stall still happens
 
 The assertion is the primary fix; the existing failure handling is the safety
-net. If a socket dies anyway (e.g. a genuine network drop), OgmoMac's recovery
+net. If a socket dies anyway (e.g. a genuine network drop), Open Captions's recovery
 is **not** reconnection — it never had one on this target — but a *graceful*
 `failSession`: the disconnect surfaces via the `receiveLoop`/zombie path →
 `signalDisconnect()` → `onConnectionStateChange(.disconnected)` →
@@ -164,7 +163,7 @@ App Nap only engages on a real (non-debugger-attached, backgrounded/occluded)
 run, so this must be checked on a device build, not the debugger:
 
 1. Start a recording, then **pause** it.
-2. Fully occlude the Ogmo window (another app full-screen over it) and switch
+2. Fully occlude the Open Captions window (another app full-screen over it) and switch
    focus away for several minutes.
 3. Resume — the session should continue rather than fail with "Connection lost
    while paused."
@@ -172,11 +171,11 @@ run, so this must be checked on a device build, not the debugger:
    untouched (no keyboard/mouse) past its idle-sleep timer. The screen should
    turn off, but recording should continue (the system stays awake) rather than
    the session ending.
-5. Confirm with `pmset -g assertions` while a session is live/paused: Ogmo holds
+5. Confirm with `pmset -g assertions` while a session is live/paused: Open Captions holds
    a `PreventUserIdleSystemSleep` assertion and shows *not* napping. Both clear
    once the session ends.
 6. Confirm the assertion is released after Stop & Save / Discard / a failed
-   session (`pmset -g assertions` no longer lists Ogmo) — no lingering assertion.
+   session (`pmset -g assertions` no longer lists Open Captions) — no lingering assertion.
 
 ## Trade-offs and follow-ups
 
@@ -190,5 +189,5 @@ run, so this must be checked on a device build, not the debugger:
   it otherwise wouldn't. If this becomes a concern, a user setting ("keep Mac
   awake while recording", defaulting on) could gate between `.userInitiated` and
   `.userInitiatedAllowingIdleSystemSleep`.
-- If OgmoMac later gains a background-safe reconnection path, the assertion and
+- If Open Captions later gains a background-safe reconnection path, the assertion and
   the graceful-fail behaviour remain complementary.

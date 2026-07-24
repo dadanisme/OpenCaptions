@@ -1,6 +1,6 @@
 //
 //  OnlineTranscriberService.swift
-//  unmute
+//  OpenCaptions
 //
 //  Created by Wentao Guo on 20/10/25.
 //
@@ -21,7 +21,7 @@ final class OnlineTranscriberService: RealtimeTranscriptionEngine {
         displayName: "Soniox",
         supportsDiarization: true,
         // Soniox's audio-relative token start_ms/end_ms map straight to the saved-recording
-        // file offset and drive session-audio playback seek on macOS (#198/#230), so they are
+        // file offset and drive session-audio playback seek on macOS, so they are
         // "reliable" here. This keeps the accumulator on start_ms for Soniox; only the on-device
         // engines (Parakeet/Nemotron), which emit 0/0, fall back to the VM clock. See
         // MacTranscriptionViewModel+Accumulator and docs/2026-07-10-macos-on-device-engines.md.

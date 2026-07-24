@@ -1,12 +1,12 @@
 //
 //  SonioxAsyncPostSessionEngine.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Cloud post-session re-transcription via Soniox's async/batch REST API
 //  (`stt-async-v5`). The async model sees the full recording at once, so it's more
 //  accurate — and its diarization is better — than the realtime WebSocket path used
 //  live. Reuses the same `SONIOX_API_KEY` (bearer auth). Billable: the caller meters
-//  it like a live cloud session. See issue #245 and the Soniox docs
+//  it like a live cloud session. See the Soniox docs
 //  (https://soniox.com/docs/stt/async/async-transcription).
 //
 //  The REST flow (upload → create → poll → fetch → delete) lives in
@@ -39,7 +39,7 @@ final class SonioxAsyncPostSessionEngine: PostSessionTranscriptionEngine {
 
     /// Context terms sent with the create request (matches the live config).
     var contextTerms: [String] {
-        var terms = ["Ogmo", "Soniox", "Apple Developer Academy"]
+        var terms = ["Open Captions", "Soniox", "Apple Developer Academy"]
         if let name = userName?.trimmingCharacters(in: .whitespacesAndNewlines),
            !name.isEmpty, !terms.contains(name) {
             terms.append(name)

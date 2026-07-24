@@ -1,6 +1,6 @@
 //
 //  MixedAudioCaptureService+Stats.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Mix-alignment instrumentation for the "Microphone + System Audio" source.
 //  Accumulates cheap per-callback counters on the mic render thread and flushes a
@@ -15,7 +15,7 @@
 //       `underrun` flags whether the cushion is too small (a gapped reference makes
 //       the Speex canceller diverge, so this must stay near 0 %).
 //
-//  See docs/2026-07-16-macos-mic-system-sync-fix.md and issue #305.
+//  See docs/2026-07-16-macos-mic-system-sync-fix.md.
 //
 
 import Foundation

@@ -1,6 +1,6 @@
 //
 //  MacSessionDetailView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Saved-session detail: AI summary + full transcript, with a toolbar action
 //  to (re)generate the summary via the cloud function.
@@ -22,7 +22,7 @@ struct MacSessionDetailView: View {
     /// extension (a separate file).
     @Environment(\.appTextScale) var appTextScale
     /// Offline Mode disables cloud AI summary GENERATION (there's no on-device
-    /// summarizer) and share-to-web. Existing summaries stay visible. Issue #274.
+    /// summarizer) and share-to-web. Existing summaries stay visible.
     @AppStorage(LiveSessionStore.offlineModeKey) private var isOffline = false
     let session: TranscriptionSession
 
@@ -46,7 +46,7 @@ struct MacSessionDetailView: View {
     /// drives the single-speaker rename sheet. Not `private`: the context menu
     /// that sets it lives in the `MacSessionDetailView+Playback` extension.
     @State var renameTarget: SpeakerRenameTarget?
-    /// Manual re-transcription UI state (#245). The run itself lives in the
+    /// Manual re-transcription UI state. The run itself lives in the
     /// app-lifetime `RetranscriptionManager`; these only drive the confirmation +
     /// paywall. Not `private`: the menu (sets `pendingRetranscribeKind`) + overlays
     /// live in the `MacSessionDetailView+Retranscription` extension.
@@ -194,7 +194,7 @@ struct MacSessionDetailView: View {
         // there's no summary content to export.
         .focusedSceneValue(\.exportSummary, exportAction)
         // Single shared progress banner for whichever background batch pass is running
-        // over this session — a file import (#302) or a re-transcription (#245). The two
+        // over this session — a file import or a re-transcription. The two
         // are mutually exclusive (import blocks re-transcribe), so one slot renders both.
         // Floats over the top (not a safeAreaInset) so it doesn't push content down.
         .overlay(alignment: .top) { postSessionBanner }
@@ -231,7 +231,7 @@ struct MacSessionDetailView: View {
     /// Deletes this session (audio file + cascade of lines/action items) and pops
     /// back to the list. The recording filename is captured before the delete so
     /// the audio cleanup never reads the model afterward; `save()` commits the
-    /// deletion immediately (matching the iOS path and every other write path)
+    /// deletion immediately (matching every other write path)
     /// instead of waiting for autosave. SwiftUI coalesces the pop with the delete,
     /// so the popped view is torn down rather than re-rendered against the dead model.
     private func deleteSession() {

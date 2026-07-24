@@ -1,11 +1,10 @@
 //
 //  SessionLinkSharer.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Shares an already-finished session to the web. Mirrors the live
 //  `OnlineViewModel.shareSession()` flow but sources the backfill from the
 //  persisted SwiftData session instead of the in-memory transcript.
-//  See https://github.com/ogmo-team/ogmo-app/issues/117.
 //
 
 import Foundation
@@ -39,7 +38,7 @@ enum SessionLinkSharer {
     }
 
     /// Re-pushes a re-transcribed session's transcript to its EXISTING shared link so
-    /// the web copy matches after re-transcription (#245). No-op if the session was
+    /// the web copy matches after re-transcription. No-op if the session was
     /// never shared. The summary is re-pushed separately by the caller's summary
     /// regeneration (online) or left cleared on the web (offline) — consistent with
     /// the local state either way.

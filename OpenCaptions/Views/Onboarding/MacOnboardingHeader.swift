@@ -1,6 +1,6 @@
 //
 //  MacOnboardingHeader.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The shared top block of every onboarding step: an SF Symbol in a rounded accent
 //  (or success) chip, a title, and a supporting subtitle. Keeps the step subviews

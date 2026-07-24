@@ -1,6 +1,6 @@
 //
 //  SonioxConfig.swift
-//  unmute
+//  OpenCaptions
 //
 
 import Foundation

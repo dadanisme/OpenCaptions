@@ -1,11 +1,11 @@
 //
 //  MenuBarState.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  App-level state powering the system menu-bar item (`MenuBarExtra` in
-//  `OgmoMacApp`). The menu-bar item is a SEPARATE scene that must work while
+//  `OpenCaptionsApp`). The menu-bar item is a SEPARATE scene that must work while
 //  the main window is in the background, so — unlike the main menu commands,
-//  which read `@FocusedValue` from the focused window (see `OgmoCommands`) —
+//  which read `@FocusedValue` from the focused window (see `OpenCaptionsCommands`) —
 //  it can't rely on focused values. The recording screens push their status +
 //  action closures here; `MenuBarContent` reads them. Mirrors the shared
 //  `@Observable @MainActor` singleton pattern of `MacAuthManager`.
@@ -13,7 +13,7 @@
 
 import Foundation
 
-/// The main window's scene id, shared by `OgmoMacApp`'s `Window` scene and the
+/// The main window's scene id, shared by `OpenCaptionsApp`'s `Window` scene and the
 /// menu-bar item's `openWindow(id:)` calls.
 enum MainWindowID {
     static let main = "main"

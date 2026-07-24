@@ -1,18 +1,17 @@
-# macOS Offline Mode: binary online/offline, Nemotron-backed (#274)
+# macOS Offline Mode: binary online/offline, Nemotron-backed
 
 **Date:** 2026-07-10
-**Issue:** #274 (macOS: add offline mode) — epic #103
-**Builds on:** #175 / `docs/2026-07-10-macos-on-device-engines.md`
+**Builds on:** `docs/2026-07-10-macos-on-device-engines.md`
 
 ## Context
 
-`OgmoMac` gained a 3-way engine picker (Soniox / Parakeet / Nemotron) in #175 just one
-day earlier. #274 asks for a user-facing **Offline Mode** that runs transcription
+Open Captions gained a 3-way engine picker (Soniox / Parakeet / Nemotron) just one
+day earlier. We now add a user-facing **Offline Mode** that runs transcription
 entirely on-device. Rather than keep a free engine selector, we collapse it into a
 **binary online/offline toggle** — the product wants "online vs offline", not
 per-engine choice.
 
-Onboarding / skip-login (the issue's #243 integration) is **out of scope** here — no
+Onboarding / skip-login integration is **out of scope** here — no
 onboarding flow exists yet. This change is the in-app half only.
 
 ## Decisions
@@ -65,14 +64,14 @@ onboarding flow exists yet. This change is the in-app half only.
 
 ## Risk
 
-Firestore rules live in the sibling **`../ogmo-cf`** repo. The `users/{uid}` write of
+Firestore rules live in the backend Cloud Functions project. The `users/{uid}` write of
 `isOfflineModeEnabled` needs the ruleset to permit the owner to write that field; if
-rejected it fails silently (logged). Follow up with a rules change in `ogmo-cf` if needed.
+rejected it fails silently (logged). Follow up with a rules change in the backend Cloud Functions project if needed.
 
 ## Files
 
 - `LiveSessionStore.swift` — `transcriptionEngineKey` → `offlineModeKey`
-  (`ogmo.offlineMode.enabled`, default `false`, registered in `OgmoMacApp.init`).
+  (`opencaptions.offlineMode.enabled`, default `false`, registered in `OpenCaptionsApp.init`).
 - `MacTranscriptionViewModel.swift` — `start()` engine resolution.
 - `MacSettingsView.swift` — Recording tab: one Offline Mode section (toggle + gate +
   combined download).
@@ -86,7 +85,7 @@ rejected it fails silently (logged). Follow up with a rules change in `ogmo-cf` 
 
 ## Verification
 
-Build the **OgmoMac** scheme in Xcode. Settings → Recording: engine picker gone; one
+Build the **OpenCaptions** scheme in Xcode. Settings → Recording: engine picker gone; one
 Offline Mode section. Before download, the row shows a prominent Download button (progress
 while fetching); after it completes the row becomes a plain on/off toggle. Enable → record
 → Preparing overlay → single-stream on-device transcript with no network. Saved session

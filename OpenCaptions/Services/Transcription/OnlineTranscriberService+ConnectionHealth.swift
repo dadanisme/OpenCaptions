@@ -1,6 +1,6 @@
 //
 //  OnlineTranscriberService+ConnectionHealth.swift
-//  unmute
+//  OpenCaptions
 //
 //  Disconnect signaling and zombie-connection detection for
 //  `OnlineTranscriberService`.

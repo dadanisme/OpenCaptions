@@ -1,6 +1,6 @@
 //
 //  View+LiquidGlass.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Shared Liquid Glass background for floating bars/controls. Prefer this over a
 //  raw `.background(.regularMaterial…)` so surfaces adopt Liquid Glass wherever

@@ -14,5 +14,15 @@ REVENUECAT_API_KEY_MACOS = YOUR_REVENUECAT_MACOS_PUBLIC_KEY
 // The `$()` breaks up `//` so xcconfig doesn't treat the URL as a comment.
 DEDUCT_MINUTES_URL = https:/$()/YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/deductMinutes
 
+// Transcript summarization endpoint (Cloud Function); same bearer as SUMMARIZE_API_TOKEN.
+SUMMARIZE_URL = https:/$()/YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/summarizeTranscript
+
+// Base URL of the read-only web session viewer (no trailing slash).
+// The share link is <SESSION_SHARE_BASE_URL>/<sessionId>.
+SESSION_SHARE_BASE_URL = https:/$()/session.YOUR-DOMAIN
+
+// Support inbox surfaced in Settings → Support (mailto: subjects distinguish the action).
+SUPPORT_EMAIL = support@YOUR-DOMAIN
+
 // Google Sign-In OAuth callback = REVERSED_CLIENT_ID from GoogleService-Info.plist
 REVERSED_CLIENT_ID = com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID

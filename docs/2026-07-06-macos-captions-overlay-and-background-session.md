@@ -1,14 +1,12 @@
 # macOS: Floating Captions Overlay + Background-Persistent Live Session
 
 **Date:** 2026-07-06
-**Issue:** #201 (epic #103)
-**Target:** OgmoMac only (iOS untouched)
 
 ## Problem
 
-On macOS the live transcript was only visible inside the OgmoMac window. During a
+On macOS the live transcript was only visible inside the Open Captions window. During a
 meeting/lecture/call the user watches *another* app, so captions were invisible
-without switching away. #201 asked for an always-on-top captions overlay.
+without switching away. This called for an always-on-top captions overlay.
 
 While scoping it, a second, coupled requirement surfaced: **closing the main window
 killed the running transcription.** The recording view model lived as `@State` inside
@@ -41,8 +39,8 @@ close on this single-`Window` app kept alive by its `MenuBarExtra`).
   the store, targeting the store — not the transient view — so Pause / End / Captions
   keep working from the status-bar item **with the window closed**.
 - Menu-bar `status` is mirrored from the VM via a `withObservationTracking` re-arm loop
-  (the iOS kill-switch pattern) so the label stays correct without an on-screen view.
-- Reopen-time trap fixed: `OgmoMacApp`'s window `.task` re-runs
+  (the kill-switch pattern) so the label stays correct without an on-screen view.
+- Reopen-time trap fixed: `OpenCaptionsApp`'s window `.task` re-runs
   `reconcileLiveSessions()` on every window (re)creation, which would seal a still-live
   Firestore share doc as `ended`. It's now gated on `!LiveSessionStore.shared.isActive`.
 
@@ -72,10 +70,10 @@ needs traits SwiftUI's `Window` can't express on macOS 14 and must be window-ind
 - **Background:** Liquid Glass (`.glassEffect(.regular, in:)`) on **macOS 26+** (needs
   the Xcode 26 SDK); on older systems a `.ultraThinMaterial` blur with a **configurable
   opacity** (`MacSettingsView` slider → `LiveSessionStore.captionsOpacityKey`).
-- Toggle exposed in **both** menus: the main "Recording" menu (`OgmoCommands`, ⇧⌘C, via
+- Toggle exposed in **both** menus: the main "Recording" menu (`OpenCaptionsCommands`, ⇧⌘C, via
   a new `\.captionsOverlay` focused value) and the `MenuBarExtra` dropdown (via
   `MenuBarState`, so it works window-closed). "Auto-show when recording starts" is
-  **on by default** (registered in `OgmoMacApp.init` so `LiveSessionStore`'s raw
+  **on by default** (registered in `OpenCaptionsApp.init` so `LiveSessionStore`'s raw
   `UserDefaults` read sees it before Settings is opened) and toggleable in
   `MacSettingsView` (`@AppStorage(LiveSessionStore.captionsAutoShowKey)`). The scroll
   indicator is hidden (`.scrollIndicators(.hidden)`).
@@ -96,10 +94,10 @@ font-size control, click-through (`ignoresMouseEvents`) mode, per-speaker richer
 
 ## Files
 
-- New: `OgmoMac/LiveSessionStore.swift`, `OgmoMac/Utility/Appearance/SpeakerPalette.swift`,
-  `OgmoMac/Utility/Overlays/CaptionsOverlayController.swift`, `OgmoMac/Views/LiveTranscription/CaptionsOverlayView.swift`
-- Changed: `OgmoMacApp.swift`, `ContentView.swift` (preview), `TranscriptionsScreen.swift`,
+- New: `OpenCaptions/LiveSessionStore.swift`, `OpenCaptions/Utility/Appearance/SpeakerPalette.swift`,
+  `OpenCaptions/Utility/Overlays/CaptionsOverlayController.swift`, `OpenCaptions/Views/LiveTranscription/CaptionsOverlayView.swift`
+- Changed: `OpenCaptionsApp.swift`, `ContentView.swift` (preview), `TranscriptionsScreen.swift`,
   `MacLiveTranscriptionView.swift`, `MacLiveTranscriptionView+AudioSource.swift`,
-  `MacTranscriptionViewModel.swift`, `MacFocusedValues.swift`, `OgmoCommands.swift`,
+  `MacTranscriptionViewModel.swift`, `MacFocusedValues.swift`, `OpenCaptionsCommands.swift`,
   `MenuBarState.swift`, `MenuBarContent.swift`, `MacSettingsView.swift`
 - Deleted: `MacLiveTranscriptionView+MenuBar.swift` (menu-bar wiring moved to the store)

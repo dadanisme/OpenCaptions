@@ -1,6 +1,6 @@
 //
 //  MacOnboardingSignInStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 3 (cloud path): sign in. Wraps the shared `MacSignInControls`. The
 //  coordinator auto-advances when `auth.isSignedIn` flips true — a returning,
@@ -14,7 +14,7 @@ struct MacOnboardingSignInStep: View {
         VStack(spacing: 22) {
             MacOnboardingHeader(
                 systemImage: "person.crop.circle",
-                title: "Sign in to Ogmo",
+                title: "Sign in to Open Captions",
                 subtitle: "Keep your transcripts and minute balance in sync across your Mac and iPhone."
             )
             MacSignInControls()

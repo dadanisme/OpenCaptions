@@ -1,6 +1,6 @@
 //
 //  MacSubscriptionManager+Offerings.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Offering load + purchase, split out of `MacSubscriptionManager` to keep it
 //  focused. Reads the `credits` offering (fallback: the current offering) and

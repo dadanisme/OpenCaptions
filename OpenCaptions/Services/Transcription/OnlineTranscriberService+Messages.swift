@@ -1,6 +1,6 @@
 //
 //  OnlineTranscriberService+Messages.swift
-//  unmute
+//  OpenCaptions
 //
 //  WebSocket receive loop and Soniox message/token parsing for
 //  `OnlineTranscriberService`.

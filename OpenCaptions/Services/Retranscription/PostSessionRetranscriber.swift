@@ -1,12 +1,12 @@
 //
 //  PostSessionRetranscriber.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The shared core for post-session re-transcription: runs a chosen engine over a
 //  saved recording, replaces the session transcript, meters a cloud engine, and
 //  regenerates the summary. Driven by `RetranscriptionManager` for BOTH the manual and
 //  automatic paths, so the two can never diverge.
-//  See issue #245 and docs/2026-07-16-macos-post-session-retranscription.md.
+//  See docs/2026-07-16-macos-post-session-retranscription.md.
 //
 
 import AVFoundation

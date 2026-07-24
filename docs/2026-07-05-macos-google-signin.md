@@ -1,14 +1,14 @@
 # macOS Google Sign-In + committed personal signing identity
 
 **Date:** 2026-07-05
-**Target:** OgmoMac (standalone native macOS app)
-**Related:** `docs/2026-07-05-macos-auth-and-scoping.md` (#180)
+**Target:** OpenCaptions (standalone native macOS app)
+**Related:** `docs/2026-07-05-macos-auth-and-scoping.md`
 
 ## Problem
 
-Sign in with Apple on OgmoMac fails at the Firebase exchange with:
+Sign in with Apple on Open Captions fails at the Firebase exchange with:
 
-> The audience in ID Token [com.…OgmoMac] does not match the expected audience.
+> The audience in ID Token [com.…OpenCaptions] does not match the expected audience.
 
 Firebase's Apple auth provider validates that the Apple ID token's `aud` (= the app's
 bundle id) is a bundle id registered/trusted for the Firebase project. When a developer
@@ -26,16 +26,16 @@ per-bundle-id constraint specific to Sign in with Apple.
    behind `showAppleSignIn = false`; the `MacAuthManager+Apple` flow, nonce helpers, and
    entitlement are untouched. Flip the flag to restore it (e.g. once building under a
    bundle id registered with the Firebase Apple provider).
-3. **Commit the personal signing identity.** The OgmoMac target now ships with
-   `DEVELOPMENT_TEAM = C4SQMCY5WT` and `PRODUCT_BUNDLE_IDENTIFIER = com.muhammadramdan.OgmoMac`
+3. **Commit the personal signing identity.** The OpenCaptions target now ships with
+   `DEVELOPMENT_TEAM = C4SQMCY5WT` and `PRODUCT_BUNDLE_IDENTIFIER = com.muhammadramdan.OpenCaptions`
    (Ramdan's account), which is the account that owns the Firebase app + Google OAuth
    client the committed `GoogleService-Info.plist` points at. This supersedes the earlier
-   "developer overrides locally, uncommitted" convention for OgmoMac.
+   "developer overrides locally, uncommitted" convention for OpenCaptions.
 
 ## Implementation
 
 - **SPM**: `GoogleSignIn-iOS` package (`https://github.com/google/GoogleSignIn-iOS`,
-  upToNextMajor from 8.0.0), product **`GoogleSignIn`**, added to the OgmoMac target only.
+  upToNextMajor from 8.0.0), product **`GoogleSignIn`**, added to the OpenCaptions target only.
   The button is a compact custom control using a `GoogleLogo` SVG asset (the officially-branded
   `GoogleSignInButton` from `GoogleSignInSwift` was tried but its blue/white styling clashed
   with the app's dark theme).
@@ -43,9 +43,9 @@ per-bundle-id constraint specific to Sign in with Apple.
   `GIDSignIn.sharedInstance.signIn(withPresenting:)` → `GoogleAuthProvider.credential` →
   `Auth.auth().signIn(with:)`, then persists identity like the Apple/email tails. Client id
   comes from `FirebaseApp.app()?.options.clientID` (nothing hardcoded).
-- **`OgmoMacApp`**: `.onOpenURL { GIDSignIn.sharedInstance.handle($0) }` forwards the
+- **`OpenCaptionsApp`**: `.onOpenURL { GIDSignIn.sharedInstance.handle($0) }` forwards the
   OAuth callback.
-- **URL scheme**: `OgmoMac-Info.plist` registers `CFBundleURLTypes` scheme
+- **URL scheme**: `OpenCaptions-Info.plist` registers `CFBundleURLTypes` scheme
   `$(REVERSED_CLIENT_ID)`; the value is a `Config.xcconfig` key (git-ignored), kept out of
   committed files so a fork can supply its own without editing the plist.
 - **Entitlements**: no change — `com.apple.security.network.client` (already present) covers

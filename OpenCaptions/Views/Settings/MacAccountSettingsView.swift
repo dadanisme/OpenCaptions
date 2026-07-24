@@ -1,6 +1,6 @@
 //
 //  MacAccountSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The Settings → Account pane. Two states:
 //  • Signed in — edit the display name, and Sign Out.
@@ -26,7 +26,7 @@ struct MacAccountSettingsView: View {
     /// Presents the confirmation-gated account-deletion sheet.
     @State private var showDeleteAccount = false
     /// Marketing-communications consent, loaded from and mirrored to the Firestore
-    /// user doc. Opt-in: defaults off and only flips on an explicit user toggle (#251).
+    /// user doc. Opt-in: defaults off and only flips on an explicit user toggle.
     @State private var marketingOptIn = false
     /// The Settings window, captured while it's key (before the sheet opens) so it can
     /// be closed after deletion — see the Delete Account button.
@@ -53,7 +53,7 @@ struct MacAccountSettingsView: View {
                 Image(systemName: "laptopcomputer")
                     .appScaledFont(.largeTitle)
                     .foregroundStyle(.secondary)
-                Text("You're using Ogmo offline")
+                Text("You're using Open Captions offline")
                     .appScaledFont(.title3)
                     .fontWeight(.semibold)
                 Text("Your transcriptions are stored privately on this Mac. Sign in to sync them across your devices and unlock cloud transcription with speaker labels.")
@@ -78,7 +78,7 @@ struct MacAccountSettingsView: View {
     private var upgradeSheet: some View {
         VStack(spacing: 20) {
             VStack(spacing: 6) {
-                Text("Sign in to Ogmo")
+                Text("Sign in to Open Captions")
                     .appScaledFont(.title2)
                     .fontWeight(.semibold)
                 Text("Your offline transcriptions move into your account and start syncing.")
@@ -126,8 +126,8 @@ struct MacAccountSettingsView: View {
                             .labelsHidden()
                     }
                     // The name feeds both recognition and the mention alert, so a
-                    // short calling name works better than a full legal name (#255).
-                    Text("Use the name people actually call you — Ogmo listens for it and alerts you when it's spoken during a recording.")
+                    // short calling name works better than a full legal name.
+                    Text("Use the name people actually call you — Open Captions listens for it and alerts you when it's spoken during a recording.")
                         .appScaledFont(.caption)
                         .foregroundStyle(.secondary)
                     LabeledContent("Email", value: auth.userEmail ?? "—")

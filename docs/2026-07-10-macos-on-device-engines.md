@@ -1,14 +1,13 @@
-# macOS on-device transcription engines: Parakeet TDT v2 + Nemotron 560ms (#175)
+# macOS on-device transcription engines: Parakeet TDT v2 + Nemotron 560ms
 
 **Date:** 2026-07-10
-**Issue:** #175 (macOS: evaluate and wire on-device transcription engines) — epic #103
 
 ## Context
 
-`OgmoMac` shipped its MVP with **cloud Soniox only**. #175 asks whether on-device transcription is
-viable on macOS and, if so, to expose it. The iOS `unmute` target already ships production Parakeet
-and Nemotron engines via the `FluidAudio` SPM package, but that package was **not linked to the
-OgmoMac target** and none of the engine code existed on the Mac side.
+Open Captions shipped its MVP with **cloud Soniox only**. The goal here is to evaluate whether
+on-device transcription is viable on macOS and, if so, to expose it. The `FluidAudio` SPM package
+provides production-ready Parakeet and Nemotron engines, but that package was **not linked to the
+OpenCaptions target** and none of the engine code existed here yet.
 
 Product ask (user): add **NVIDIA Parakeet TDT v2** (English-only, highest accuracy) and **Nemotron
 560ms** (native low-latency streaming) as selectable engines, with a **Soniox / Parakeet / Nemotron
@@ -21,20 +20,19 @@ toggle in Settings** and a **model-download UI** (the models are large and fetch
    "workaround" natively (an actor: `start(models:)` / `streamAudio(_:)` / `transcriptionUpdates` /
    `finish()`), so we did **not** hand-port VoiceInk's LocalAgreement engine. This is dramatically
    less code (the built-in replaces ~700 lines of stateful LocalAgreement/sliding-window logic with
-   one actor). We chose TDT v2 over FluidAudio's separate `parakeetEou` streaming model (which the
-   iOS target uses) because the user explicitly wanted the higher-accuracy 0.6B TDT v2.
+   one actor). We chose TDT v2 over FluidAudio's separate `parakeetEou` streaming model because the
+   user explicitly wanted the higher-accuracy 0.6B TDT v2.
 
 2. **No FluidAudio pin bump.** The repo already resolves FluidAudio at `f3dba78` (branch `main`),
    which contains `SlidingWindowAsrManager`, `NemotronStreamingAsrManager`, **and**
-   `StreamingEouAsrManager`. Linking the package to OgmoMac reuses the project-level package
-   reference, so the iOS target's EOU/Nemotron usage is untouched.
+   `StreamingEouAsrManager`. Linking the package to the OpenCaptions target reuses the existing
+   project-level package reference, so no dependency-resolution change is needed.
 
-3. **Nemotron fixed at 560ms**, ported nearly verbatim from the iOS `NemotronTranscriberService`
-   (native streaming; punctuation-driven finalization via the shared `FluidAudioStreamBridge`). No
-   chunk-size variant picker.
+3. **Nemotron fixed at 560ms** (native streaming; punctuation-driven finalization via the
+   `FluidAudioStreamBridge`). No chunk-size variant picker.
 
 4. **Engine toggle + model-download cards live in Settings → Recording** (a "Transcription Engine"
-   section), always visible (OgmoMac has no `engineSelector`-style flag; the user wanted it shown).
+   section), always visible (Open Captions has no `engineSelector`-style flag; the user wanted it shown).
 
 ## Latency finding (important — evaluate before shipping Parakeet)
 
@@ -66,10 +64,10 @@ protocol. Nothing else changes — the view model, factory, settings, model down
 
 ## Implementation
 
-**FluidAudio layer (new, `OgmoMac/`):**
+**FluidAudio layer (new, `OpenCaptions/`):**
 - `Utility/FluidAudioStreamBridge.swift` — `makeBuffer(from:)` (16 kHz Float32 `Data` →
   `AVAudioPCMBuffer`) + `tokens(forFull:confirmedPrefix:)` (Nemotron's full-transcript diff →
-  finals/partials with the punctuation + word-count safety net). Ported from iOS.
+  finals/partials with the punctuation + word-count safety net).
 - `Utility/FluidAudioModelLoader.swift` — the two download mechanisms: Parakeet TDT v2 via
   `AsrModels.download/load/modelsExist` rooted at `AsrModels.defaultCacheDirectory(for: .v2)`;
   Nemotron via `DownloadUtils.downloadRepo(.nemotronStreaming560, …)` rooted at
@@ -80,9 +78,9 @@ protocol. Nothing else changes — the view model, factory, settings, model down
 - `Model/FluidAudioEngineConfig.swift` — `NemotronEngineConfig(chunkSize:)` + `ParakeetEngineConfig`
   (holds the `SlidingWindowAsrConfig`, defaulting to `responsiveStreaming`).
 
-**Engines (new, conform to the existing `OgmoMac/Services/Transcription/RealtimeTranscriptionEngine.swift`):**
+**Engines (new, conform to the existing `OpenCaptions/Services/Transcription/RealtimeTranscriptionEngine.swift`):**
 - `Services/NemotronTranscriberService.swift` — feed loop → `NemotronStreamingAsrManager.process`,
-  `setPartialCallback` → bridge. Verbatim iOS port (Mac loader method names).
+  `setPartialCallback` → bridge.
 - `Services/ParakeetTranscriberService.swift` — feed loop → `SlidingWindowAsrManager.streamAudio`;
   a separate loop consumes `transcriptionUpdates`, reconstructs the manager's confirmed/volatile
   two-tier state from `(update.text, update.isConfirmed)`, emits confirmed deltas as finals and the
@@ -106,10 +104,10 @@ protocol. Nothing else changes — the view model, factory, settings, model down
 - Diarization-off display: hide the speaker label for `speaker <= 0` in
   `MacLiveTranscriptionView` and `MacSessionDetailView+Playback.swift` (captions overlay and the
   "Edit Speakers" affordance already gate on positive ids).
-- `unmute.xcodeproj/project.pbxproj` — link the `FluidAudio` product to the OgmoMac target (the only
+- The Xcode project's `project.pbxproj` — link the `FluidAudio` product to the OpenCaptions target (the only
   manual pbxproj edit; new source files auto-include via the filesystem-synchronized group).
-- `LiveSessionStore.transcriptionEngineKey` (`ogmo.transcription.engine`, default `soniox`),
-  registered in `OgmoMacApp.init()`.
+- `LiveSessionStore.transcriptionEngineKey` (`opencaptions.transcription.engine`, default `soniox`),
+  registered in `OpenCaptionsApp.init()`.
 
 ## Edge cases / caveats
 
@@ -124,7 +122,7 @@ protocol. Nothing else changes — the view model, factory, settings, model down
 
 ## Verification
 
-Build the **OgmoMac** scheme in Xcode (not xcodebuild). Settings → Recording → pick Parakeet TDT v2
+Build the **OpenCaptions** scheme in Xcode (not xcodebuild). Settings → Recording → pick Parakeet TDT v2
 → Download → Ready; start a recording (Preparing overlay → single-stream transcript, timestamps from
 0). Repeat for Nemotron 560ms. Switch back to Soniox and confirm diarization/speaker labels still
-work. Confirm the iOS target still builds (shared FluidAudio pin unchanged).
+work.

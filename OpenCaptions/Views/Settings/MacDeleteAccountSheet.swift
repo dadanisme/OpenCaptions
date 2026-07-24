@@ -1,6 +1,6 @@
 //
 //  MacDeleteAccountSheet.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Confirmation-gated account-deletion sheet (Settings → Account). Because deletion
 //  is permanent, the destructive action stays disabled until the user types the exact
@@ -89,7 +89,7 @@ struct MacDeleteAccountSheet: View {
             Text("Delete your account?")
                 .appScaledFont(.title3)
                 .fontWeight(.semibold)
-            Text("This permanently deletes your Ogmo account. All transcripts, summaries, and recorded audio stored on this Mac will be erased. This can't be undone.")
+            Text("This permanently deletes your Open Captions account. All transcripts, summaries, and recorded audio stored on this Mac will be erased. This can't be undone.")
                 .appScaledFont(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

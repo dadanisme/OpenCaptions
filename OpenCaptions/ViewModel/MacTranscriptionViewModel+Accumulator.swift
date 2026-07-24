@@ -1,11 +1,10 @@
 //
 //  MacTranscriptionViewModel+Accumulator.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Token → bubble accumulation for the diarization-on (Soniox) path. Ported
-//  verbatim from the iOS `OnlineViewModel+Accumulator`/`+TokenProcessing`,
-//  minus the Firestore mirror and Live Activity pushes. Soniox always runs with
-//  diarization on here, so the diarization-off streaming path is omitted.
+//  Token → bubble accumulation for the diarization-on (Soniox) path. Soniox
+//  always runs with diarization on here, so the diarization-off streaming path
+//  is omitted.
 //
 
 import Foundation
@@ -79,7 +78,7 @@ extension MacTranscriptionViewModel {
         // On-device engines (Parakeet/Nemotron) emit no reliable per-token timestamps
         // (start/end == 0), so we stamp from our own session clock instead — the timeline
         // and playhead still advance, staying within the engine's confirmation lag of the
-        // spoken audio. Mirrors the iOS OnlineViewModel path for
+        // spoken audio. This is the path taken when
         // `providesReliableTimestamps == false`. See docs/2026-07-10-macos-on-device-engines.md.
         let usesClock = !(transcriptionService?.capabilities.providesReliableTimestamps ?? true)
         let clockMs = Int(totalActiveTime * 1000)
@@ -115,7 +114,7 @@ extension MacTranscriptionViewModel {
         }
 
         // Alert the user if this finalized sentence mentions their name — an in-app
-        // HUD badge when Ogmo is frontmost, else an OS notification (issue #255).
+        // HUD badge when Open Captions is frontmost, else an OS notification.
         // Finalized-lines only (this is the finalized-sentence commit point) and
         // debounced inside the notifier; `serviceGeneration` scopes it per session.
         // Gated on `isRunning` so the tail flush at stop() (which runs after stop

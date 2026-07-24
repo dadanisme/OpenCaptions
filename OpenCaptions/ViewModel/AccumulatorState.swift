@@ -1,6 +1,6 @@
 //
 //  AccumulatorState.swift
-//  unmute
+//  OpenCaptions
 //
 //  Created by Wentao Guo on 20/10/25.
 //

@@ -1,6 +1,6 @@
 //
 //  FluidAudioEngineConfig.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Configuration for the on-device FluidAudio transcription engines on macOS:
 //  NVIDIA Parakeet TDT v2 (batch model driven in a sliding window) and Nemotron
@@ -13,7 +13,7 @@ import Foundation
 
 /// Tuning for `NemotronTranscriberService` (FluidAudio `NemotronStreamingAsrManager`).
 ///
-/// Fixed to 560 ms on macOS (the product-selected variant — issue #175). Nemotron
+/// Fixed to 560 ms on macOS (the product-selected variant). Nemotron
 /// is a true-streaming, cache-aware model that emits punctuation and capitalization
 /// natively, so the service flushes each completed sentence to a bubble on punctuation.
 struct NemotronEngineConfig {

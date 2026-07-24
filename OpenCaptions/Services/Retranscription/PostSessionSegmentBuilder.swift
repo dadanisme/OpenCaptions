@@ -1,6 +1,6 @@
 //
 //  PostSessionSegmentBuilder.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Groups a flat batch of `PostSessionToken`s (from any post-session engine) into
 //  readable, persist-ready lines, reusing the live accumulator's speaker/sentence/

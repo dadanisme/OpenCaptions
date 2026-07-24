@@ -1,10 +1,10 @@
 //
 //  PostSessionRetranscriptionFactory.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Selects a `PostSessionTranscriptionEngine` for re-transcribing a saved session.
 //  Mirrors the live `MacTranscriptionEngineFactory`. Adding a provider = add a
-//  `RetranscriptionEngineKind` case and a factory branch. See issue #245.
+//  `RetranscriptionEngineKind` case and a factory branch.
 //
 
 import Foundation

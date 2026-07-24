@@ -1,6 +1,6 @@
 //
 //  MacOnboardingDownloadStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 3 (offline path): download the on-device speech model. Offline
 //  transcription hard-fails at record time without the model on disk
@@ -43,7 +43,7 @@ struct MacOnboardingDownloadStep: View {
             MacOnboardingHeader(
                 systemImage: isReady ? "checkmark.seal" : "arrow.down.circle",
                 title: "Download the offline model",
-                subtitle: "Ogmo transcribes on-device using speech models. It's a one-time download of about 1.2 GB — after that, everything works without a network.",
+                subtitle: "Open Captions transcribes on-device using speech models. It's a one-time download of about 1.2 GB — after that, everything works without a network.",
                 isComplete: isReady
             )
 

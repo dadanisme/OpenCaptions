@@ -1,8 +1,8 @@
 //
 //  RetranscriptionManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  App-lifetime owner of post-session re-transcription runs (#245). A singleton so a
+//  App-lifetime owner of post-session re-transcription runs. A singleton so a
 //  run SURVIVES leaving/closing the session-detail window — the work continues in the
 //  background and the transcript updates in place when it finishes; the user is never
 //  pinned to a window during a long upload/decode. A single per-session in-flight
@@ -71,7 +71,7 @@ final class RetranscriptionManager {
 
         // Never run alongside a file import filling in this same session — both drive
         // PostSessionRetranscriber.run over it (double-meter + transcript corruption). The
-        // detail menu already disables in this case; this guards other future callers. #302.
+        // detail menu already disables in this case; this guards other future callers.
         if FileImportManager.shared.isRunning(sessionID) {
             if interactive { errorBySession[sessionID] = "This session is still being imported. Try again when it finishes." }
             return

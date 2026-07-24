@@ -1,6 +1,6 @@
 //
 //  FeatureFlag.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Type-safe catalog of remotely-togglable features for the macOS app. Each
 //  case's `rawValue` is the key inside the Firestore `config/featureFlags` doc's
@@ -9,8 +9,8 @@
 //  managing). See FeatureFlagService and docs/2026-07-06-macos-firestore-share.md.
 //
 //  The Mac uses its own `Mac_`-prefixed flag keys so features can be toggled
-//  independently of the iOS app (e.g. sharing reads `Mac_session_sharing`, not
-//  the iOS `session_sharing`). The Mac target only ships the flags relevant to
+//  independently (e.g. sharing reads `Mac_session_sharing`). The Mac target only
+//  ships the flags relevant to
 //  its feature set — currently sharing, session playback, and mixed-source AEC.
 //
 
@@ -23,8 +23,7 @@ enum FeatureFlag: String {
     /// affordance (live share button, "Copy Share Link"/password menu items) and
     /// kills all Firestore share writes when off. Turning it off mid-session
     /// gracefully seals a session that was live-syncing to `ended` (one final
-    /// write) then stops. Distinct from the iOS `session_sharing` key so the two
-    /// platforms toggle independently.
+    /// write) then stops.
     case sessionSharing = "Mac_session_sharing"
 
     /// Session-audio recording + synced transcript playback: captures each
@@ -35,7 +34,7 @@ enum FeatureFlag: String {
     /// half-recorded is kept. Also gated by a local per-device Settings toggle.
     case sessionPlayback = "Mac_session_playback"
 
-    /// Post-session re-transcription (#245): re-processes a saved session's audio
+    /// Post-session re-transcription: re-processes a saved session's audio
     /// with a higher-accuracy engine (on-device Parakeet TDT v2, or cloud Soniox
     /// async). Master rollout switch — gates the "Re-transcribe" menu on the saved-
     /// session detail screen; also gated by a local per-device Settings toggle.
@@ -43,7 +42,7 @@ enum FeatureFlag: String {
     case postSessionRetranscription = "Mac_post_session_retranscription"
 
     /// Software acoustic echo cancellation for the "Microphone + System Audio"
-    /// mixed source (`OgmoAEC`, Speex-backed — issue #208). Gates whether the
+    /// mixed source (`OpenCaptionsAEC`, Speex-backed). Gates whether the
     /// canceller is built at session start (off → the mix stays an uncancelled
     /// plain sum, the existing `aec == nil` fallback). Flipping it off mid-session
     /// releases a running canceller so it falls back to plain sum, giving us a
@@ -51,7 +50,7 @@ enum FeatureFlag: String {
     /// the mixed source — mic-only and system-only capture never build an AEC.
     case aecEnabled = "Mac_aec_enabled"
 
-    /// Import audio & video files for transcription (#302): a file-picker + File-menu
+    /// Import audio & video files for transcription: a file-picker + File-menu
     /// entry point that ingests an existing recording, normalizes its audio to the
     /// app's canonical `.m4a`, and runs it through the post-session transcription
     /// pipeline to produce a saved session (transcript + summary). Gates both entry

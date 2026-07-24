@@ -1,6 +1,6 @@
 //
 //  FluidAudioModelLoader.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Stateless helpers for locating, downloading, checking, loading, and cleaning the on-device
 //  FluidAudio CoreML models used by the macOS Parakeet (TDT v2) and Nemotron (560 ms) engines.
@@ -19,7 +19,7 @@ enum FluidAudioModelLoader {
 
     // MARK: - Nemotron (Repo + DownloadUtils)
 
-    /// The fixed Nemotron 560 ms streaming repo (macOS product choice, issue #175).
+    /// The fixed Nemotron 560 ms streaming repo (macOS product choice).
     static let nemotronRepo: Repo = .nemotronStreaming560
     /// The fixed Nemotron chunk size the manager is built with.
     static let nemotronChunkSize: NemotronChunkSize = .ms560

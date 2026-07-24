@@ -1,6 +1,6 @@
 //
 //  SummaryViewModel.swift
-//  unmute
+//  OpenCaptions
 //
 
 import SwiftUI

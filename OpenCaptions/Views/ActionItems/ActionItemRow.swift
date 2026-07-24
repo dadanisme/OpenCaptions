@@ -1,11 +1,11 @@
 //
 //  ActionItemRow.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  One row in the consolidated Action Items list. Tapping anywhere on the row
 //  toggles completion — the only mutation this feature allows (the source session
 //  is opened from the group's header row instead). Otherwise read-only: no edit /
-//  delete / reorder. General-UI text uses `.appScaledFont` per the OgmoMac
+//  delete / reorder. General-UI text uses `.appScaledFont` per the OpenCaptions
 //  font-scaling standard.
 //
 

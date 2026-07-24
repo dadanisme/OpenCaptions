@@ -1,11 +1,11 @@
 //
 //  MacAudioPermissionView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The "access needed" screen shown in place of the live transcript when the mic
 //  is denied at session start. Only the microphone has a public preflight, so
 //  it's the only permission gated before capture; system-audio capture (Core
-//  Audio process tap, #205) prompts for "Audio Recording" on its first start and
+//  Audio process tap) prompts for "Audio Recording" on its first start and
 //  has no pre-start denied screen. Extracted from MacLiveTranscriptionView to
 //  keep that file under the per-file line limit.
 //

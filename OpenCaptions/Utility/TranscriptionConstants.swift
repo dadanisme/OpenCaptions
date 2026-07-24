@@ -1,6 +1,6 @@
 //
 //  TranscriptionConstants.swift
-//  unmute
+//  OpenCaptions
 //
 
 import Foundation
@@ -45,7 +45,7 @@ enum TranscriptionConstants {
     // MARK: - Connection Health
 
     /// Interval in seconds between periodic Soniox connection resets.
-    /// Temporarily set to 5 hours to evaluate whether the workaround is still needed (issue #104).
+    /// Temporarily set to 5 hours to evaluate whether the workaround is still needed.
     static let connectionResetIntervalSeconds: TimeInterval = 18000
 
     /// Max words allowed in the accumulator before force-flushing without punctuation.

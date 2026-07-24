@@ -1,7 +1,7 @@
-# macOS source-app attribution (OgmoMac)
+# macOS source-app attribution (OpenCaptions)
 
 **Date:** 2026-07-07
-**Target:** `OgmoMac` only (not the iOS `unmute` target)
+**Target:** `OpenCaptions` only
 **Status:** v1 shipped behind no flag; live view + saved sessions + captions overlay.
 
 ## Goal
@@ -24,7 +24,7 @@ Instead we run a **separate activity time-series** and correlate by time:
 
 - `SystemAudioActivityMonitor` polls Core Audio every 0.5 s for processes whose
   `kAudioProcessPropertyIsRunningOutput == 1`, resolves each to a **user-facing app**
-  (see below), excludes OGMO itself, and records `{sessionRelativeMs, [bundleID]}`
+  (see below), excludes Open Captions itself, and records `{sessionRelativeMs, [bundleID]}`
   samples. The sample clock is anchored to the view model's `sessionStart`, so it lines
   up with the line `startMs`/`endMs` (both stamped from `totalActiveTime`, *not*
   wall-clock — Soniox's own token times are unreliable).

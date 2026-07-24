@@ -1,11 +1,10 @@
 //
 //  MacAuthManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Authentication for the standalone macOS app. Ported from the iOS `AuthManager`
+//  Authentication for the standalone macOS app
 //  (Sign in with Apple → Firebase, email/password, launch reconcile), minus the
 //  RevenueCat / Analytics / onboarding pieces — none of which exist on macOS.
-//  Uses the SAME UserDefaults keys as iOS so cached identity is namespace-aligned.
 //
 //  Sign-in itself lives in the +Apple / +Email extensions.
 //
@@ -37,7 +36,7 @@ final class MacAuthManager {
     /// Last delete-account failure, surfaced inline in the delete sheet. Nil clears it.
     var deletionError: String?
 
-    // MARK: - UserDefaults keys (mirror the iOS AuthManager)
+    // MARK: - UserDefaults keys
 
     let userIDKey = "cached_firebase_user_id"
     let appleUserIDKey = "cached_apple_user_id"

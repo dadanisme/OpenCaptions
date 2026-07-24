@@ -1,6 +1,6 @@
 //
 //  CaptionsOverlayView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Caption strip rendered inside the floating overlay panel
 //  (`CaptionsOverlayController`). Shows the live transcript — all in-memory lines
@@ -27,7 +27,7 @@ struct CaptionsOverlayView: View {
 
     private let corner: CGFloat = 16
 
-    /// Auto-scroll gate (#314). Starts pinned; a `MacScrollStateObserver` flips it
+    /// Auto-scroll gate. Starts pinned; a `MacScrollStateObserver` flips it
     /// off when the user scrolls up in the strip to read earlier captions and back
     /// on when they return to the bottom.
     @State private var shouldAutoScroll = true
@@ -65,7 +65,7 @@ struct CaptionsOverlayView: View {
                 .padding(12)
                 // Detects user-driven scroll and drives `shouldAutoScroll` so tokens
                 // stop yanking the strip to the newest caption while the user reads
-                // earlier text; resumes once they scroll back to the bottom (#314).
+                // earlier text; resumes once they scroll back to the bottom.
                 // A tighter threshold than the main view: this panel is only ~160pt
                 // tall, so 50pt would swallow ~3 lines of scroll-up before pausing.
                 .background(
@@ -78,10 +78,10 @@ struct CaptionsOverlayView: View {
             // a zero-height anchor a LazyVStack may not have materialized. Fires on
             // ids.count (a new line OR a top flush both change it, so a flush re-pins —
             // the old net-zero totalLineCount signal missed that) and on partialLine
-            // (streaming) — but ONLY while pinned to the bottom (#314), so a caption
+            // (streaming) — but ONLY while pinned to the bottom, so a caption
             // arriving while the user reads earlier text leaves their position alone.
             // We deliberately do NOT use `.defaultScrollAnchor(.bottom)`: it hangs the
-            // app when the flush removes rows from the LazyVStack. See #239.
+            // app when the flush removes rows from the LazyVStack.
             .onChange(of: viewModel.finalLines.ids.count) { _, _ in
                 if shouldAutoScroll { scrollToNewest(proxy) }
             }

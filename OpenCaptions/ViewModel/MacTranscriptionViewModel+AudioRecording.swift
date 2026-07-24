@@ -1,10 +1,10 @@
 //
 //  MacTranscriptionViewModel+AudioRecording.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Session-audio recording lifecycle: opening/closing the `.m4a` recorder and
 //  the remote-flag kill switch. Split out of the main view model to keep it
-//  under the line limit. See docs and issue #198.
+//  under the line limit. See docs.
 //
 
 import Foundation

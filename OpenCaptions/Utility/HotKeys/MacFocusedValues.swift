@@ -1,12 +1,12 @@
 //
 //  MacFocusedValues.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Bridges view-local actions to the scene-level `Commands` (menu bar). Menu
 //  commands live at the App/Scene level, but every action here is owned by a
 //  local view (`TranscriptionsScreen`, `MacLiveTranscriptionView`,
 //  `MacSessionDetailView`). The frontmost view publishes its actions via
-//  `.focusedSceneValue(...)`; `OgmoCommands` reads them via `@FocusedValue`.
+//  `.focusedSceneValue(...)`; `OpenCaptionsCommands` reads them via `@FocusedValue`.
 //  A `nil` value means "no such context is frontmost", which the menu items
 //  turn into a disabled state automatically.
 //

@@ -1,6 +1,6 @@
 //
 //  SpeakerPalette.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Shared speaker → color mapping for diarized transcripts. Kept in one place so
 //  the main live transcript (`MacLiveTranscriptionView`) and the floating

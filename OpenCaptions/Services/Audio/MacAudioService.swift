@@ -1,10 +1,10 @@
 //
 //  MacAudioService.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Microphone capture for macOS. Reuses the proven iOS DSP pipeline
-//  (AVAudioEngine input tap → AVAudioConverter → 16 kHz mono Float32),
-//  but with NO AVAudioSession (macOS has none): the device input format is
+//  Microphone capture for macOS: an AVAudioEngine input tap → AVAudioConverter
+//  → 16 kHz mono Float32, with NO AVAudioSession (macOS has none). The device
+//  input format is
 //  read dynamically and resampled by the converter. Mic access goes through
 //  AVCaptureDevice's TCC prompt.
 //
@@ -89,7 +89,7 @@ final class MacAudioService: AudioCaptureSource {
 
     /// Soft-pause capture: stop the engine rendering but KEEP the tap installed
     /// so the `AsyncStream` stays open (no `finish()`). macOS has no
-    /// `AVAudioSession`, so unlike iOS there is nothing to deactivate.
+    /// `AVAudioSession`, so there is nothing to deactivate.
     func pause() {
         guard isRunning, !isPaused else { return }
         isPaused = true

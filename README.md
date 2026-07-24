@@ -19,7 +19,7 @@ FluidAudio) that needs no network and no metering.
   diarization and mid-sentence live updates.
 - **Mixed mic + system-audio capture** — Core Audio process taps for system audio,
   an `AVAudioEngine` mic tap, and a vendored SpeexDSP-backed acoustic echo
-  canceller (the `OgmoAEC` Objective-C++ class) to remove speaker bleed.
+  canceller (the `OpenCaptionsAEC` Objective-C++ class) to remove speaker bleed.
 - **Offline Mode** — on-device Nemotron (FluidAudio), free and network-free.
 - **AI summaries** of a finished session.
 - **Auth & sync** — Firebase Auth (Google / email), Firestore share-to-web.
@@ -43,7 +43,7 @@ FluidAudio) that needs no network and no metering.
 5. Build & run the **`OpenCaptions`** scheme.
 
 > Firebase, Google Sign-In, and RevenueCat are registered to the bundle id
-> `com.muhammadramdan.OgmoMac`. If you change the bundle id, re-register those
+> `com.muhammadramdan.OpenCaptions`. If you change the bundle id, re-register those
 > services (or auth/billing will fail at runtime).
 
 ## Layout
@@ -61,15 +61,15 @@ docs/                    # design & decision notes
 
 Renamed to **Open Captions** — the project, scheme, target, product
 (`OpenCaptions.app`), display name, permission prompts, **and all file/folder
-names** now read Open Captions / OpenCaptions.
+names** now read Open Captions / OpenCaptions, as do the code symbols
+`OpenCaptionsApp`, `OpenCaptionsCommands`, and `OpenCaptionsAEC`.
 
-Still carrying the original name **by design** (not yet renamed): the bundle id
-`com.muhammadramdan.OgmoMac` (live Firebase / Google Sign-In / RevenueCat are
-keyed to it), the code symbols `OgmoMacApp`, `OgmoCommands`, and `OgmoAEC`, the
-`Mac*` type prefixes, the in-app UI text (which still says "Ogmo"), the Firebase
-project `ogmo-491906`, and a Carbon four-char hotkey code. Renaming those is a
-follow-up: the symbols are a safe code change; the bundle id needs the services
-re-registered first.
+This app was extracted from a larger multi-platform project; the bundle id
+`com.muhammadramdan.OpenCaptions` and its backend are being moved onto
+independent Open Captions infrastructure (Firebase project, Cloud Functions,
+web session viewer). Because live Firebase / Google Sign-In / RevenueCat were
+keyed to the previous bundle id, those services must be re-registered before the
+id change takes full effect at runtime.
 
 ## Third-party
 

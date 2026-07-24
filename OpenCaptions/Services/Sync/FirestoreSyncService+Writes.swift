@@ -1,6 +1,6 @@
 //
 //  FirestoreSyncService+Writes.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Firestore path helpers and low-level write primitives for
 //  FirestoreSyncService. Audit fields are stamped here, never inline.
@@ -21,7 +21,7 @@ extension FirestoreSyncService {
     }
 
     /// Per-user sessions live nested under `users/{uid}/sessions/{sessionId}`.
-    /// The public share URL is `https://session.ogmo.app/<sessionId>` — the web
+    /// The public share URL is `<SESSION_SHARE_BASE_URL>/<sessionId>` — the web
     /// client first reads the small `sessionIndex/{sessionId}` doc to resolve
     /// the URL's bare sessionId to its owner uid, then subscribes to the
     /// nested path. See `indexDoc(for:)` and `2026-05-19-web-client-prompt.md`.

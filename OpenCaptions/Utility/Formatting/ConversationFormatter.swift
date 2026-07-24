@@ -1,6 +1,6 @@
 //
 //  ConversationFormatter.swift
-//  unmute
+//  OpenCaptions
 //
 //  Created by Wentao Guo on 17/11/25.
 //
@@ -40,7 +40,7 @@ enum ConversationFormatter {
     }
 
     /// Session-relative `h:mm:ss` timestamp shown next to a transcript line's
-    /// speaker (matches the iOS SpeakerBubble format).
+    /// speaker.
     static func speakerTimestamp(fromMs ms: Int) -> String {
         TimestampFormatter.hms(fromMs: ms)
     }

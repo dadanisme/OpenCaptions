@@ -1,6 +1,6 @@
 //
 //  SourceAppIcon.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The small source-app glyph shown at the head of a transcript line when the
 //  audio came from a specific app (system-audio / mixed capture). Renders NOTHING

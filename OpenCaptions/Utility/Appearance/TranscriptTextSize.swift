@@ -1,12 +1,12 @@
 //
 //  TranscriptTextSize.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Shared font-size scaling for the live transcript + captions overlay (#214).
+//  Shared font-size scaling for the live transcript + captions overlay.
 //  The size is a persisted Double MULTIPLIER (see `LiveSessionStore.transcriptTextSizeKey`).
 //
-//  macOS does NOT honor Dynamic Type for built-in text styles (Dynamic Type is an
-//  iOS/iPadOS feature), so `.dynamicTypeSize(...)` has no visible effect here.
+//  macOS does NOT honor Dynamic Type for built-in text styles, so
+//  `.dynamicTypeSize(...)` has no visible effect here.
 //  Instead we scale the ACTUAL point size: `Font.transcript(_:multiplier:)` reads
 //  the platform's point size for a semantic text style (`NSFont.preferredFont` —
 //  not a hardcoded literal, so each role keeps its system-defined relative size)

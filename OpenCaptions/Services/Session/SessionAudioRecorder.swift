@@ -1,6 +1,6 @@
 //
 //  SessionAudioRecorder.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Writes the live 16 kHz mono Float32 stream (the exact PCM sent to Soniox)
 //  to a compressed AAC `.m4a` for later playback.

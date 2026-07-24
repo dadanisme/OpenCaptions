@@ -1,6 +1,6 @@
 //
 //  FirestoreSyncService+SessionSync.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Session-document sync for FirestoreSyncService: the shared session/
 //  backfill writer, speaker renames, AI summary fields, launch-time
@@ -18,7 +18,7 @@ extension FirestoreSyncService {
     /// `sessionIndex` lookup doc, and one line doc per backfill entry.
     ///
     /// The index doc maps the bare URL sessionId to its owner uid so
-    /// `https://session.ogmo.app/<sessionId>` resolves without exposing the
+    /// `<SESSION_SHARE_BASE_URL>/<sessionId>` resolves without exposing the
     /// uid in the URL. Written once; the session doc keeps the source of
     /// truth for everything else.
     func writeSessionDocs(
@@ -65,8 +65,8 @@ extension FirestoreSyncService {
         }
     }
 
-    /// Re-pushes a re-transcribed session's transcript to its EXISTING shared doc
-    /// (#245). Keeps the same `cloudSessionId`/public link and overwrites the session
+    /// Re-pushes a re-transcribed session's transcript to its EXISTING shared doc.
+    /// Keeps the same `cloudSessionId`/public link and overwrites the session
     /// doc + line docs `0..<count`, resetting `lineCount`. The web reads lines by
     /// `lineCount`, so any orphaned trailing docs left by a now-shorter transcript are
     /// ignored. This nulls the web summary (writeSessionDocs writes `summary: NSNull`);
@@ -158,7 +158,7 @@ extension FirestoreSyncService {
     }
 
     /// At app launch, marks any of this user's sessions still flagged
-    /// `live` or `paused` as `ended`. Defends against the iOS app crashing
+    /// `live` or `paused` as `ended`. Defends against the app crashing
     /// mid-recording without sealing the session.
     func reconcileLiveSessions() async {
         guard let uid = currentUid() else { return }

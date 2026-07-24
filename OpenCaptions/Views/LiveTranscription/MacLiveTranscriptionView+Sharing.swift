@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView+Sharing.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Copy-Link share affordance for the live recording screen: mints (or reuses)
 //  the shared Firestore session via the view model and copies its public link

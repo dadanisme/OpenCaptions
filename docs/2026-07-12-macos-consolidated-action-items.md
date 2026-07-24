@@ -1,6 +1,6 @@
 # macOS: Consolidated Action Items view (read-only rollup)
 
-**Date:** 2026-07-12 · **Issue:** #285 · **Scope:** OgmoMac only
+**Date:** 2026-07-12 · **Scope:** Open Captions only
 
 ## Problem
 
@@ -14,7 +14,7 @@ answer "what do I still need to do across all my meetings?"
 A new **Action Items** sidebar section that presents a **read-only aggregation**
 of action items across all of the signed-in user's sessions.
 
-- **Files:** `OgmoMac/Views/ActionItems/ActionItemsScreen.swift` (screen +
+- **Files:** `OpenCaptions/Views/ActionItems/ActionItemsScreen.swift` (screen +
   grouping + toggle) and `ActionItemRow.swift` (one row). Wired via a second
   `NavSection` case in `ContentView.swift`.
 - **Organization:** grouped by source session — the section header shows the
@@ -47,6 +47,5 @@ of action items across all of the signed-in user's sessions.
 
 ## Out of scope (possible follow-ups)
 
-- iOS parity (no equivalent consolidated view).
 - Editing text, delete, reorder, user-created (non-AI) action items.
 - Pending-only filtering / a flat cross-session task inbox.

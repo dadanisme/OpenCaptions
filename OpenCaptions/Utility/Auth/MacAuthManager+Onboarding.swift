@@ -1,10 +1,9 @@
 //
 //  MacAuthManager+Onboarding.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Onboarding completion + account-mode state, ported from the iOS
-//  `AuthManager+Profile` per-user pattern and extended for macOS's "use without
-//  an account" (offline guest) path.
+//  Onboarding completion + account-mode state, built on a per-user pattern with
+//  a macOS "use without an account" (offline guest) path.
 //
 //  Persistence model (see docs/2026-07-11-macos-onboarding.md):
 //  • Global `hasCompletedOnboarding` (Bool) — the gate flag. The app shows the

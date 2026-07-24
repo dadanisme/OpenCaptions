@@ -1,11 +1,11 @@
 //
 //  HighlightedMessageText.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Renders transcript text with two layered highlights (macOS parity with iOS):
+//  Renders transcript text with two layered highlights:
 //  • Question sentences get a `Color.DS.questionHighlight` background tint.
 //  • Mentions of the signed-in user's name render as a bold `@Name` so the user
-//    can spot when they were addressed (issue #255). Name wins where the two
+//    can spot when they were addressed. Name wins where the two
 //    overlap.
 //  Detection is purely string-based — there is no model flag and no schema change;
 //  the sentence scanner + name matcher live in the `+Caching` file.
@@ -30,8 +30,7 @@ struct HighlightedMessageText: View {
     /// line streams a fresh string on every token, so it is rendered with
     /// `cached: false` — it parses each time but stays OUT of the cache. Otherwise
     /// its hundreds of ephemeral permutations would churn the 200-entry cache and
-    /// evict the still-visible committed-line entries. (iOS keeps its streaming
-    /// tail out of the cache too, via a separate un-keyed trailing run.)
+    /// evict the still-visible committed-line entries.
     let shouldCache: Bool
 
     // MARK: - Caching

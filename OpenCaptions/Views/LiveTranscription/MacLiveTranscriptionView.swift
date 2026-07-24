@@ -1,6 +1,6 @@
 //
 //  MacLiveTranscriptionView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Live recording screen: requests mic access, streams a Soniox transcript with
 //  speaker labels, supports pause/resume, and on stop saves the session. Shown
@@ -23,7 +23,7 @@ struct MacLiveTranscriptionView: View {
     /// audio + socket) survive this view — and the whole window — being torn down.
     let viewModel: MacTranscriptionViewModel
     /// Persisted capture-source choice (rawValue). The app's first @AppStorage.
-    @AppStorage("ogmo.audioSource") var sourceRaw = AudioSource.microphone.rawValue
+    @AppStorage("opencaptions.audioSource") var sourceRaw = AudioSource.microphone.rawValue
     /// Shared transcript font-size multiplier — scales the live transcript's
     /// semantic fonts (see `TranscriptTextSize`). Same key the pill/menu-bar/
     /// Settings write, so a change from any surface reflects here live.
@@ -33,7 +33,7 @@ struct MacLiveTranscriptionView: View {
     @State private var isStopping = false
     @State private var showBackConfirm = false
     @State private var showStopConfirm = false
-    /// Auto-scroll gate (#314). Starts pinned; a `MacScrollStateObserver` flips it
+    /// Auto-scroll gate. Starts pinned; a `MacScrollStateObserver` flips it
     /// off when the user scrolls up to read earlier text and back on when they
     /// scroll to the bottom, so incoming tokens no longer yank the view down.
     @State private var shouldAutoScroll = true
@@ -195,7 +195,7 @@ struct MacLiveTranscriptionView: View {
                 .padding()
                 // Detects user-driven scroll and drives `shouldAutoScroll` so we stop
                 // yanking the view to the newest line while the user reads earlier
-                // text; resumes once they scroll back to the bottom (#314).
+                // text; resumes once they scroll back to the bottom.
                 .background(
                     MacScrollStateObserver(shouldAutoScroll: $shouldAutoScroll)
                         .frame(width: 0, height: 0)
@@ -207,10 +207,10 @@ struct MacLiveTranscriptionView: View {
             // line settles just above the floating pill (whose height the
             // `.safeAreaInset` in `body` reserves). Fires on ids.count (a new line OR
             // a top flush both change it, so a flush re-pins) and partialLine
-            // (streaming) — but ONLY while pinned to the bottom (#314), so a token
+            // (streaming) — but ONLY while pinned to the bottom, so a token
             // arriving while the user reads earlier text leaves their position alone.
             // We deliberately do NOT use `.defaultScrollAnchor(.bottom)`: it hangs the
-            // app when the flush removes rows from the LazyVStack. See #239.
+            // app when the flush removes rows from the LazyVStack.
             .onChange(of: viewModel.finalLines.ids.count) { _, _ in
                 if shouldAutoScroll { scrollToNewest(proxy) }
             }
@@ -228,7 +228,7 @@ struct MacLiveTranscriptionView: View {
     /// Scrolls the newest content to the bottom: the live partial if present, else
     /// the last committed line. Targets a real, realized row — never a zero-height
     /// anchor — so it pins reliably and re-pins after a top flush, with no
-    /// `.defaultScrollAnchor(.bottom)` (which hangs on row removal). See #239.
+    /// `.defaultScrollAnchor(.bottom)` (which hangs on row removal).
     private func scrollToNewest(_ proxy: ScrollViewProxy) {
         if !viewModel.partialLine.isEmpty {
             proxy.scrollTo("partial", anchor: .bottom)

@@ -1,6 +1,6 @@
 //
 //  OpenCaptionsApp.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Standalone native macOS app entry point. Uses Firebase Auth (Sign in with
 //  Apple + email/password) to scope transcriptions per user; the transcription
@@ -17,7 +17,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct OgmoMacApp: App {
+struct OpenCaptionsApp: App {
     @State private var auth = MacAuthManager.shared
     @State private var menuBar = MenuBarState.shared
     @State private var session = LiveSessionStore.shared
@@ -65,7 +65,7 @@ struct OgmoMacApp: App {
         // The listener also configures RevenueCat with the uid (see MacAuthManager).
         MacAuthManager.shared.startListening()
         // Re-fetch the minute balance whenever the app becomes active, so gating
-        // never runs on a stale balance (mirrors iOS's foreground refresh). Guarded
+        // never runs on a stale balance (refreshed on foreground). Guarded
         // against mid-session flushing inside refreshStatusOnForeground(). Registered
         // once here (App.init runs once); no-ops until RevenueCat is configured.
         NotificationCenter.default.addObserver(
@@ -80,7 +80,7 @@ struct OgmoMacApp: App {
         // or focus it via `openWindow(id:)` — a WindowGroup window, once closed,
         // can't be brought back by activating the app. `MainWindowID.main` is the
         // shared id both this scene and MenuBarContent use.
-        Window("Ogmo", id: MainWindowID.main) {
+        Window("Open Captions", id: MainWindowID.main) {
             Group {
                 // Show the main UI only once onboarding is done AND the user can
                 // actually use the app: signed in (cloud) or a deliberate offline
@@ -98,7 +98,7 @@ struct OgmoMacApp: App {
             // transcript/captions size). Applied at the window root so the sidebar,
             // lists, detail, sign-in, and pushed screens all inherit it. The live
             // transcript keeps its own explicit `Font.transcript(...)` sizing, and
-            // the captions overlay is a separate window untouched by this. (#270)
+            // the captions overlay is a separate window untouched by this.
             .appTextScaling()
             .environment(auth)
             .environment(session)
@@ -110,7 +110,7 @@ struct OgmoMacApp: App {
                 // Hand the store the shared container so the menu-bar item can
                 // start a recording without an on-screen view supplying one.
                 LiveSessionStore.shared.modelContainer = sharedModelContainer
-                // Register the system-wide transcription hotkeys (issue #249).
+                // Register the system-wide transcription hotkeys.
                 // Idempotent, so this re-running on window recreation is a no-op.
                 HotKeyManager.shared.start()
                 // Start the remote feature-flag listener (gates share-to-web), then
@@ -134,11 +134,11 @@ struct OgmoMacApp: App {
             .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
         }
         .modelContainer(sharedModelContainer)
-        .commands { OgmoCommands() }
+        .commands { OpenCaptionsCommands() }
         // Floor the window at its content's minimum size and open it at the
         // content-fit ideal. Under the default `.automatic`, the window could open
         // or restore SHORTER than the content min and clip the onboarding's fixed
-        // top/bottom chrome (#312). `.contentMinSize` sets only the floor — the
+        // top/bottom chrome. `.contentMinSize` sets only the floor — the
         // window still resizes larger freely (`.contentSize` would also cap the max
         // and lock the resizable main app). Per-scene: the Settings and MenuBarExtra
         // scenes below are untouched.
@@ -158,7 +158,7 @@ struct OgmoMacApp: App {
         // System menu-bar item (top-right status area): recording status + full
         // transport, usable while the main window is in the background. Its icon
         // reflects idle / recording / paused. Note: because a MenuBarExtra keeps
-        // the app alive, closing the window no longer quits Ogmo — use Quit Ogmo.
+        // the app alive, closing the window no longer quits Open Captions — use Quit Open Captions.
         MenuBarExtra {
             MenuBarContent()
                 .environment(menuBar)

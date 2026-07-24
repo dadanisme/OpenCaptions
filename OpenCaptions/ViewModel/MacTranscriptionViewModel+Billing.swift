@@ -1,13 +1,12 @@
 //
 //  MacTranscriptionViewModel+Billing.swift
-//  OgmoMac
+//  OpenCaptions
 //
-//  Minute metering for cloud (Soniox) sessions. Distilled from the iOS
-//  LiveTranscriptionView billing logic, but hoisted onto the view model (not a
+//  Minute metering for cloud (Soniox) sessions, hoisted onto the view model (not a
 //  SwiftUI view) because a macOS session outlives its window — the billing clock
 //  must survive a window close, just like the audio + socket do.
 //
-//  Rules (mirror iOS):
+//  Rules:
 //  - Only metered (cloud) sessions count; Offline Mode is free.
 //  - A 1 s clock accumulates `billedSeconds` only while RUNNING (paused seconds
 //    don't burn balance), and it's kept alive by LiveSessionStore's App-Nap
@@ -60,7 +59,7 @@ extension MacTranscriptionViewModel {
         // (cold-launch fail-open), record uncapped but still deduct at stop. A LOADED
         // balance with budget 0 (e.g. a prior failed flush left the gross balance
         // fully owed) is a real exhaustion → cap active → billingTick fires out-of-time
-        // on the first tick instead of treating 0 as "unlimited" (#242 review).
+        // on the first tick instead of treating 0 as "unlimited".
         billingCapActive = billing.loadState == .loaded
         startBillingTimer()
     }

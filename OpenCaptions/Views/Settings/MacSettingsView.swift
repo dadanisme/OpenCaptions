@@ -1,6 +1,6 @@
 //
 //  MacSettingsView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The macOS Settings window (Cmd+,). Home for advanced account actions. The
 //  General tab gathers all preferences (appearance, recording, captions); the
@@ -29,7 +29,7 @@ struct MacSettingsView: View {
     /// at record time via the same UserDefaults key. Only takes effect while the
     /// `sessionPlayback` remote flag is on.
     @AppStorage(LiveSessionStore.sessionAudioKey) private var saveSessionAudio = true
-    /// Automatic re-transcription after recording (#245). When on, a saved session is
+    /// Automatic re-transcription after recording. When on, a saved session is
     /// re-processed automatically; the engine follows Offline Mode (Parakeet offline /
     /// Soniox cloud). Read by `RetranscriptionManager`. Only takes effect while the
     /// `postSessionRetranscription` remote flag is on; the section is hidden until then.
@@ -37,7 +37,7 @@ struct MacSettingsView: View {
     /// Offline Mode. Off → cloud Soniox (diarized); on → on-device Nemotron with no
     /// network. Read at session start by `MacTranscriptionViewModel.start` and used to
     /// gate cloud summary generation. Can only be turned on once both on-device models
-    /// are downloaded. Issue #274.
+    /// are downloaded.
     @AppStorage(LiveSessionStore.offlineModeKey) private var offlineModeEnabled = false
 
     var body: some View {
@@ -130,7 +130,7 @@ struct MacSettingsView: View {
                 Toggle("Enable Offline Mode", isOn: $offlineModeEnabled)
                     .disabled(auth.isGuest)
                     .onChange(of: offlineModeEnabled) { _, newValue in
-                        // Mirror to Firestore when signed in (no-op otherwise). Issue #274.
+                        // Mirror to Firestore when signed in (no-op otherwise).
                         FirestoreSyncService.shared.syncOfflineMode(newValue)
                     }
             } else {
@@ -161,7 +161,7 @@ struct MacSettingsView: View {
     /// Explanatory note under the Offline Mode toggle.
     private var offlineModeFootnote: String {
         if auth.isGuest {
-            return "You're using Ogmo offline — transcription runs entirely on this Mac (English only). Sign in from the Account tab to enable cloud transcription with speaker labels."
+            return "You're using Open Captions offline — transcription runs entirely on this Mac (English only). Sign in from the Account tab to enable cloud transcription with speaker labels."
         }
         if !offlineFilesReady {
             return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."

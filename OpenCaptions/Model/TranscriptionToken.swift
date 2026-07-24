@@ -1,6 +1,6 @@
 //
 //  TranscriptionToken.swift
-//  unmute
+//  OpenCaptions
 //
 //  Engine-agnostic transcription token emitted by any RealtimeTranscriptionEngine.
 //

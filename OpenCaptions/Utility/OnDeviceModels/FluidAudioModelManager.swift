@@ -1,6 +1,6 @@
 //
 //  FluidAudioModelManager.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Observable owner of an on-device FluidAudio model's lifecycle for the Settings UI: reports
 //  its download status and drives an explicit pre-download (with progress) so recording never

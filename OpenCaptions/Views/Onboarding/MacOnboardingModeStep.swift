@@ -1,6 +1,6 @@
 //
 //  MacOnboardingModeStep.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Step 2: the fork. The user chooses a signed-in cloud experience or a free,
 //  private, on-device offline experience with no account. Writes the coordinator's
@@ -16,7 +16,7 @@ struct MacOnboardingModeStep: View {
         VStack(spacing: 22) {
             MacOnboardingHeader(
                 systemImage: "arrow.triangle.branch",
-                title: "How would you like to use Ogmo?",
+                title: "How would you like to use Open Captions?",
                 subtitle: "Both give you live transcription. You can switch later in Settings."
             )
 

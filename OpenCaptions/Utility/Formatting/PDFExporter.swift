@@ -1,10 +1,9 @@
 //
 //  PDFExporter.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Exports a session summary as a PDF and saves it via NSSavePanel.
-//  Ported from the iOS `PDFExporter`, swapping the UIKit render path
-//  (UIPrintPageRenderer) for macOS `WKWebView.createPDF`. Headings are
+//  Renders the PDF via macOS `WKWebView.createPDF`. Headings are
 //  hardcoded English (this target has no LanguageManager) and there is no
 //  analytics logging (no Firebase on macOS).
 //

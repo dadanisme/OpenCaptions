@@ -1,6 +1,6 @@
 //
 //  MenuBarContent.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The dropdown for the system menu-bar item: a status line + full recording
 //  transport (Pause-Resume / End & Save / Show-Hide Captions / Audio Source /
@@ -68,10 +68,10 @@ struct MenuBarContent: View {
         Divider()
 
         Button { showWindow() } label: {
-            Label("Open Ogmo", systemImage: "macwindow")
+            Label("Show Open Captions", systemImage: "macwindow")
         }
         Button { NSApplication.shared.terminate(nil) } label: {
-            Label("Quit Ogmo", systemImage: "power")
+            Label("Quit Open Captions", systemImage: "power")
         }
     }
 
@@ -139,7 +139,7 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Brings Ogmo's window to the front, reopening it if it was closed.
+    /// Brings Open Captions's window to the front, reopening it if it was closed.
     private func showWindow() {
         activateApp()
         openWindow(id: MainWindowID.main)
@@ -159,7 +159,7 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Brings Ogmo (and its window) to the front so a menu-bar action's result
+    /// Brings Open Captions (and its window) to the front so a menu-bar action's result
     /// is visible.
     @MainActor
     private func activateApp() {

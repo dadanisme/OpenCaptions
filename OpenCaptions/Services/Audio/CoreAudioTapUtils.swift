@@ -1,6 +1,6 @@
 //
 //  CoreAudioTapUtils.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Small Core Audio HAL helpers shared by the process-tap system-audio capture
 //  (`SystemAudioTapCaptureService`): reading object properties, translating our
@@ -86,7 +86,7 @@ enum CoreAudioTapUtils {
     /// A process tap's native capture format (typically 48 kHz Float32). NOTE: this
     /// is the tap's OWN rate; once the tap is a sub-tap of an aggregate, its frames
     /// are delivered to the IOProc at the AGGREGATE's rate — read that separately
-    /// with `nominalSampleRate(_:)` (see #304).
+    /// with `nominalSampleRate(_:)`.
     static func tapStreamFormat(_ tapID: AudioObjectID) throws -> AudioStreamBasicDescription {
         try property(
             tapID, kAudioTapPropertyFormat, AudioStreamBasicDescription(), "tap format"
@@ -95,7 +95,7 @@ enum CoreAudioTapUtils {
 
     /// A device's nominal sample rate (Hz). For an aggregate device this is its
     /// master clock, inherited from the main sub-device — i.e. the actual rate the
-    /// IOProc delivers frames at, regardless of a sub-tap's own native rate (#304).
+    /// IOProc delivers frames at, regardless of a sub-tap's own native rate.
     static func nominalSampleRate(_ deviceID: AudioObjectID) throws -> Double {
         let rate: Float64 = try property(
             deviceID, kAudioDevicePropertyNominalSampleRate, Float64(0), "nominal sample rate"

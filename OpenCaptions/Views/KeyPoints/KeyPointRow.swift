@@ -1,11 +1,11 @@
 //
 //  KeyPointRow.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  One row in the consolidated Key Points list. Fully READ-ONLY: key points are
 //  plain `[String]` with no completion state, so — unlike `ActionItemRow` — there
 //  is no toggle. The source session is opened from the group's header row instead.
-//  General-UI text uses `.appScaledFont` per the OgmoMac font-scaling standard.
+//  General-UI text uses `.appScaledFont` per the OpenCaptions font-scaling standard.
 //
 
 import SwiftUI

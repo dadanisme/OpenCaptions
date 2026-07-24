@@ -1,6 +1,6 @@
 //
 //  SystemAudioTapCaptureService+Prime.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Onboarding helper: surfaces the macOS "Audio Recording" TCC prompt up front,
 //  instead of deferring it to the first system-audio recording.

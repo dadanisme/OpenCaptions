@@ -1,6 +1,6 @@
 //
 //  SentenceHeuristics.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Pure, CJK-aware sentence/word heuristics shared by the LIVE token accumulator
 //  (`MacTranscriptionViewModel+Accumulator`) and the BATCH post-session segment

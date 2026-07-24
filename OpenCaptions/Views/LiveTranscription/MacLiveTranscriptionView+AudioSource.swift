@@ -1,13 +1,13 @@
 //
 //  MacLiveTranscriptionView+AudioSource.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Source selection + permission glue for the live recording screen, split out
 //  to keep MacLiveTranscriptionView under the per-file line limit. Owns the
 //  transport-pill binding, the start-time microphone gate, and the mid-session
 //  live source hot-swap.
 //
-//  Permission model (#205): system-audio capture uses a Core Audio process tap,
+//  Permission model: system-audio capture uses a Core Audio process tap,
 //  which has NO preflight/request API — the OS shows the "Audio Recording" prompt
 //  on the first capture start. So system-audio sources start optimistically; only
 //  the microphone (which has a public preflight) is gated before capture.

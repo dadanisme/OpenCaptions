@@ -4,22 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase ("Ogmo") into this standalone project. Uses Firebase (Auth, Firestore, Functions), RevenueCat (consumable-minutes billing), Google Sign-In, and FluidAudio (on-device inference).
+**Open Captions** — a native **macOS** app for real-time speech-to-text transcription with speaker diarization, live captions, and AI summaries. SwiftUI + SwiftData, macOS **14.4+**. It is **not** Mac Catalyst and shares no code with any other platform: it was extracted from a larger multi-platform codebase into this standalone project, now fully separated with its own independent backend. Uses Firebase (Auth, Firestore, Functions), RevenueCat (consumable-minutes billing), Google Sign-In, and FluidAudio (on-device inference).
 
 Core flow: capture mic **and/or** other apps' system audio → stream to a real-time STT engine → render a live diarized transcript → save to local SwiftData → optional AI summary. A fully on-device **Offline Mode** (Nemotron via FluidAudio) needs no network and is unmetered.
 
-## ⚠️ Naming state — read before pattern-matching on "Ogmo"
+## Naming — fully renamed to Open Captions
 
-The app was renamed **Ogmo → Open Captions**, but only partway. **This half-renamed state is intentional, not a bug** (completing it is tracked in **issue #1**):
+The app was extracted from a larger multi-platform codebase and has since been **fully renamed and separated** into a standalone **Open Captions** project. The rename is complete: no legacy branding remains in the committed source, symbols, UI copy, or identifiers.
 
-- **Renamed (done):** the Xcode project/scheme/target/product (`OpenCaptions.app`), display name, Info.plist usage strings, and **all file/folder/asset names** (`OpenCaptions/` source dir, `OpenCaptionsApp.swift`, `OpenCaptionsAEC.{h,mm}`, `opencaptions-logo`, …) plus the `project.pbxproj` paths.
-- **Still "Ogmo" by design (do NOT rename ad hoc):**
-  - **Bundle id `com.muhammadramdan.OgmoMac`** — Firebase, Google Sign-In, and RevenueCat are registered to it; changing it breaks sign-in/billing until those services are re-registered. Also referenced in ~4 audio source files for Core Audio self-process identification.
-  - **Code symbols** `OgmoMacApp` (the `@main` struct, in `OpenCaptionsApp.swift`), `OgmoCommands`, and `OgmoAEC` (the Obj-C class in `OpenCaptionsAEC.h/.mm`). Filenames no longer match these type names — expected.
-  - **In-app UI copy** still shows "Ogmo" in ~30 strings (window title, onboarding, settings, menus, paywall, support).
-  - **Firebase project `ogmo-491906`** and its cloud-function URLs; a Carbon four-char hotkey code literally `'Ogmo'` (must stay 4 chars).
-
-So: a file named `OpenCaptionsAEC.h` declaring `@interface OgmoAEC` is correct. Only rename these as part of the deliberate issue-#1 work.
+- **Xcode + files:** project/scheme/target/product (`OpenCaptions.app`), display name, Info.plist strings, and all file/folder/asset names (`OpenCaptions/`, `OpenCaptionsApp.swift`, `OpenCaptionsAEC.{h,mm}`, `opencaptions-logo`, …).
+- **Bundle id:** `com.muhammadramdan.OpenCaptions` — set in `project.pbxproj`, the `OpenCaptions.entitlements` keychain-access group, and 3 audio `Logger(subsystem:)` labels. Core Audio self-process identification reads it dynamically via `Bundle.main.bundleIdentifier`, so it needs no per-file literal.
+- **Code symbols:** `OpenCaptionsApp` (the `@main` struct in `OpenCaptionsApp.swift`), `OpenCaptionsCommands`, and `OpenCaptionsAEC` (the Obj-C class in `OpenCaptionsAEC.{h,mm}`, exposed through `OpenCaptions-Bridging-Header.h`). Type names now match their file names.
+- **UI copy:** every user-facing string reads "Open Captions".
+- **Misc identifiers:** Carbon four-char hotkey code `'OpCp'` (`0x4F704370`); window autosave name `"OpenCaptionsCaptionsOverlay"`; UserDefaults keys `opencaptions.*`; the SpeexDSP include guard `OPENCAPTIONS_SPEEXDSP_CONFIG_H`.
+- **Backend / services:** the app depends on an **independent** Firebase project, RevenueCat project, Google Sign-In OAuth client, and Cloud Functions — all supplied per-deployment via the git-ignored `Config.xcconfig` and `GoogleService-Info.plist`; **no infra is hardcoded in committed source.** The summarization endpoint, web-share base URL, and support email are config-driven (`SUMMARIZE_URL`, `SESSION_SHARE_BASE_URL`, `SUPPORT_EMAIL`). A developer moving to their own backend must re-register these services against their new bundle id and fill in the two git-ignored files.
 
 ## Build & Run
 
@@ -31,7 +29,7 @@ The committed signing team is `C4SQMCY5WT`; a different developer must set their
 
 ### Credentials (both git-ignored)
 
-- **`Config.xcconfig`** (repo root) — injected into the build; keys: `SONIOX_API_KEY`, `SUMMARIZE_API_TOKEN` (also the bearer for minute deduction), `DEDUCT_MINUTES_URL`, `REVENUECAT_API_KEY_MACOS`, `REVERSED_CLIENT_ID` (Google OAuth callback). Copy `Config.xcconfig.example` to start.
+- **`Config.xcconfig`** (repo root) — injected into the build; keys: `SONIOX_API_KEY`, `SUMMARIZE_API_TOKEN` (also the bearer for minute deduction), `SUMMARIZE_URL`, `DEDUCT_MINUTES_URL`, `SESSION_SHARE_BASE_URL` (web-viewer base, no trailing slash), `SUPPORT_EMAIL`, `REVENUECAT_API_KEY_MACOS`, `REVERSED_CLIENT_ID` (Google OAuth callback). Copy `Config.xcconfig.example` to start.
 - **`OpenCaptions/GoogleService-Info.plist`** — Firebase config, loaded from the bundle at launch.
 
 ## Architecture (MVVM + Services)
@@ -44,7 +42,7 @@ Source is under `OpenCaptions/` (`Model/`, `Services/`, `ViewModel/`, `Views/`, 
 
 - **On-device STT (Offline Mode)** — Nemotron / Parakeet via **FluidAudio** (`Services/Transcription/*` + `Utility/OnDeviceModels/FluidAudio*`). English-only, single-stream, unmetered. Post-session re-transcription lives in `Services/Retranscription/`.
 
-- **Audio capture** — `Services/Audio/`. Mic via an `AVAudioEngine` input tap → 16 kHz mono (no `AVAudioSession` — macOS has none). **System audio uses Core Audio process taps** (`SystemAudioTapCaptureService` + `CoreAudioTapUtils`), **not** ScreenCaptureKit. The mixed mic+system source (`MixedAudioCaptureService`) uses a **plain** mic engine (no VPIO — the mic tap must stay passive/read-only) and cancels speaker bleed **in software** via `OgmoAEC` — an Obj-C++ bridge (`AEC/OpenCaptionsAEC.{h,mm}`, exposed through `OpenCaptions-Bridging-Header.h`) over a **vendored six-file SpeexDSP subset** (`ThirdParty/SpeexDSP/`, pure C, BSD-3, compiled into the target — not SPM).
+- **Audio capture** — `Services/Audio/`. Mic via an `AVAudioEngine` input tap → 16 kHz mono (no `AVAudioSession` — macOS has none). **System audio uses Core Audio process taps** (`SystemAudioTapCaptureService` + `CoreAudioTapUtils`), **not** ScreenCaptureKit. The mixed mic+system source (`MixedAudioCaptureService`) uses a **plain** mic engine (no VPIO — the mic tap must stay passive/read-only) and cancels speaker bleed **in software** via `OpenCaptionsAEC` — an Obj-C++ bridge (`AEC/OpenCaptionsAEC.{h,mm}`, exposed through `OpenCaptions-Bridging-Header.h`) over a **vendored six-file SpeexDSP subset** (`ThirdParty/SpeexDSP/`, pure C, BSD-3, compiled into the target — not SPM).
 
 - **Billing** — only **cloud Soniox** sessions are metered; Offline Mode is free. `MacSubscriptionManager` (+`+Offerings`) + `MacMinuteDeductionService` mirror a RevenueCat "credits" offering / "Min" virtual currency; the billing clock is on `MacTranscriptionViewModel+Billing`. Deduction runs once at teardown (`ceil` minutes) to `DEDUCT_MINUTES_URL`; a hand-rolled paywall gates a blocked/exhausted start.
 
@@ -70,5 +68,4 @@ The code was written under these conventions — keep matching them:
 
 ## Known deferrals
 
-- **Full rename** (code symbols, in-app copy, bundle id + backend separation) — issue **#1**.
-- No Analytics; no localization (UI strings are hardcoded English); Apple Sign-In hidden (audience mismatch for this bundle id).
+- No Analytics; no localization (UI strings are hardcoded English); Apple Sign-In hidden (Firebase token-audience mismatch; revisit once the new backend is registered).

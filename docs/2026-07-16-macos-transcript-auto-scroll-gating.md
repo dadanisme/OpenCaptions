@@ -1,4 +1,4 @@
-# macOS: stop force-scrolling to the bottom while reading past transcript (#314)
+# macOS: stop force-scrolling to the bottom while reading past transcript
 
 ## Problem
 
@@ -7,19 +7,19 @@ captions overlay (`CaptionsOverlayView`) called `scrollToNewest` **unconditional
 on every incoming token (`onChange(of: finalLines.ids.count)` and
 `onChange(of: partialLine)`). If a user scrolled up to reread earlier text, the next
 token yanked them straight back to the bottom, making the live transcript unreadable
-during recording. iOS already gates this via `shouldAutoScroll`.
+during recording. The fix gates this via `shouldAutoScroll`.
 
 ## Solution
 
-Port the iOS gating to macOS: auto-scroll to the newest line **only** while the user
+Gate the auto-scroll: scroll to the newest line **only** while the user
 is pinned to the bottom; when they scroll up, stop and leave their position; resume
 once they scroll back to the bottom. **Behavior-only — no "Jump to live" button** was
-added (the iOS button was intentionally left out for the macOS surfaces; the user
+added (deliberately left out for the macOS surfaces; the user
 resumes by scrolling back down).
 
 ### `MacScrollStateObserver` (new)
 
-`OgmoMac/Views/LiveTranscription/MacScrollStateObserver.swift` — an
+`OpenCaptions/Views/LiveTranscription/MacScrollStateObserver.swift` — an
 `NSViewRepresentable` dropped as a zero-size `.background` inside each SwiftUI
 `ScrollView`. It:
 
@@ -37,7 +37,7 @@ it flips back to `true`.
 
 ### Why live-scroll notifications, not KVO on the offset
 
-iOS uses `UIScrollView.contentOffset` KVO and must distinguish user scroll from
+A `UIScrollView.contentOffset`-KVO approach would have to distinguish user scroll from
 content/programmatic scroll via `isDragging || isDecelerating`, plus a 0.5s
 `dismissTime` guard so residual deceleration doesn't fight a programmatic
 scroll-to-bottom.
@@ -49,8 +49,8 @@ never posts them. So:
 
 - Content-driven re-pins and the every-token `scrollToNewest` can never be mistaken
   for the user scrolling away — no `isDragging`-style gating needed.
-- There is **no feedback loop** between the observer and the programmatic snap, so the
-  iOS 0.5s deceleration guard is unnecessary on macOS and was deliberately omitted.
+- There is **no feedback loop** between the observer and the programmatic snap, so a
+  0.5s deceleration guard is unnecessary on macOS and was deliberately omitted.
 
 ### Geometry
 
@@ -64,7 +64,7 @@ transcript keeps auto-scrolling.
 
 ### Thresholds
 
-- Main live view: `bottomThreshold = 50` (default), matching iOS.
+- Main live view: `bottomThreshold = 50` (default).
 - Captions overlay: `bottomThreshold = 24`. The overlay panel is only ~160pt tall, so
   a 50pt threshold would swallow ~3 lines of scroll-up before pausing; 24pt (~1.5
   lines) makes the pause responsive on the small strip.
@@ -73,15 +73,14 @@ transcript keeps auto-scrolling.
 
 The macOS live views render **only the in-memory hot window** (~50–70 speaker
 bubbles); flushed lines are persisted to SwiftData and removed from `finalLines.ids`,
-so they disappear from the live surfaces (unlike iOS, which reloads flushed lines on
-scroll). Consequently:
+so they disappear from the live surfaces. Consequently:
 
 - Scrollback during a live session is bounded to the hot window.
 - When a flush fires (`removeFirst(20)`), the removed top rows shift the content even
   while the user is scrolled up. This gating change stops the **programmatic** yank to
   the bottom but cannot prevent the row-removal shift — that is inherent to the
   hot-window design and predates this change. Rendering flushed lines in the live view
-  (à la iOS) would be a separate, larger feature.
+  would be a separate, larger feature.
 
 ## Verify on device
 
@@ -93,6 +92,6 @@ scrolling the captions strip while the main window is active pauses auto-scroll.
 
 ## Files
 
-- `OgmoMac/Views/LiveTranscription/MacScrollStateObserver.swift` (new)
-- `OgmoMac/Views/LiveTranscription/MacLiveTranscriptionView.swift`
-- `OgmoMac/Views/LiveTranscription/CaptionsOverlayView.swift`
+- `OpenCaptions/Views/LiveTranscription/MacScrollStateObserver.swift` (new)
+- `OpenCaptions/Views/LiveTranscription/MacLiveTranscriptionView.swift`
+- `OpenCaptions/Views/LiveTranscription/CaptionsOverlayView.swift`

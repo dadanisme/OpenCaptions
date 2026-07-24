@@ -1,8 +1,7 @@
 # macOS: Mark & notify when the user's name is mentioned; bias the engine dictionary
 
 **Date:** 2026-07-15
-**Issue:** [#255](https://github.com/ogmo-team/ogmo-app/issues/255)
-**Target:** OgmoMac (standalone macOS app)
+**Target:** OpenCaptions (standalone macOS app)
 
 ## Summary
 
@@ -12,14 +11,12 @@ first place:
 
 1. **Mark** — the signed-in user's name is highlighted in the transcript as a bold
    `@Name`.
-2. **Notify** — a *focus-gated* alert fires when the name is spoken (net-new; iOS
-   only ever highlighted).
+2. **Notify** — a *focus-gated* alert fires when the name is spoken.
 3. **Dictionary** — the name is appended to the Soniox context `terms` so
    recognition is biased toward it.
 
-Depends on #254 (which ported `HighlightedMessageText` to macOS with question
-highlighting only). This lands the name-mention half that #254 deliberately left
-out.
+This builds on the existing `HighlightedMessageText` (which did question
+highlighting only), adding the name-mention half.
 
 ## 1. Mark — bold `@Name` highlight
 
@@ -29,13 +26,13 @@ out.
   nothing).
 - Rendering: a matched name is prefixed with `@` and bolded via
   `inlinePresentationIntent = .stronglyEmphasized`. **Why bold + `@` and not a
-  color:** decided with the product owner. macOS `Color.DS` had no red/destructive
-  token (iOS renders the name in red), and `@Name` reads like a mention while
+  color:** decided with the product owner. `Color.DS` had no red/destructive
+  token, and `@Name` reads like a mention while
   bolding *relative to* the inherited transcript font — so the app-wide/transcript
   font-size multipliers are preserved (an explicit bold `.font` would override the
   size). No new design token was needed.
 - Overlap: where a name range sits inside a question sentence, **name wins** (the
-  chunk renders bold `@Name`, not tinted) — same precedence as iOS.
+  chunk renders bold `@Name`, not tinted).
 - Cache: the segment cache key became `"message|userName"` so two users on a shared
   Mac never read each other's parsed segments; a `regexCache` compiles each name
   once per session.
@@ -83,20 +80,20 @@ focus-gated hybrid, defer}: **focus-gated hybrid**.
 ## 3. Dictionary — bias Soniox toward the name
 
 `MacTranscriptionViewModel.makeSonioxConfig()` took no parameters and hardcoded
-`terms: ["Ogmo", "Soniox", "Apple Developer Academy"]`. It now takes
+`terms: ["Open Captions", "Soniox", "Apple Developer Academy"]`. It now takes
 `userName: String?` and appends the trimmed name to `terms` (self-guarding — a
 blank/nil name appends nothing, and `SonioxConfig.toDictionary()` omits empty
 context anyway). Threaded from the sole call site in the `@MainActor start()` via
 `MacAuthManager.shared.userName`. No struct change (`Context.terms` already exists).
 
-The broader iOS/macOS `buildSonioxConfig` parity gap (iOS has 7 `general` entries +
-a transliteration `text` instruction vs macOS's 3 + `nil`) was left as-is —
-out of scope, and neither platform previously injected the user's name.
+Broadening `buildSonioxConfig` (currently 3 `general` entries + a `nil`
+transliteration `text` instruction) was left as-is — out of scope, and the
+config never previously injected the user's name.
 
 ## Account-settings note
 
 The Settings → Account **Name** field gained a caption advising the user to set the
-name people actually call them, because Ogmo listens for it and alerts them when
+name people actually call them, because Open Captions listens for it and alerts them when
 it's spoken. A short calling name works better than a full legal name for both
 recognition and the mention alert.
 
@@ -106,12 +103,12 @@ recognition and the mention alert.
 this feature work) but deferred to a separate issue: it needs a new wizard step,
 and the offline-guest path has no account/name at all today (guests never sign in,
 so `MacAuthManager.userName` is nil for them), plus a product decision on
-nickname-vs-legal-name. That is a distinct flow, not a bolt-on to #255.
+nickname-vs-legal-name. That is a distinct flow, not a bolt-on to this work.
 
 ## Not done / follow-ups
 
 - Localization: macOS UI strings (including the new HUD/notification/settings copy)
-  remain hardcoded English, consistent with the rest of OgmoMac (no `LanguageManager`
-  on macOS yet).
+  remain hardcoded English, consistent with the rest of OpenCaptions (no
+  `LanguageManager` yet).
 - No `UNUserNotificationCenterDelegate` for foreground banner presentation — not
   needed, since OS notifications are only posted when the app is *not* active.

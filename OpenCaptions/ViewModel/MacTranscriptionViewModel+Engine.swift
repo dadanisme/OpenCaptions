@@ -1,6 +1,6 @@
 //
 //  MacTranscriptionViewModel+Engine.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Engine plumbing split out of the main view model to keep it under the 250-line limit:
 //  wiring the selected engine's callbacks into the token pipeline, and building the Soniox
@@ -47,7 +47,7 @@ extension MacTranscriptionViewModel {
     // MARK: - Soniox config
 
     /// Builds the Soniox config for the standalone Mac app: fixed language hints
-    /// (id/en/ar), diarization on. Mirrors the iOS `buildSonioxConfig` context.
+    /// (id/en/ar), diarization on.
     ///
     /// - Parameter userName: the signed-in user's display name, appended to the
     ///   Soniox context `terms` so recognition is biased toward transcribing it
@@ -55,7 +55,7 @@ extension MacTranscriptionViewModel {
     ///   off, so getting it right at the source matters most. Nil/blank (offline
     ///   guests have no name) simply appends nothing.
     static func makeSonioxConfig(userName: String?) -> SonioxConfig {
-        var terms = ["Ogmo", "Soniox", "Apple Developer Academy"]
+        var terms = ["Open Captions", "Soniox", "Apple Developer Academy"]
         if let name = userName?.trimmingCharacters(in: .whitespacesAndNewlines),
            !name.isEmpty, !terms.contains(name) {
             terms.append(name)
@@ -64,7 +64,7 @@ extension MacTranscriptionViewModel {
             general: [
                 .init(key: "domain", value: "education/lecture/meeting"),
                 .init(key: "intent", value: "Transcription"),
-                .init(key: "app_name", value: "Ogmo"),
+                .init(key: "app_name", value: "Open Captions"),
             ],
             terms: terms,
             text: nil

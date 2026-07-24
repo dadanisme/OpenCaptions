@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Root split view: the sidebar is the app's navigation menu; the detail column
 //  hosts the selected section's screen (currently the transcription list, which
@@ -26,7 +26,7 @@ struct ContentView: View {
                         .tag(item)
                 }
             }
-            .navigationTitle("Ogmo")
+            .navigationTitle("Open Captions")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
             .safeAreaInset(edge: .bottom) { SidebarProfileFooter() }
         } detail: {

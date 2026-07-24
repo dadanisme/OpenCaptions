@@ -1,6 +1,6 @@
 //
 //  SonioxAsyncPostSessionEngine+Requests.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  The Soniox async REST calls: upload the audio, create the transcription job,
 //  poll for completion, fetch the transcript, and delete the server-side artifacts.
@@ -64,7 +64,7 @@ extension SonioxAsyncPostSessionEngine {
                 "general": [
                     ["key": "domain", "value": "education/lecture/meeting"],
                     ["key": "intent", "value": "Transcription"],
-                    ["key": "app_name", "value": "Ogmo"],
+                    ["key": "app_name", "value": "Open Captions"],
                 ],
                 "terms": contextTerms,
             ],

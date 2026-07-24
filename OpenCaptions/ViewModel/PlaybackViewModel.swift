@@ -1,6 +1,6 @@
 //
 //  PlaybackViewModel.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  Drives audio playback for a saved session's recording and exposes the
 //  playhead so `MacSessionDetailView` can highlight/scroll the active transcript

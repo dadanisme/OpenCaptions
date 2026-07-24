@@ -1,10 +1,10 @@
 //
 //  SessionOwnerBackfill.swift
-//  OgmoMac
+//  OpenCaptions
 //
 //  One-time launch migration: attributes legacy sessions (recorded before auth
 //  existed on macOS, so `userId == nil`) to the currently signed-in user, so the
-//  per-user query shows them to their owner. Ported verbatim from the iOS enum.
+//  per-user query shows them to their owner.
 //
 
 import Foundation
