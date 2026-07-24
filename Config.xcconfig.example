@@ -4,23 +4,6 @@
 // Soniox real-time STT API key — https://soniox.com
 SONIOX_API_KEY = YOUR_SONIOX_API_KEY
 
-// Bearer token for the summarization + minute-deduction Cloud Functions
-SUMMARIZE_API_TOKEN = YOUR_SUMMARIZE_API_TOKEN
-
-// RevenueCat public SDK key for the macOS app
-REVENUECAT_API_KEY_MACOS = YOUR_REVENUECAT_MACOS_PUBLIC_KEY
-
-// Minute-usage deduction endpoint (Cloud Function).
-// The `$()` breaks up `//` so xcconfig doesn't treat the URL as a comment.
-DEDUCT_MINUTES_URL = https:/$()/YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/deductMinutes
-
-// Transcript summarization endpoint (Cloud Function); same bearer as SUMMARIZE_API_TOKEN.
-SUMMARIZE_URL = https:/$()/YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/summarizeTranscript
-
-// Base URL of the read-only web session viewer (no trailing slash).
-// The share link is <SESSION_SHARE_BASE_URL>/<sessionId>.
-SESSION_SHARE_BASE_URL = https:/$()/session.YOUR-DOMAIN
-
 // Support inbox surfaced in Settings → Support (mailto: subjects distinguish the action).
 SUPPORT_EMAIL = support@YOUR-DOMAIN
 

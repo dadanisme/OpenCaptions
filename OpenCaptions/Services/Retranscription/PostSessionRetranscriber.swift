@@ -3,13 +3,12 @@
 //  OpenCaptions
 //
 //  The shared core for post-session re-transcription: runs a chosen engine over a
-//  saved recording, replaces the session transcript, meters a cloud engine, and
+//  saved recording, replaces the session transcript, and
 //  regenerates the summary. Driven by `RetranscriptionManager` for BOTH the manual and
 //  automatic paths, so the two can never diverge.
 //  See docs/2026-07-16-macos-post-session-retranscription.md.
 //
 
-import AVFoundation
 import Foundation
 import SwiftData
 
@@ -18,8 +17,6 @@ enum PostSessionRetranscriber {
     /// Runs `kind` over `audioURL` and applies the result to `session`.
     ///
     /// - Throws: `PostSessionEngineError` on failure, `CancellationError` if cancelled.
-    ///   Holds the billing metered window across a cloud run so a concurrent
-    ///   foreground refresh can't double-flush the pending deduction.
     @MainActor
     static func run(
         kind: RetranscriptionEngineKind,
@@ -29,10 +26,6 @@ enum PostSessionRetranscriber {
         userName: String?,
         progress: @escaping @MainActor (PostSessionProgress) -> Void
     ) async throws {
-        let billing = MacSubscriptionManager.shared
-        if kind.isMetered { billing.beginMeteredWindow() }
-        defer { if kind.isMetered { billing.endMeteredWindow() } }
-
         let engine = PostSessionRetranscriptionFactory.make(kind, userName: userName)
         let tokens = try await engine.transcribe(audioURL: audioURL, progress: progress)
         try Task.checkCancellation()
@@ -46,13 +39,6 @@ enum PostSessionRetranscriber {
         // link so the web copy doesn't go stale (no-op when unshared / sharing off).
         // Summary is re-mirrored below by regeneration, or left cleared offline.
         SessionLinkSharer.resyncShared(session: session)
-
-        // Meter the cloud engine by the recording's duration (ceil to whole minutes),
-        // matching how a live cloud session is billed.
-        if kind.isMetered {
-            let minutes = Int(ceil(await audioDurationSeconds(audioURL) / 60.0))
-            await billing.chargeMinutes(minutes)
-        }
 
         // Regenerate the summary from the fresh transcript. It's a cloud call, so skip
         // it in Offline Mode — the (now-cleared) summary can be generated later.
@@ -100,16 +86,5 @@ enum PostSessionRetranscriber {
         } catch {
             print("❌ Re-transcribe: failed to save replaced transcript: \(error)")
         }
-    }
-
-    // MARK: - Duration
-
-    /// The recording's duration in seconds (for billing + the up-front affordability
-    /// gate), or 0 if unreadable. Internal so the manager can size the cost gate.
-    static func audioDurationSeconds(_ url: URL) async -> Double {
-        let asset = AVURLAsset(url: url)
-        guard let duration = try? await asset.load(.duration) else { return 0 }
-        let seconds = CMTimeGetSeconds(duration)
-        return seconds.isFinite ? max(0, seconds) : 0
     }
 }

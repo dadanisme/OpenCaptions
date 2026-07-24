@@ -4,7 +4,7 @@
 //
 //  Speaker-display + rename helpers for the live recording screen, split out of
 //  MacLiveTranscriptionView to keep it under the per-file line limit (same pattern
-//  as +AudioSource / +Sharing / +Billing). Methods are internal (not private) so
+//  as +AudioSource / +Sharing). Methods are internal (not private) so
 //  the bubble builder in the main file can call them across the extension.
 //
 

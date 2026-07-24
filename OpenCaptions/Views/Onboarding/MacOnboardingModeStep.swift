@@ -25,7 +25,7 @@ struct MacOnboardingModeStep: View {
                     systemImage: "cloud",
                     title: "Sign in",
                     badge: "accurate",
-                    description: "Cloud transcription with speaker labels & AI summaries, synced across your Mac and iPhone. Uses your minute balance.",
+                    description: "Cloud transcription with speaker labels & AI summaries, synced across your Mac and iPhone.",
                     isSelected: mode == .cloud
                 ) { mode = .cloud }
 

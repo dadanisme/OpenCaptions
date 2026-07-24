@@ -7,7 +7,7 @@
 //  highest-accuracy). Unlike the live `ParakeetTranscriberService` (which streams a
 //  sliding window), this runs a single full-file decode — the whole recording with
 //  full context — which is exactly what makes a re-transcription more accurate than
-//  the original live pass. Audio never leaves the device; free & ungated by billing.
+//  the original live pass. Audio never leaves the device.
 //  No diarization (every token is speaker -1).
 //
 

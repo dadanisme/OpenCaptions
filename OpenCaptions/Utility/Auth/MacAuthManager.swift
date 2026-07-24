@@ -4,7 +4,7 @@
 //
 //  Authentication for the standalone macOS app
 //  (Sign in with Apple → Firebase, email/password, launch reconcile), minus the
-//  RevenueCat / Analytics / onboarding pieces — none of which exist on macOS.
+//  Analytics / onboarding pieces — none of which exist on macOS.
 //
 //  Sign-in itself lives in the +Apple / +Email extensions.
 //
@@ -89,10 +89,6 @@ final class MacAuthManager {
         if let name, !name.isEmpty { saveUserName(name) }
         if let email, !email.isEmpty { saveUserEmail(email) }
         if let photo { savePhotoURL(photo) }
-        // Scope RevenueCat (the shared "Min" minute balance) to this Firebase uid.
-        // Runs on every sign-in AND launch restore — this listener fires for both —
-        // and is idempotent (configures once, logs in thereafter).
-        MacSubscriptionManager.shared.configure(userID: uid)
     }
 
     // MARK: - Launch reconcile
@@ -135,13 +131,8 @@ final class MacAuthManager {
     /// rebuild, and their sessions stay on disk for when they sign back in.
     func signOut() {
         // Stop any live session FIRST (see LiveSessionStore.discardActiveSession): a
-        // window-independent metered session would otherwise keep running past
-        // sign-out and, via re-sign-in's refresh, flush its minutes against the next
-        // user. Then drop any unflushed pending (never charge the next user) and log
-        // RevenueCat out so the shared "Min" balance isn't read for a stale uid.
+        // window-independent session would otherwise keep running past sign-out.
         LiveSessionStore.shared.discardActiveSession()
-        MacSubscriptionManager.shared.clearPendingDeduction()
-        MacSubscriptionManager.shared.logOut()
         #if DEBUG
         // DEBUG builds re-trigger onboarding on sign-out so the whole flow is easy
         // to re-test. Runs BEFORE clearCache() while `userID` is still set, so the

@@ -37,9 +37,6 @@ struct MacLiveTranscriptionView: View {
     /// off when the user scrolls up to read earlier text and back on when they
     /// scroll to the bottom, so incoming tokens no longer yank the view down.
     @State private var shouldAutoScroll = true
-    /// Presents the minute-pack paywall from the low/out-of-minutes banner. Not
-    /// `private`: the billing banner logic lives in the +Billing same-type extension.
-    @State var showPaywall = false
     /// Speaker being renamed; non-nil drives the rename sheet. A fresh value each
     /// time so the sheet's text field reseeds deterministically. Not `private`: set
     /// by `beginRename` in the +Speakers same-type extension.
@@ -73,11 +70,6 @@ struct MacLiveTranscriptionView: View {
                     onEnd: handleEnd
                 )
             }
-        }
-        // Low-balance / out-of-minutes banner for metered (cloud) sessions, above
-        // the transcript. Reserves no space when there's nothing to show.
-        .safeAreaInset(edge: .top) {
-            if case .ok = access { billingBannerView }
         }
         .navigationTitle(viewModel.workingTitle)
         .navigationSubtitle(statusText)
@@ -117,9 +109,6 @@ struct MacLiveTranscriptionView: View {
             MacRenameSpeakerSheet(currentName: target.currentName) { newName in
                 viewModel.rename(speaker: target.speakerID, to: newName)
             }
-        }
-        .sheet(isPresented: $showPaywall) {
-            MacPaywallView(onPurchased: handleTopUp)
         }
         // Starts capture on first appearance; on a later appearance (window
         // reopened mid-session) it no-ops so we rebind to the running session.

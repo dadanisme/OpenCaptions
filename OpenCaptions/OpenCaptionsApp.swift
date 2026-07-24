@@ -6,8 +6,7 @@
 //  Apple + email/password) to scope transcriptions per user; the transcription
 //  flow itself (record → transcript → save → summarize) uses Soniox + SwiftData +
 //  the summary cloud function. Firestore + Functions back the share-to-web feature
-//  (live mirror, share link, password). RevenueCat meters cloud (Soniox) minutes
-//  (see MacSubscriptionManager); no Analytics.
+//  (live mirror, share link, password). No Analytics.
 //
 
 import AppKit
@@ -21,7 +20,6 @@ struct OpenCaptionsApp: App {
     @State private var auth = MacAuthManager.shared
     @State private var menuBar = MenuBarState.shared
     @State private var session = LiveSessionStore.shared
-    @State private var subscriptions = MacSubscriptionManager.shared
 
     /// Onboarding gate flags (see MacAuthManager+Onboarding). `@AppStorage` so the
     /// gate re-evaluates the instant onboarding writes them — the offline path
@@ -62,17 +60,7 @@ struct OpenCaptionsApp: App {
         // cache. Registered here — right after configure — so the initial callback
         // fires before the UI reads identity. Fixes the Apple display name vanishing
         // on repeat logins (the credential omits it; Firebase persists it).
-        // The listener also configures RevenueCat with the uid (see MacAuthManager).
         MacAuthManager.shared.startListening()
-        // Re-fetch the minute balance whenever the app becomes active, so gating
-        // never runs on a stale balance (refreshed on foreground). Guarded
-        // against mid-session flushing inside refreshStatusOnForeground(). Registered
-        // once here (App.init runs once); no-ops until RevenueCat is configured.
-        NotificationCenter.default.addObserver(
-            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
-        ) { _ in
-            Task { @MainActor in await MacSubscriptionManager.shared.refreshStatusOnForeground() }
-        }
     }
 
     var body: some Scene {
@@ -102,7 +90,6 @@ struct OpenCaptionsApp: App {
             .appTextScaling()
             .environment(auth)
             .environment(session)
-            .environment(subscriptions)
             // Capture `openWindow` for non-view code (the global-hotkey Start
             // fallback raises the mic-permission UI even when the window is closed).
             .background(WindowOpenerBridge())
@@ -149,7 +136,6 @@ struct OpenCaptionsApp: App {
         Settings {
             MacSettingsView()
                 .environment(auth)
-                .environment(subscriptions)
                 // Scale the Settings window too, so its own General slider previews
                 // the change live as it moves.
                 .appTextScaling()

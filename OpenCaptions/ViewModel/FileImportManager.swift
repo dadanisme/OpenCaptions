@@ -7,10 +7,10 @@
 //  transcription continue in the background and the new session fills in when done.
 //
 //  It adds only the ingest steps unique to import (transcode via `MediaAudioExtractor`,
-//  create the session, gate billing) and DELEGATES the actual transcription — line
-//  building, cloud metering, and summary regeneration — to the shared
+//  create the session) and DELEGATES the actual transcription — line
+//  building and summary regeneration — to the shared
 //  `PostSessionRetranscriber.run`, so imported and re-transcribed sessions can't drift.
-//  The engine follows Offline Mode (Parakeet free / Soniox metered), exactly like
+//  The engine follows Offline Mode (Parakeet on-device / Soniox cloud), exactly like
 //  re-transcription. Progress/errors are `@Observable` so the session-list spinner and
 //  the session-detail banner can render them. Mirrors `RetranscriptionManager`.
 //
@@ -92,30 +92,18 @@ final class FileImportManager {
 
         let context = container.mainContext
 
-        // Validate audio + size the up-front billing gate from the media duration (before
-        // any session exists, so a rejected file / paywall leaves nothing behind).
+        // Validate audio before any session exists, so a rejected file leaves nothing behind.
         let asset = AVURLAsset(url: source)
         let audioTracks = (try? await asset.loadTracks(withMediaType: .audio)) ?? []
         guard !audioTracks.isEmpty else {
             errorMessage = MediaImportError.noAudioTrack.localizedDescription
             return
         }
-        let rawDuration = (try? await asset.load(.duration)).map { CMTimeGetSeconds($0) } ?? 0
-        let seconds = rawDuration.isFinite ? max(0, rawDuration) : 0
 
         let kind = RetranscriptionEngineKind.forCurrentMode
         if kind == .parakeet, !FluidAudioModelLoader.isParakeetDownloaded() {
             errorMessage = PostSessionEngineError.modelNotDownloaded.localizedDescription
             return
-        }
-        // Cloud imports are metered by media duration; require the WHOLE estimated cost
-        // up front (a batch job can't pause at zero). A blocked start shows the paywall.
-        if kind.isMetered {
-            let minutes = Int(ceil(seconds / 60.0))
-            guard await MacSubscriptionManager.shared.canAfford(minutes: minutes) else {
-                LiveSessionStore.shared.pendingPaywall = true
-                return
-            }
         }
 
         // Create the session up front (empty, audio-less) so it appears in the list with
@@ -153,7 +141,7 @@ final class FileImportManager {
         session.audioFileName = audioFileName
         try? context.save()
 
-        // 2. Transcribe via the shared pipeline (builds lines, meters cloud, summarizes).
+        // 2. Transcribe via the shared pipeline (builds lines, summarizes).
         //    `replaceTranscript` no-ops on the empty session before inserting the transcript.
         do {
             try await PostSessionRetranscriber.run(

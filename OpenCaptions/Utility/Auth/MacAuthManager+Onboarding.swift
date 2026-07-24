@@ -14,9 +14,9 @@
 //  • `guestMode` (Bool) — distinguishes a deliberate offline guest (enter the app)
 //    from a signed-out / token-expired cloud user (must re-authenticate).
 //
-//  A guest is force-locked to the on-device engine (offline), so the metered
-//  cloud path — whose balance gate fails open when RevenueCat isn't configured —
-//  is never reachable without an account.
+//  A guest is force-locked to the on-device engine (offline): a guest has no
+//  Firebase account/uid for the cloud path's Firestore scoping, so the cloud
+//  engine is never reachable without an account.
 //
 
 import Foundation
@@ -54,7 +54,7 @@ extension MacAuthManager {
         defaults.set(true, forKey: LiveSessionStore.hasCompletedOnboardingKey)
         defaults.set(true, forKey: onboardingKey(for: owner))
         defaults.set(guest, forKey: LiveSessionStore.guestModeKey)
-        // A guest is locked to the free on-device engine; a fresh cloud user defaults
+        // A guest is locked to the on-device engine; a fresh cloud user defaults
         // to cloud transcription (the reason they signed in).
         defaults.set(guest, forKey: LiveSessionStore.offlineModeKey)
     }

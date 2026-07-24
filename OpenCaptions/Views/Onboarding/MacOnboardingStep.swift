@@ -32,7 +32,7 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
 
 /// How the user chose to use Open Captions. `nil` until they pick on the Mode step.
 enum OnboardingMode: Equatable {
-    /// Signed-in cloud transcription (Soniox): synced, diarized, metered minutes.
+    /// Signed-in cloud transcription (Soniox): synced, diarized.
     case cloud
     /// Local guest, on-device engine (Nemotron): free, private, no account.
     case offline

@@ -41,9 +41,8 @@ final class RetranscriptionManager {
 
     // MARK: - Manual
 
-    /// Starts an interactive re-transcription. The caller (detail view) has already run
-    /// the paywall pre-check; the run still gates affordability authoritatively. Errors
-    /// surface via `errorBySession`. No-op if this session is already being processed.
+    /// Starts an interactive re-transcription. Errors surface via `errorBySession`.
+    /// No-op if this session is already being processed.
     func startManual(sessionID: PersistentIdentifier, kind: RetranscriptionEngineKind, context: ModelContext) {
         launch(sessionID: sessionID, kind: kind, context: context, interactive: true)
     }
@@ -51,7 +50,7 @@ final class RetranscriptionManager {
     // MARK: - Automatic
 
     /// Starts automatic re-transcription for a just-saved session when enabled. The
-    /// engine follows Offline Mode. Background, silent (no error surfacing, no paywall).
+    /// engine follows Offline Mode. Background, silent (no error surfacing).
     func startAutomatic(sessionID: PersistentIdentifier, container: ModelContainer) {
         guard FeatureFlagService.shared.isEnabled(.postSessionRetranscription),
               UserDefaults.standard.bool(forKey: LiveSessionStore.retranscriptionAutoKey) else { return }
@@ -70,15 +69,14 @@ final class RetranscriptionManager {
         guard tasks[sessionID] == nil else { return }
 
         // Never run alongside a file import filling in this same session — both drive
-        // PostSessionRetranscriber.run over it (double-meter + transcript corruption). The
+        // PostSessionRetranscriber.run over it (transcript corruption). The
         // detail menu already disables in this case; this guards other future callers.
         if FileImportManager.shared.isRunning(sessionID) {
             if interactive { errorBySession[sessionID] = "This session is still being imported. Try again when it finishes." }
             return
         }
 
-        // Never run alongside a live recording (shared audio/CPU); billing overlap is
-        // separately handled by the metered-window ref count.
+        // Never run alongside a live recording (shared audio/CPU).
         if let live = LiveSessionStore.shared.viewModel, live.isRunning || live.isPaused {
             if interactive { errorBySession[sessionID] = "Finish your current recording before re-transcribing." }
             return
@@ -101,19 +99,6 @@ final class RetranscriptionManager {
         progressBySession[sessionID] = PostSessionProgress(stage: .preparing)
         let task = Task { [weak self] in
             defer { self?.finishTracking(sessionID) }
-
-            // Authoritative up-front affordability gate for the cloud engine — a batch
-            // job can't pause at zero, so require the WHOLE estimated cost.
-            if kind.isMetered {
-                let minutes = Int(ceil(await PostSessionRetranscriber.audioDurationSeconds(audioURL) / 60.0))
-                guard await MacSubscriptionManager.shared.canAfford(minutes: minutes) else {
-                    if interactive {
-                        self?.errorBySession[sessionID] =
-                            "You don't have enough minutes to re-transcribe this recording in the cloud."
-                    }
-                    return
-                }
-            }
 
             do {
                 try await PostSessionRetranscriber.run(

@@ -12,22 +12,12 @@
 		FBA000010000000000000002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000001 /* FirebaseAuth */; };
 		FBA000010000000000000004 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000003 /* FirebaseFirestore */; };
 		FBA000010000000000000006 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000005 /* FirebaseFunctions */; };
-		FBA000010000000000000011 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000010 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		2F99CAF92FF9522100B4302D /* OpenCaptions.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenCaptions.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF16CF16CF16CF16CF16CF16 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2F99CAFA2FF9522100B4302D /* OpenCaptions */ = {
@@ -47,7 +37,6 @@
 				FBA000010000000000000006 /* FirebaseFunctions in Frameworks */,
 				60061E51640000000000000C /* GoogleSignIn in Frameworks */,
 				2F17500A2FD1750100B4302D /* FluidAudio in Frameworks */,
-				FBA000010000000000000011 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,7 +93,6 @@
 				FBA000010000000000000005 /* FirebaseFunctions */,
 				60061E51640000000000000B /* GoogleSignIn */,
 				2F17500B2FD1750100B4302D /* FluidAudio */,
-				FBA000010000000000000010 /* RevenueCat */,
 			);
 			productName = OpenCaptions;
 			productReference = 2F99CAF92FF9522100B4302D /* OpenCaptions.app */;
@@ -139,7 +127,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */,
-				37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
@@ -163,9 +150,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		2F99CAF52FF9522100B4302D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -176,9 +160,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
 		2F99CB032FF9522100B4302D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -188,7 +169,7 @@
 				CODE_SIGN_ENTITLEMENTS = OpenCaptions.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4SQMCY5WT;
 				ENABLE_PREVIEWS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -234,7 +215,7 @@
 				CODE_SIGN_ENTITLEMENTS = OpenCaptions.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4SQMCY5WT;
 				ENABLE_PREVIEWS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -437,14 +418,6 @@
 				minimumVersion = 12.12.0;
 			};
 		};
-		37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 		60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -480,11 +453,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFunctions;
-		};
-		FBA000010000000000000010 /* RevenueCat */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 37EC934F2F7B4E9100F1BDD4 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

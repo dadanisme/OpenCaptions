@@ -15,7 +15,7 @@ struct MacOnboardingSignInStep: View {
             MacOnboardingHeader(
                 systemImage: "person.crop.circle",
                 title: "Sign in to Open Captions",
-                subtitle: "Keep your transcripts and minute balance in sync across your Mac and iPhone."
+                subtitle: "Keep your transcripts in sync across your Mac and iPhone."
             )
             MacSignInControls()
         }
