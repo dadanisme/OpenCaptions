@@ -3,7 +3,7 @@
 //  OpenCaptions
 //
 //  On-device (offline) speech-to-text via NVIDIA Nemotron Speech Streaming (560 ms), run
-//  through FluidAudio's `NemotronStreamingAsrManager`. Conforms to `RealtimeTranscriptionEngine`
+//  through FluidAudio's `StreamingNemotronAsrManager`. Conforms to `RealtimeTranscriptionEngine`
 //  so it is interchangeable with cloud Soniox behind `MacTranscriptionViewModel`.
 //
 //  Audio never leaves
@@ -55,7 +55,7 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
 
     // MARK: - Private
 
-    private var manager: NemotronStreamingAsrManager?
+    private var manager: StreamingNemotronAsrManager?
     private var feedContinuation: AsyncStream<AVAudioPCMBuffer>.Continuation?
     private var feedTask: Task<Void, Never>?
 
@@ -77,9 +77,9 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
             throw error
         }
 
-        let mgr = NemotronStreamingAsrManager(requestedChunkSize: config.chunkSize)
+        let mgr = StreamingNemotronAsrManager(requestedChunkSize: config.chunkSize)
         do {
-            try await mgr.loadModels(modelDir: dir)
+            try await mgr.loadModels(from: dir)
         } catch {
             onError?(.connectionFailed(underlying: error))
             throw TranscriptionServiceError.connectionFailed(underlying: error)
@@ -130,7 +130,7 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
 
     /// Drains buffered audio through the manager serially (FluidAudio requires in-order
     /// `process` calls). Strongly captures the manager so it lives until the stream finishes.
-    private func startFeedLoop(manager: NemotronStreamingAsrManager) {
+    private func startFeedLoop(manager: StreamingNemotronAsrManager) {
         let stream = AsyncStream<AVAudioPCMBuffer> { continuation in
             self.feedContinuation = continuation
         }

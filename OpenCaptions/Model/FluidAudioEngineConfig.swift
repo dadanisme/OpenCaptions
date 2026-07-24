@@ -11,7 +11,7 @@
 import FluidAudio
 import Foundation
 
-/// Tuning for `NemotronTranscriberService` (FluidAudio `NemotronStreamingAsrManager`).
+/// Tuning for `NemotronTranscriberService` (FluidAudio `StreamingNemotronAsrManager`).
 ///
 /// Fixed to 560 ms on macOS (the product-selected variant). Nemotron
 /// is a true-streaming, cache-aware model that emits punctuation and capitalization

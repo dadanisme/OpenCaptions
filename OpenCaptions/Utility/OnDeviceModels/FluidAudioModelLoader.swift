@@ -8,8 +8,8 @@
 //  The two engines use different FluidAudio download mechanisms:
 //   • Parakeet TDT v2 — `AsrModels` (download/load/modelsExist rooted at
 //     `AsrModels.defaultCacheDirectory(for: .v2)`), because it drives `SlidingWindowAsrManager`.
-//   • Nemotron 560 ms — `DownloadUtils.downloadRepo(_:to:progressHandler:)` + the manager's
-//     `loadModels(modelDir:)`, rooted at `modelsRoot` (mirrors FluidAudio's own convention).
+//   • Nemotron 560 ms — `ModelHub.download(_:to:progressHandler:)` + the manager's
+//     `loadModels(from:)`, rooted at `modelsRoot` (mirrors FluidAudio's own convention).
 //
 
 import FluidAudio
@@ -17,7 +17,7 @@ import Foundation
 
 enum FluidAudioModelLoader {
 
-    // MARK: - Nemotron (Repo + DownloadUtils)
+    // MARK: - Nemotron (Repo + ModelHub)
 
     /// The fixed Nemotron 560 ms streaming repo (macOS product choice).
     static let nemotronRepo: Repo = .nemotronStreaming560
@@ -44,14 +44,14 @@ enum FluidAudioModelLoader {
     }
 
     /// Downloads the Nemotron repo into `modelsRoot`, reporting fractional progress in [0, 1].
-    /// `DownloadUtils.downloadRepo` appends `repo.folderName` to the root, matching `nemotronModelDir`.
+    /// `ModelHub.download` appends `repo.folderName` to the root, matching `nemotronModelDir`.
     static func downloadNemotron(
         progress: @escaping @Sendable (Double) -> Void
     ) async throws {
         guard let root = modelsRoot else {
             throw TranscriptionServiceError.connectionFailed(underlying: nil)
         }
-        try await DownloadUtils.downloadRepo(nemotronRepo, to: root) { snapshot in
+        try await ModelHub.download(nemotronRepo, to: root) { snapshot in
             progress(snapshot.fractionCompleted)
         }
     }

@@ -406,8 +406,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/FluidInference/FluidAudio.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = exactVersion;
+				version = 0.15.5;
 			};
 		};
 		370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {

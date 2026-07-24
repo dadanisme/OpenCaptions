@@ -36,7 +36,7 @@ final class ParakeetPostSessionEngine: PostSessionTranscriptionEngine {
         // Load the already-downloaded TDT v2 models into a fresh batch manager.
         let models = try await FluidAudioModelLoader.loadParakeetModels()
         let asr = AsrManager(config: .default)
-        try await asr.initialize(models: models)
+        try await asr.loadModels(models)
         // `cleanup()` releases the CoreML models regardless of success/throw/cancel.
         defer { Task { await asr.cleanup() } }
 
@@ -53,11 +53,15 @@ final class ParakeetPostSessionEngine: PostSessionTranscriptionEngine {
         }
         defer { progressTask.cancel() }
 
+        // Fresh TDT decoder state for this single full-file decode; `transcribe`
+        // takes it `inout` (there is no prior streaming state to carry over).
+        var decoderState = TdtDecoderState.make(decoderLayers: await asr.decoderLayerCount)
+
         // Full-file batch decode. The URL overload decodes/resamples the `.m4a` to
         // 16 kHz mono internally and auto-chunks long recordings at constant memory.
         let result: ASRResult
         do {
-            result = try await asr.transcribe(audioURL, source: .system)
+            result = try await asr.transcribe(audioURL, decoderState: &decoderState)
         } catch is CancellationError {
             // FluidAudio's decode checks Task cancellation internally; let a user
             // cancel propagate as-is so the caller dismisses cleanly (no error alert).
