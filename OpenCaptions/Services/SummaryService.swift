@@ -22,7 +22,7 @@ enum SessionSummaryError: LocalizedError {
         case .emptyConversation:
             return "There are no valid subtitle records for this conversation, so a summary cannot be generated."
         case .unauthorized:
-            return "Unauthorized. Please check your API token in Secrets."
+            return "Unauthorized — check that GEMINI_API_KEY is set correctly in Config.xcconfig."
         case .badRequest(let message):
             return "Bad request: \(message)"
         case .serverError(let message):
@@ -45,6 +45,10 @@ enum SessionSummaryError: LocalizedError {
 
 // MARK: - API Response
 
+/// The structured summary contract. Kept identical to the old Cloud Function
+/// response so everything downstream (`SummaryViewModel`, `saveStructuredSummary`,
+/// the Firestore mirror, the ActionItems/KeyPoints screens) is untouched by the
+/// migration to a direct Gemini call. See `SummaryService+Gemini`.
 struct SummaryAPIResponse: Decodable {
     let title: String
     let shortDescription: String
@@ -53,52 +57,22 @@ struct SummaryAPIResponse: Decodable {
     let actionItems: [String]?
 }
 
-struct SummaryAPIError: Decodable {
-    let error: String
-}
-
 // MARK: - Summary Service
 
 @MainActor
 @Observable
 final class SummaryService {
-    
-    // The summarization Cloud Function config (SUMMARIZE_URL / SUMMARIZE_API_TOKEN)
-    // was removed pending migration to a direct Gemini call (see CLAUDE.md). Missing
-    // config now THROWS a graceful error — surfaced as "Couldn't Summarize" — instead
-    // of the old `fatalError` that crashed the app on auto-summarize. Do not restore
-    // the fatalError; the Gemini migration will replace these reads.
-    private func summarizeFunctionURL() throws -> String {
-        guard
-            let url = Bundle.main.infoDictionary?["SUMMARIZE_URL"] as? String,
-            !url.isEmpty
-        else {
-            throw SessionSummaryError.networkError(
-                "Summaries are unavailable — the summarization endpoint isn't configured."
-            )
-        }
-        return url
-    }
 
-    private func summarizeAPIToken() throws -> String {
-        guard
-            let apiKey = Bundle.main.infoDictionary?["SUMMARIZE_API_TOKEN"] as? String,
-            !apiKey.isEmpty
-        else {
-            throw SessionSummaryError.networkError(
-                "Summaries are unavailable — the summarization token isn't configured."
-            )
-        }
-        return apiKey
-    }
-
-    func summarize(session transcriptionSession: TranscriptionSession) async throws -> SummaryAPIResponse {
+    func summarize(
+        session transcriptionSession: TranscriptionSession,
+        language: String = "English" // standalone macOS MVP is English-only (LanguageManager deferred)
+    ) async throws -> SummaryAPIResponse {
         guard !transcriptionSession.lines.isEmpty else {
             throw SessionSummaryError.emptyConversation
         }
 
         let transcript = ConversationFormatter.buildTranscript(from: transcriptionSession)
-        return try await callSummarizeAPI(transcript: transcript)
+        return try await callSummarizeAPI(transcript: transcript, language: language)
     }
 
     func saveStructuredSummary(_ response: SummaryAPIResponse, to session: TranscriptionSession, context: ModelContext) {
@@ -119,44 +93,4 @@ final class SummaryService {
             }
         }
     }
-
-    // MARK: - Private
-
-    private func callSummarizeAPI(transcript: String) async throws -> SummaryAPIResponse {
-        guard let url = URL(string: try summarizeFunctionURL()) else {
-            throw SessionSummaryError.networkError("Invalid function URL.")
-        }
-        let token = try summarizeAPIToken()
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let language = "English" // standalone macOS MVP is English-only (LanguageManager deferred)
-        let body: [String: Any] = ["transcript": transcript, "language": language]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, urlResponse) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = urlResponse as? HTTPURLResponse else {
-            throw SessionSummaryError.networkError("Invalid response.")
-        }
-
-        switch httpResponse.statusCode {
-        case 200:
-            return try JSONDecoder().decode(SummaryAPIResponse.self, from: data)
-        case 400:
-            let errorBody = try? JSONDecoder().decode(SummaryAPIError.self, from: data)
-            throw SessionSummaryError.badRequest(errorBody?.error ?? "Unknown error")
-        case 401:
-            throw SessionSummaryError.unauthorized
-        case 405:
-            throw SessionSummaryError.badRequest("Method not allowed")
-        default:
-            let errorBody = try? JSONDecoder().decode(SummaryAPIError.self, from: data)
-            throw SessionSummaryError.serverError(errorBody?.error ?? "HTTP \(httpResponse.statusCode)")
-        }
-    }
-
 }
