@@ -100,15 +100,13 @@ struct OpenCaptionsApp: App {
                 // Register the system-wide transcription hotkeys.
                 // Idempotent, so this re-running on window recreation is a no-op.
                 HotKeyManager.shared.start()
-                // Start the remote feature-flag listener (gates share-to-web), then
-                // reconcile any live/paused Firestore session docs left by a crash so
+                // Reconcile any live/paused Firestore session docs left by a crash so
                 // they don't stay stuck at `live` on the web. Reconcile needs the
                 // signed-in uid, so it runs after the credential check.
                 //
                 // This task RE-RUNS whenever the window is (re)created. Skip reconcile
                 // while a session is live so reopening the window mid-recording doesn't
                 // seal the still-live share doc as `ended`.
-                FeatureFlagService.shared.startListening()
                 await auth.checkExistingCredential()
                 if !LiveSessionStore.shared.isActive {
                     await FirestoreSyncService.shared.reconcileLiveSessions()

@@ -21,14 +21,11 @@ The capture pipeline already delivers 16 kHz mono Float32 (the exact stream sent
 - The filename is a fresh UUID minted at record start (no session row exists yet) and stamped onto the session **only at final save** (`saveSession`), so any discarded/crashed leftover is unreferenced.
 - Cleanup: the single swipe-to-delete site (`TranscriptionsScreen.deleteSessions`) removes the file (the SwiftData cascade only covers relationships, not external files); `SessionAudioOrphanSweep` removes unreferenced `.m4a`s at launch. The sweep unions the **live in-flight filename** into the "keep" set to avoid a launch-window TOCTOU where a just-started recording's open file is swept.
 
-## Gating — remote flag + local toggle
+## Gating — one local toggle
 
-Recording happens only when **both** are on:
+Recording happens when the **local Settings toggle** "Save session audio for playback" is on (`LiveSessionStore.sessionAudioKey`, default **ON**, registered in `OpenCaptionsApp.init`, read at record time). The same setting gates the recorder, the player bar, and the transcript's playback affordances (highlight + tap-to-seek).
 
-- **Remote flag** `FeatureFlag.sessionPlayback` = `Mac_session_playback` (default **ON**). Gates the recorder, the player bar, and the transcript's playback affordances (highlight + tap-to-seek). A self-re-arming `withObservationTracking` kill switch tears down an in-progress recording (deleting the partial file) if the flag flips off mid-session.
-- **Local Settings toggle** "Save session audio for playback" (`LiveSessionStore.sessionAudioKey`, default **ON**, registered in `OpenCaptionsApp.init`, read at record time).
-
-> **Observation gotcha:** the self-re-arming kill-switch pattern (copied from `FirestoreSyncService.observeSessionSharingFlag`) is safe on singletons but leaks a per-session object if the `onChange` closure captures `self` strongly — `FeatureFlagService.shared`'s registrar is immortal. `[weak self]` MUST be on the **outer** `onChange` closure (a nested `Task { [weak self] }` does not prevent the outer strong capture).
+> **Historical (removed 2026-07-27):** this was originally a *two*-gate design — the local toggle **plus** a remote flag `FeatureFlag.sessionPlayback` = `Mac_session_playback` (default ON), with a self-re-arming `withObservationTracking` kill switch that tore down an in-progress recording (deleting the partial file) if the flag flipped off mid-session. The remote flag system was removed; playback is now permanently enabled and the kill switch is gone (nothing can turn the feature off mid-session, so there is nothing to tear down). The **local toggle survives** — it is a user preference, not a flag. See `docs/2026-07-27-remove-feature-flags.md`.
 
 ## Recording strategy — faithful, no padding
 
@@ -47,7 +44,7 @@ Two earlier approaches were tried and discarded:
 ## Playback UI
 
 - `PlaybackViewModel` (`@MainActor @Observable`) wraps `AVAudioPlayer` with a ~10 Hz Task-based ticker (no delegate → no `NSObject`). Visibility is backed by an **observed** `isLoaded` (not the `@ObservationIgnored` player), so the bar reactively appears after the async `load()`.
-- Player bar is docked via `.safeAreaInset(edge:.bottom)`, gated on the flag + `isAvailable`, styled to match `MacTranscriptionControls`.
+- Player bar is docked via `.safeAreaInset(edge:.bottom)`, gated on `isAvailable` (i.e. the session actually has an audio file), styled to match `MacTranscriptionControls`.
 - Transcript: `ScrollViewReader` + `.id(persistentModelID)`; active line = `lines.last { $0.startMs <= currentMs }`; auto-scroll to it while playing; **tap anywhere on a bubble** to seek + play.
 - **Trade-off:** `.textSelection(.enabled)` was removed from the transcript rows — on macOS, selectable text swallows the single click, making whole-bubble tap-to-seek unreliable. Tap-to-seek was prioritized; the summary tab keeps selection. (Revisit with `.simultaneousGesture` if inline copy is wanted back.)
 

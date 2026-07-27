@@ -26,8 +26,8 @@ struct OpenCaptionsCommands: Commands {
         // collide with "New Recording" below.
         CommandGroup(replacing: .newItem) {}
 
-        // File ▸ Import Audio or Video… (published only when the fileImport flag is on,
-        // so the item disables otherwise).
+        // File ▸ Import Audio or Video… (published by the session list; nil while a
+        // recording is active, so the item disables then).
         CommandGroup(replacing: .importExport) {
             Button("Import Audio or Video…") { importMedia?() }
                 .keyboardShortcut("i", modifiers: .command)

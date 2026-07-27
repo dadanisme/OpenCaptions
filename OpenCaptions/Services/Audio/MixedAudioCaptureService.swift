@@ -89,21 +89,17 @@ final class MixedAudioCaptureService: AudioCaptureSource {
     var mixScratch = [Float]()
     var micConfigObserver: NSObjectProtocol?
     /// Software echo canceller: strips the system audio's speaker-bleed out of the
-    /// mic (built-in speakers) before the mix. Built at session start only when
-    /// `aecEnabled` is on; nil (plain sum) if it can't init or the flag is off.
-    /// `process`/`processReverse` are still driven only from the mic render thread
-    /// (OpenCaptionsAEC's single-thread rule), but the *reference* to this object is now
-    /// touched from two threads — the render thread reads it, and the main-actor
-    /// flag observer may release it mid-session — so every access goes through
-    /// `aecLock`. See `+AEC` and docs/2026-07-08-macos-aec-feature-flag.md.
+    /// mic (built-in speakers) before the mix. Always built at session start by
+    /// `configureMicEngine`; nil (plain sum) only if `OpenCaptionsAEC` fails to init.
+    /// `process`/`processReverse` are driven only from the mic render thread
+    /// (OpenCaptionsAEC's single-thread rule), but the *reference* to this object is
+    /// touched from two threads — the render thread reads it while the (off-main)
+    /// setup assigns it and teardown releases it — so every access goes through
+    /// `aecLock`.
     var aec: OpenCaptionsAEC?
-    /// Resolved `FeatureFlag.aecEnabled` snapshot. Written on the main actor by
-    /// `observeAECFlag` (before `start()` and on each remote flip) and read by
-    /// `configureMicEngine`'s init gate. Guarded by `aecLock` alongside `aec`.
-    var aecEnabled = FeatureFlag.aecEnabled.defaultValue
-    /// Serializes access to `aec`/`aecEnabled` across the mic render thread, the
-    /// (off-main) `start()` setup, and the main-actor flag observer. Cheap and
-    /// near-always uncontended — mirrors the `NSLock` the render thread already
+    /// Serializes access to `aec` across the mic render thread, the (off-main)
+    /// `start()` setup that publishes it, and the teardown that releases it. Cheap
+    /// and near-always uncontended — mirrors the `NSLock` the render thread already
     /// takes each callback via `AudioRingBuffer`.
     let aecLock = NSLock()
 

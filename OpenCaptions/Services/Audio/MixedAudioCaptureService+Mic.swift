@@ -31,29 +31,18 @@ extension MixedAudioCaptureService {
         let input = micEngine.inputNode
 
         // Build the echo canceller before the tap so the first mic frame already
-        // has it — but ONLY when the remote `Mac_aec_enabled` flag is on (default
-        // on; snapshotted into `aecEnabled` by `observeAECFlag` before start()).
-        // Flag off, or a nil OpenCaptionsAEC, leaves `aec == nil` → the mix falls back to
-        // a plain (uncancelled) sum, giving us a Firestore escape hatch if the
-        // canceller regresses in the field. Delay 0 — the ring already
+        // has it. A nil OpenCaptionsAEC (init failure) leaves `aec == nil` → the mix
+        // falls back to a plain (uncancelled) sum. Delay 0 — the ring already
         // hands the tap an aligned system span (tune on device if echo leaks; see
         // OpenCaptionsAEC.setStreamDelayMs).
-        aecLock.lock()
-        let shouldBuildAEC = aecEnabled
-        aecLock.unlock()
-        if shouldBuildAEC, let canceller = OpenCaptionsAEC(sampleRate: 16_000, channels: 1) {
+        if let canceller = OpenCaptionsAEC(sampleRate: 16_000, channels: 1) {
             canceller.setStreamDelayMs(0)
-            aecLock.lock()
-            // A flag flip-off may have raced in during construction (setAECEnabled
-            // ran on the main actor); only keep the canceller if still enabled, else
-            // drop it here (no tap installed yet, so no render callback touches it).
-            if aecEnabled { aec = canceller }
-            aecLock.unlock()
+            // Publish under the lock so the render thread — which snapshots `aec` on
+            // every mic callback — can never observe a torn reference.
+            aecLock.lock(); aec = canceller; aecLock.unlock()
             log.notice("OpenCaptionsAEC ready — mixed-source echo cancellation engaged")
-        } else if shouldBuildAEC {
-            log.error("OpenCaptionsAEC init failed — mix uncancelled (plain sum)")
         } else {
-            log.notice("OpenCaptionsAEC disabled by feature flag — mix uncancelled (plain sum)")
+            log.error("OpenCaptionsAEC init failed — mix uncancelled (plain sum)")
         }
 
         // Read the live hardware input format and install the tap with it (mirrors
@@ -114,11 +103,11 @@ extension MixedAudioCaptureService {
         guard n > 0 else { return }
 
         // Snapshot the canceller under the lock, holding a strong local ref for the
-        // duration of the process calls below. A concurrent mid-session release
-        // (main-actor `setAECEnabled(false)` nils `aec`) then can't deallocate it
-        // out from under us — the object outlives `canceller`, and OpenCaptionsAEC's
-        // "single thread drives process/processReverse" rule still holds (only this
-        // render thread ever calls them). Nil → plain sum (flag off or init failed).
+        // duration of the process calls below. A concurrent release (`teardownMic`
+        // nils `aec`) then can't deallocate it out from under us — the object
+        // outlives `canceller`, and OpenCaptionsAEC's "single thread drives
+        // process/processReverse" rule still holds (only this render thread ever
+        // calls them). Nil → plain sum (the canceller failed to init).
         aecLock.lock()
         let canceller = aec
         aecLock.unlock()
@@ -144,7 +133,7 @@ extension MixedAudioCaptureService {
 
             // Strip the system audio's speaker-bleed out of the mic (built-in
             // speakers; headphones have none). `process` writes the cleaned mic in
-            // place. Skipped → plain sum → if the canceller is off/failed to init.
+            // place. Skipped → plain sum → if the canceller failed to init.
             if let canceller {
                 canceller.processReverse(systemRef, frameCount: Int32(n))
                 canceller.process(micPtr, into: micPtr, frameCount: Int32(n))

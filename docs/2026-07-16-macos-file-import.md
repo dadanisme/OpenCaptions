@@ -50,8 +50,9 @@ coordinator + the UI entry points.
    `MacPaywallView` (via `LiveSessionStore.pendingPaywall`) **before** any session is
    created. Offline imports are free/ungated (guests are forced offline → always free).
 
-5. **Audio retention follows the "Save session audio" setting** (`sessionPlayback` flag
-   AND `LiveSessionStore.sessionAudioKey` — the same gate as live recording). Audio is
+5. **Audio retention follows the "Save session audio" setting**
+   (`LiveSessionStore.sessionAudioKey` — the same gate as live recording; it was
+   originally ANDed with the `sessionPlayback` remote flag, removed 2026-07-27). Audio is
    always transcoded for transcription; after a successful run, if audio-saving is off,
    the `.m4a` is deleted and `audioFileName` nulled (transcript + summary preserved).
 
@@ -60,6 +61,11 @@ coordinator + the UI entry points.
    `Mac_file_import` remote flag (`FeatureFlag.fileImport`, default **OFF**). Drag-and-drop
    was considered but deferred (net-new to the codebase). The picker is SwiftUI
    `.fileImporter` (`[.audio, .movie]`); its security-scoped URL access is bracketed.
+
+   > **Updated 2026-07-27:** the dark rollout ended with the removal of the remote
+   > feature-flag system. Both entry points are now **always visible** — file import
+   > shipped dark for its whole life and became user-visible with that change. There is
+   > no local Settings toggle for it. See `docs/2026-07-27-remove-feature-flags.md`.
 
 7. **Session created up front; progress shown in the session, not the list.** The empty
    session is created **before** the transcode, so it appears in the list immediately with
@@ -102,8 +108,8 @@ coordinator + the UI entry points.
   `focusedSceneValue(\.importMedia)`, list-row spinner OR — no list banner); `MacFocusedValues`
   (`importMedia` key); `OpenCaptionsCommands` (File-menu command); `MacSessionDetailView`
   (`postSessionBanner` overlay; re-transcribe menu disabled while importing);
-  `RetranscriptionManager.launch` (defensive import guard); `FeatureFlag` (`fileImport`);
-  `SessionAudioRecorder` (shared `aacSettings`).
+  `RetranscriptionManager.launch` (defensive import guard); ~~`FeatureFlag` (`fileImport`)~~
+  (removed 2026-07-27); `SessionAudioRecorder` (shared `aacSettings`).
 
 ## Trade-offs / follow-ups
 

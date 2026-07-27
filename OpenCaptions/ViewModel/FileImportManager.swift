@@ -171,8 +171,7 @@ final class FileImportManager {
     /// Whether to keep the normalized audio — same gate as live recording
     /// (`MacTranscriptionViewModel.isAudioRecordingEnabled`).
     private var isAudioSavingEnabled: Bool {
-        FeatureFlagService.shared.isEnabled(.sessionPlayback)
-            && UserDefaults.standard.bool(forKey: LiveSessionStore.sessionAudioKey)
+        UserDefaults.standard.bool(forKey: LiveSessionStore.sessionAudioKey)
     }
 
     // MARK: - Tracking helpers

@@ -72,7 +72,7 @@ extension FirestoreSyncService {
     /// ignored. This nulls the web summary (writeSessionDocs writes `summary: NSNull`);
     /// the caller re-pushes it via summary regeneration, or leaves it cleared offline —
     /// matching the local state either way. Password protection is server-owned and not
-    /// touched here. No-op when signed out or `sessionSharing` is off (createDoc guard).
+    /// touched here. No-op when signed out.
     func resyncSharedSession(
         cloudSessionId: String,
         title: String,
@@ -81,7 +81,7 @@ extension FirestoreSyncService {
         speakers: [Int: String],
         backfill: [BackfillLine]
     ) {
-        guard FeatureFlagService.shared.isEnabled(.sessionSharing), let uid = currentUid() else { return }
+        guard let uid = currentUid() else { return }
         writeSessionDocs(
             to: sessionsCollection(for: uid).document(cloudSessionId),
             sessionId: cloudSessionId,
@@ -113,10 +113,10 @@ extension FirestoreSyncService {
     /// its `cloudSessionId`. Used when speakers are renamed on a SAVED session
     /// in the detail view — unlike the live `updateSpeakerName` above, there is
     /// no `currentSessionRef` for a finished/history session, so the doc is
-    /// addressed directly. No-op when signed out, when `names` is empty, or —
-    /// via `updateDoc`'s internal guard — when `sessionSharing` is off. `.patch`
-    /// interprets each dotted key as a field path so only `name` is touched,
-    /// leaving sibling fields under `speakers.{id}` (and other speakers) intact.
+    /// addressed directly. No-op when signed out or when `names` is empty.
+    /// `.patch` interprets each dotted key as a field path so only `name` is
+    /// touched, leaving sibling fields under `speakers.{id}` (and other
+    /// speakers) intact.
     func updateSpeakerNames(cloudSessionId: String, names: [Int: String]) {
         guard !names.isEmpty, let uid = currentUid() else { return }
         let ref = sessionsCollection(for: uid).document(cloudSessionId)

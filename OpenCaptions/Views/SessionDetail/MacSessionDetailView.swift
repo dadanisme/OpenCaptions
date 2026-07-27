@@ -132,10 +132,10 @@ struct MacSessionDetailView: View {
                     }
                     .disabled(editableSpeakers.isEmpty)
 
-                    // Share-to-web action, gated on the remote flag. Shares
-                    // (idempotent) then opens the dialog with link + password.
-                    // Hidden while offline — it's a network write.
-                    if !isOffline && FeatureFlagService.shared.isEnabled(.sessionSharing) {
+                    // Share-to-web action. Shares (idempotent) then opens the
+                    // dialog with link + password. Hidden while offline — it's a
+                    // network write.
+                    if !isOffline {
                         Divider()
                         Button {
                             if let id = SessionLinkSharer.share(session: session, context: modelContext) {
@@ -186,8 +186,8 @@ struct MacSessionDetailView: View {
         // Load this session's recording (nil/missing → player stays hidden).
         .task(id: session.persistentModelID) { playback.load(fileName: session.audioFileName) }
         .onDisappear { playback.stop() }
-        // Floating player pill docked at the bottom (only when a recording is loaded
-        // + the flag is on). The Summary/Transcript switcher is the top toolbar pill.
+        // Floating player pill docked at the bottom (only when a recording is
+        // loaded). The Summary/Transcript switcher is the top toolbar pill.
         .safeAreaInset(edge: .bottom) { bottomBar }
         // Expose "Export PDF…" to the menu bar; nil (menu item disabled) when
         // there's no summary content to export.

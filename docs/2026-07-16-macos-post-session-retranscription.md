@@ -39,6 +39,14 @@ plus a manual trigger and an automatic-after-recording option.
    switch; a per-device Settings **toggle** (`LiveSessionStore.retranscriptionAutoKey`, Bool,
    default off) enables **automatic** re-transcription after each recording. The manual
    ⋯-menu trigger is gated by the remote flag alone (no separate per-device toggle).
+
+   > **Updated 2026-07-27:** the remote feature-flag system was removed, so there is now
+   > **one gate**. The dark rollout ended — the manual ⋯-menu trigger and the
+   > Settings "Re-transcription" section are always present, and the per-device
+   > `retranscriptionAutoKey` toggle (still default off) remains the only switch for the
+   > automatic path — now `.disabled(!saveSessionAudio)` in Settings, since without a
+   > saved `.m4a` the automatic pass has nothing to re-process and fails silently
+   > (`interactive: false`). See `docs/2026-07-27-remove-feature-flags.md`.
 6. **Offline diarization loss is accepted, warned.** Re-transcribing a diarized (Soniox)
    session with Parakeet collapses it to one unlabeled speaker; the confirmation dialog
    warns. (Sessions recorded in Offline Mode were already single-stream, so no loss there.)
@@ -90,8 +98,9 @@ protocol PostSessionTranscriptionEngine: AnyObject {
   (a live session + a re-transcription can overlap without clearing each other's window),
   and the cloud path gates on the **whole estimated cost** up front (`canAfford(minutes:)`),
   since a batch job can't pause at zero like a live session can.
-- Gating: `FeatureFlag.postSessionRetranscription`, `LiveSessionStore.retranscriptionAutoKey`
-  (Bool auto toggle), Settings toggle in `MacSettingsView`.
+- Gating: `LiveSessionStore.retranscriptionAutoKey` (Bool auto toggle), Settings toggle in
+  `MacSettingsView`. (`FeatureFlag.postSessionRetranscription` was the master switch until
+  2026-07-27.)
 
 ## Shared links
 
@@ -102,7 +111,8 @@ re-pushes the new lines to the **same** `cloudSessionId` (same public URL) via t
 reads by `lineCount`, so a now-shorter transcript's orphaned trailing docs are ignored), and
 patches the `speakers` map. The summary is re-mirrored by the regeneration step (online) or
 left cleared on the web (offline) — matching local state. Password protection is server-owned
-and untouched. All no-ops when the session is unshared or `sessionSharing` is off.
+and untouched. All no-ops when the session is unshared. (It also no-op'd when the
+`sessionSharing` remote flag was off, until that flag was removed on 2026-07-27.)
 
 ## UI indicator
 

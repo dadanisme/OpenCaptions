@@ -1,5 +1,15 @@
 # macOS: gate the mixed-source software AEC behind a remote feature flag
 
+> **SUPERSEDED (2026-07-27)** — the remote feature-flag system was removed; the
+> mixed-source AEC is now always built. Kept for historical context.
+
+Everything below describes the flag-gated design as it shipped on 2026-07-08. What
+survives today: the AEC itself, the `aec == nil` plain-sum fallback path, and the
+render-thread locking around the `aec` reference. What is gone: `FeatureFlag.aecEnabled`
+/ `Mac_aec_enabled`, the `aecEnabled` snapshot, `MixedAudioCaptureService+AEC.swift`
+(`setAECEnabled` + `observeAECFlag`), and the `observeAECFlag()` call in
+`makeAudioSource`. See `docs/2026-07-27-remove-feature-flags.md`.
+
 **Date:** 2026-07-08
 **Context:** Follow-up to the software echo canceller from `docs/2026-07-06-macos-mic-system-audio-fix.md`
 **Scope:** OpenCaptions only

@@ -49,13 +49,9 @@ extension FirestoreSyncService {
     /// `merge: false` because a fresh insert should never accidentally
     /// preserve garbage from a previous lifecycle.
     ///
-    /// Feature-flag kill switch: every routine share write funnels through
-    /// here and `updateDoc`, so a single guard stops ALL Firestore share
-    /// writes when `sessionSharing` is off. The one exception is the graceful
-    /// seal fired by `handleSessionSharingDisabled()`, which uses
-    /// `forceUpdate` to bypass this guard. See docs/2026-07-03-gate-session-sharing.md.
+    /// Every share write funnels through here and `updateDoc`, so audit fields
+    /// are stamped in exactly one place per operation.
     func createDoc(_ ref: DocumentReference, uid: String, data: [String: Any]) {
-        guard FeatureFlagService.shared.isEnabled(.sessionSharing) else { return }
         var payload = data
         let now = FieldValue.serverTimestamp()
         payload[F.createdAt] = now
@@ -90,8 +86,6 @@ extension FirestoreSyncService {
         data: [String: Any],
         mode: UpdateMode = .merge
     ) {
-        // Kill switch — see `createDoc` above.
-        guard FeatureFlagService.shared.isEnabled(.sessionSharing) else { return }
         var payload = data
         payload[F.updatedAt] = FieldValue.serverTimestamp()
         payload[F.updatedBy] = uid
@@ -105,23 +99,6 @@ extension FirestoreSyncService {
             ref.setData(payload, merge: true, completion: completion)
         case .patch:
             ref.updateData(payload, completion: completion)
-        }
-    }
-
-    /// Merge-writes a document **without** the `sessionSharing` kill switch.
-    /// Reserved for the single graceful-seal write in
-    /// `handleSessionSharingDisabled()` — the one write we intentionally let
-    /// through after the flag turns off, so an in-flight shared session is
-    /// closed to `ended` rather than left stuck at `live`. Otherwise identical
-    /// to `updateDoc(.merge)`; do not use it for routine writes.
-    func forceUpdate(_ ref: DocumentReference, uid: String, data: [String: Any]) {
-        var payload = data
-        payload[F.updatedAt] = FieldValue.serverTimestamp()
-        payload[F.updatedBy] = uid
-        ref.setData(payload, merge: true) { error in
-            if let error {
-                print("⚠️ FirestoreSync graceful seal failed: \(error.localizedDescription)")
-            }
         }
     }
 }

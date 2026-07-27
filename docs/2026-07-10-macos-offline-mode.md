@@ -59,8 +59,10 @@ onboarding flow exists yet. This change is the in-app half only.
    `FirestoreSyncService.syncOfflineMode(_:)` (new `+UserPrefs` extension). No-op when
    not signed in. Uses `setData(merge: true)` with only `updatedAt`/`updatedBy` stamped
    so the user doc's `createdAt`/`createdBy` (owned by whoever created it) are preserved.
-   This is **not** routed through the session `createDoc`/`updateDoc` helpers — those are
-   gated behind the `sessionSharing` flag and are session-scoped.
+   This is **not** routed through the session `createDoc`/`updateDoc` helpers — they are
+   session-scoped and own the create-once audit stamping. (Originally they were also
+   gated behind the `sessionSharing` feature flag; that flag was removed 2026-07-27 —
+   see `docs/2026-07-27-remove-feature-flags.md`.)
 
 ## Risk
 

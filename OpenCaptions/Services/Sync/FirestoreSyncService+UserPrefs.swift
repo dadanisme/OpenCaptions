@@ -7,9 +7,10 @@
 //  marketing-consent opt-in. The email itself is NOT written here — it
 //  already lives in Firebase Auth; only consent (which Auth can't store) needs a
 //  home. The session helpers (`createDoc`/`updateDoc`) are deliberately NOT reused
-//  here: they're gated behind the `sessionSharing` feature flag and scoped to
-//  session documents, whereas these fields are independent of sharing and live on
-//  the user doc. See docs/2026-07-15-macos-email-capture-and-support.md.
+//  here: they're scoped to session documents and their audit stamping assumes a
+//  fresh insert, whereas these fields live on the long-lived user doc and need the
+//  create-once bookkeeping in `mergeUserDoc`.
+//  See docs/2026-07-15-macos-email-capture-and-support.md.
 //
 
 import Foundation
