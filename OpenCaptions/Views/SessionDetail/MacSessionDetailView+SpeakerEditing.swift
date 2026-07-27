@@ -65,7 +65,7 @@ extension MacSessionDetailView {
         }
 
         // Mirror to the shared web transcript's `speakers` map when this session
-        // was shared (no-op otherwise, or when sessionSharing is off / signed out).
+        // was shared (no-op otherwise, or when signed out).
         if let cloudId = session.cloudSessionId {
             FirestoreSyncService.shared.updateSpeakerNames(cloudSessionId: cloudId, names: changed)
         }

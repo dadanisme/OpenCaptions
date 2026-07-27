@@ -17,10 +17,9 @@ extension MacSessionDetailView {
         let sortedLines = session.lines.sorted {
             ($0.startMs, $0.timestamp) < ($1.startMs, $1.timestamp)
         }
-        // Playback affordances (highlight + tap-to-seek) are live only when the
-        // remote flag is on AND a recording is loaded — mirrors the player bar's
-        // gate so the flag kill switch fully disables playback here too.
-        let playbackEnabled = FeatureFlagService.shared.isEnabled(.sessionPlayback) && playback.isAvailable
+        // Playback affordances (highlight + tap-to-seek) are live only when a
+        // recording is loaded — mirrors the player bar's gate.
+        let playbackEnabled = playback.isAvailable
         // The line whose start is the latest at or before the playhead.
         let activeID: PersistentIdentifier? = playbackEnabled
             ? sortedLines.last(where: { $0.startMs <= playback.currentMs })?.persistentModelID
@@ -80,7 +79,7 @@ extension MacSessionDetailView {
                 .fill(isActive ? Color.accentColor.opacity(0.12) : .clear)
         )
         // Tap anywhere on the bubble to snap playback to this line and play.
-        // Only active while playback is enabled (flag on + recording loaded).
+        // Only active once a recording is loaded.
         .contentShape(Rectangle())
         .onTapGesture {
             guard seekable else { return }
@@ -126,11 +125,11 @@ extension MacSessionDetailView {
     // MARK: - Bottom player pill
 
     /// The bottom-anchored floating player pill, shown only when a recording is
-    /// loaded and playback is flag-enabled. Capped + centered so it stays a
-    /// floating pill on wide windows rather than stretching edge to edge.
+    /// loaded. Capped + centered so it stays a floating pill on wide windows
+    /// rather than stretching edge to edge.
     @ViewBuilder
     var bottomBar: some View {
-        if FeatureFlagService.shared.isEnabled(.sessionPlayback), playback.isAvailable {
+        if playback.isAvailable {
             playerBar
                 .frame(maxWidth: 700)
                 .padding(.horizontal)

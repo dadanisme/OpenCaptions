@@ -15,21 +15,17 @@ extension MacLiveTranscriptionView {
 
     /// The primary-action Share toolbar item. Isolated here (rather than inline
     /// in `body`) both to keep the file short and so its conditional/ternary
-    /// type-checks separately from the long `body` modifier chain. Reading the
-    /// flag establishes an Observation dependency, so it appears/disappears when
-    /// the remote flag flips.
+    /// type-checks separately from the long `body` modifier chain.
     @ToolbarContentBuilder
     var shareToolbarItem: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
-            if FeatureFlagService.shared.isEnabled(.sessionSharing) {
-                Button(action: handleShare) {
-                    Image(systemName: viewModel.isShared
-                          ? "square.and.arrow.up.badge.checkmark"
-                          : "square.and.arrow.up")
-                }
-                .help(viewModel.isShared ? "Copy share link" : "Share a public link")
-                .accessibilityLabel("Share")
+            Button(action: handleShare) {
+                Image(systemName: viewModel.isShared
+                      ? "square.and.arrow.up.badge.checkmark"
+                      : "square.and.arrow.up")
             }
+            .help(viewModel.isShared ? "Copy share link" : "Share a public link")
+            .accessibilityLabel("Share")
         }
     }
 

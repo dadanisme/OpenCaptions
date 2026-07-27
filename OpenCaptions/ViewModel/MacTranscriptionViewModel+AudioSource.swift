@@ -27,11 +27,6 @@ extension MacTranscriptionViewModel {
         source.onInterruption = { [weak self] in
             Task { @MainActor in self?.failSession(message: message) }
         }
-        // Only the mixed source has an echo canceller. Arm its remote-flag kill
-        // switch here (on the main actor, before `start()`): the initial snapshot
-        // sets `aecEnabled` for the build gate in `configureMicEngine`, and it then
-        // reacts to mid-session flips of `Mac_aec_enabled`.
-        (source as? MixedAudioCaptureService)?.observeAECFlag()
         return source
     }
 

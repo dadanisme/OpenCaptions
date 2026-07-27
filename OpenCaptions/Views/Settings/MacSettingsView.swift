@@ -26,13 +26,11 @@ struct MacSettingsView: View {
     /// detail, summaries, settings). Independent of `textSizeMultiplier` above.
     @AppStorage(LiveSessionStore.appTextSizeKey) private var appTextSizeMultiplier = TranscriptTextSize.defaultMultiplier
     /// "Save session audio for playback" — read by `MacTranscriptionViewModel`
-    /// at record time via the same UserDefaults key. Only takes effect while the
-    /// `sessionPlayback` remote flag is on.
+    /// at record time via the same UserDefaults key.
     @AppStorage(LiveSessionStore.sessionAudioKey) private var saveSessionAudio = true
     /// Automatic re-transcription after recording. When on, a saved session is
     /// re-processed automatically; the engine follows Offline Mode (Parakeet offline /
-    /// Soniox cloud). Read by `RetranscriptionManager`. Only takes effect while the
-    /// `postSessionRetranscription` remote flag is on; the section is hidden until then.
+    /// Soniox cloud). Read by `RetranscriptionManager`.
     @AppStorage(LiveSessionStore.retranscriptionAutoKey) private var autoRetranscribe = false
     /// Offline Mode. Off → cloud Soniox (diarized); on → on-device Nemotron with no
     /// network. Read at session start by `MacTranscriptionViewModel.start` and used to
@@ -140,13 +138,15 @@ struct MacSettingsView: View {
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }
-        if FeatureFlagService.shared.isEnabled(.postSessionRetranscription) {
-            Section("Re-transcription") {
-                Toggle("Automatically re-transcribe after recording", isOn: $autoRetranscribe)
-                Text("After each recording is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.secondary)
-            }
+        Section("Re-transcription") {
+            // Disabled without saved session audio: with no `.m4a` there's nothing to
+            // re-process, and the automatic pass is silent (no error surfaces), so an
+            // enabled-but-inert toggle would look like a broken feature.
+            Toggle("Automatically re-transcribe after recording", isOn: $autoRetranscribe)
+                .disabled(!saveSessionAudio)
+            Text("After each recording is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+                .appScaledFont(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

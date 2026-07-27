@@ -68,8 +68,8 @@ final class LiveSessionStore {
     /// saved. When on, the just-saved session is re-processed automatically; the
     /// engine FOLLOWS Offline Mode (Parakeet offline / Soniox cloud) — there's no engine
     /// choice. Bound to `MacSettingsView`'s toggle and read by `RetranscriptionManager`.
-    /// Only takes effect while the `postSessionRetranscription` remote flag is on. The
-    /// MANUAL re-transcribe menu is independent — gated by the remote flag alone. Default
+    /// Requires saved session audio — with `sessionAudioKey` off there's no `.m4a` to
+    /// re-process. The MANUAL re-transcribe menu is independent of this key. Default
     /// `false` (registered in `OpenCaptionsApp`).
     static let retranscriptionAutoKey = "opencaptions.retranscription.auto"
 
@@ -346,8 +346,8 @@ final class LiveSessionStore {
     }
 
     /// Observes the VM's `isRunning`/`isPaused` and re-arms itself on each change
-    /// (the SwiftData/Observation kill-switch pattern). Stops re-arming
-    /// once the session is cleared.
+    /// (`withObservationTracking` is one-shot, so each fire must re-arm). Stops
+    /// re-arming once the session is cleared.
     private func armStatusMirroring() {
         withObservationTracking {
             _ = viewModel?.isRunning

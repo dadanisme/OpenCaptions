@@ -10,7 +10,6 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
-import Observation
 
 /// Singleton that owns every Firestore write for the live-sync feature.
 /// Sharing is per-session and explicit: a session starts unsynced and becomes
@@ -44,11 +43,7 @@ final class FirestoreSyncService {
 
     static let shared = FirestoreSyncService()
 
-    private init() {
-        // Watch the sessionSharing flag so a mid-session disable can gracefully
-        // seal the active shared session. See `observeSessionSharingFlag()`.
-        observeSessionSharingFlag()
-    }
+    private init() {}
 
     // MARK: - Tunables
 
@@ -153,13 +148,6 @@ final class FirestoreSyncService {
         speakers: [Int: String] = [:],
         backfill: [BackfillLine] = []
     ) -> String? {
-        // Feature off: mint nothing. Returning nil (same contract as signed-out)
-        // keeps the caller from persisting a phantom cloudSessionId with no
-        // backing doc, since the writes below would be dropped by `createDoc`.
-        guard FeatureFlagService.shared.isEnabled(.sessionSharing) else {
-            currentSessionRef = nil
-            return nil
-        }
         guard let uid = currentUid() else {
             currentSessionRef = nil
             return nil
@@ -205,8 +193,6 @@ final class FirestoreSyncService {
         speakers: [Int: String],
         backfill: [BackfillLine]
     ) -> String? {
-        // Feature off: mint nothing (see `startSession`).
-        guard FeatureFlagService.shared.isEnabled(.sessionSharing) else { return nil }
         guard let uid = currentUid() else { return nil }
 
         let sessionId = UUID().uuidString
@@ -254,57 +240,6 @@ final class FirestoreSyncService {
         pendingAccumulatorFlush = nil
 
         updateDoc(session, uid: uid, data: [
-            F.status: Status.ended,
-            F.endedAt: FieldValue.serverTimestamp(),
-            F.accumulator: NSNull(),
-        ])
-
-        currentSessionRef = nil
-        lastAccumulatorWrite = 0
-    }
-
-    // MARK: - Feature-flag kill switch (graceful stop)
-
-    /// Arms a one-shot `withObservationTracking` on the `sessionSharing` flag
-    /// and re-arms itself after each change, giving the service a live reaction
-    /// to remote flips without coupling the generic `FeatureFlagService` to
-    /// this feature. `onChange` fires in the observed property's `willSet`
-    /// (old value still current), so the resolved value is read on the next
-    /// main-actor tick before deciding whether to tear down.
-    private func observeSessionSharingFlag() {
-        withObservationTracking {
-            _ = FeatureFlagService.shared.isEnabled(.sessionSharing)
-        } onChange: {
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if !FeatureFlagService.shared.isEnabled(.sessionSharing) {
-                    self.handleSessionSharingDisabled()
-                }
-                self.observeSessionSharingFlag()
-            }
-        }
-    }
-
-    /// Graceful stop when `sessionSharing` is turned off mid-session: seals the
-    /// currently-shared session to `ended` with a concrete `endedAt` and clears
-    /// the in-flight preview — one write, via the guard-bypassing `forceUpdate`
-    /// (every other write path is blocked by the flag) so viewers see a
-    /// finished transcript rather than a doc stuck at `live`. Then nils
-    /// `currentSessionRef` so all subsequent writes short-circuit.
-    ///
-    /// Idempotent and safe to call when nothing is being shared (no-op). Once
-    /// stopped, re-enabling the flag does not auto-resume this session — sync
-    /// stays off until a fresh Share. See docs/2026-07-03-gate-session-sharing.md.
-    func handleSessionSharingDisabled() {
-        guard let session = currentSessionRef, let uid = currentUid() else {
-            currentSessionRef = nil
-            return
-        }
-        pendingAccumulator = nil
-        pendingAccumulatorFlush?.cancel()
-        pendingAccumulatorFlush = nil
-
-        forceUpdate(session, uid: uid, data: [
             F.status: Status.ended,
             F.endedAt: FieldValue.serverTimestamp(),
             F.accumulator: NSNull(),

@@ -16,14 +16,13 @@ extension MacSessionDetailView {
 
     // MARK: - Menu
 
-    /// The "Re-transcribe" action, shown when the feature flag is on and the session
-    /// has a saved recording. No engine choice — it follows Offline Mode (Parakeet
-    /// offline / Soniox cloud). Disabled while a run is in flight for this session, or
-    /// when the offline model is missing while Offline Mode is on.
+    /// The "Re-transcribe" action, shown when the session has a saved recording. No
+    /// engine choice — it follows Offline Mode (Parakeet offline / Soniox cloud).
+    /// Disabled while a run is in flight for this session, or when the offline model is
+    /// missing while Offline Mode is on.
     @ViewBuilder
     var retranscribeMenu: some View {
-        if FeatureFlagService.shared.isEnabled(.postSessionRetranscription),
-           session.audioFileName != nil {
+        if session.audioFileName != nil {
             let kind = RetranscriptionEngineKind.forCurrentMode
             let offlineModelMissing = kind == .parakeet && !FluidAudioModelLoader.isParakeetDownloaded()
             // Disabled while a re-transcription OR a file import is filling in this

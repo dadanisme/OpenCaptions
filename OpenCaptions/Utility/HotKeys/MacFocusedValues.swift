@@ -72,8 +72,8 @@ extension FocusedValues {
         set { self[ExportSummaryKey.self] = newValue }
     }
 
-    /// Open the media-file importer (published by the session list when the
-    /// `fileImport` flag is on). Nil elsewhere → the menu item disables.
+    /// Open the media-file importer (published by the session list when no recording
+    /// is active). Nil elsewhere → the menu item disables.
     var importMedia: (() -> Void)? {
         get { self[ImportMediaKey.self] }
         set { self[ImportMediaKey.self] = newValue }

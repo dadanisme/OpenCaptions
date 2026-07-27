@@ -25,13 +25,14 @@ Analytics is out of scope here and tracked separately. `FirebaseAnalytics` is de
   - `SessionLinkSharer` — promotes a finished SwiftData session to a public doc.
   - `SessionPasswordService` — the `setSessionPassword`/`removeSessionPassword`
     callables (region `asia-southeast1`).
-  - `FeatureFlagService` + `FeatureFlag` — the remote flag reader (see below).
+  - ~~`FeatureFlagService` + `FeatureFlag` — the remote flag reader (see below).~~
+    **Removed 2026-07-27** — see `docs/2026-07-27-remove-feature-flags.md`.
 - **Lifecycle wiring** in `MacTranscriptionViewModel` (new `+Firestore`
   extension + hooks): share mints the cloud session and backfills the transcript;
   line commits, partial previews, pause/resume, speaker renames, and stop/discard/
   fail all mirror to Firestore. `SummaryViewModel` pushes a fresh summary to the
-  shared doc. `OpenCaptionsApp` starts the flag listener and reconciles orphaned live
-  docs at launch.
+  shared doc. `OpenCaptionsApp` reconciles orphaned live docs at launch (it also
+  started the flag listener until the flag system was removed on 2026-07-27).
 - **UI (share dialog)**: both the live-recording toolbar Share button and the
   saved-session detail "Share…" menu item mint/reuse the shared session and open
   a single `MacShareSessionSheet` — the public `<SESSION_SHARE_BASE_URL>/{id}`
@@ -45,6 +46,12 @@ Analytics is out of scope here and tracked separately. `FirebaseAnalytics` is de
 
 ### Mac-specific feature flag: `Mac_session_sharing`
 
+> **Superseded (2026-07-27)** — the remote feature-flag system was removed;
+> sharing is now always enabled and there is no flag guard, no kill switch, and
+> no `config/featureFlags` read. The rationale below is kept as the historical
+> record of why the key was Mac-scoped. See
+> `docs/2026-07-27-remove-feature-flags.md`.
+
 Open Captions reads its own Firestore flag key **`Mac_session_sharing`** rather than
 a shared `session_sharing` key, so sharing can be toggled independently per
 platform (e.g. disable Mac sharing during a rollout). The
@@ -54,10 +61,12 @@ key; the flag map lives in the same `config/featureFlags` doc. The Mac
 `engineSelector` — those features don't exist on the Mac), and `FeatureFlagService`
 uses a Mac-distinct cache key (`mac_featureFlagsCache`).
 
-The `sessionSharing` kill switch: every routine write
-funnels through the flag guard in `createDoc`/`updateDoc`, and flipping the flag
-off mid-session gracefully seals the live doc to `ended` via the one
-guard-bypassing `forceUpdate`.
+The `sessionSharing` kill switch: every routine write funnelled through the flag
+guard in `createDoc`/`updateDoc`, and flipping the flag off mid-session
+gracefully sealed the live doc to `ended` via the one guard-bypassing
+`forceUpdate`. (Removed 2026-07-27 — the guards are gone, every write goes
+through unconditionally, and `forceUpdate` went with them since there is no
+longer a guard to bypass.)
 
 ### `currentUid()` → `MacAuthManager`
 
@@ -81,9 +90,10 @@ literals instead of `.localized` keys.
 
 The wire format, Firestore paths, security rules, and Cloud Functions are all
 unchanged — the Mac writes to the same paths as the same authenticated user, so
-the backend Cloud Functions project needs no edit. The only optional backend touch is adding a
-`Mac_session_sharing` boolean to the `config/featureFlags` doc's `flags` map;
-absent, it defaults to `true`.
+the backend Cloud Functions project needs no edit. The one optional backend touch
+at the time was adding a `Mac_session_sharing` boolean to the
+`config/featureFlags` doc's `flags` map; absent, it defaulted to `true`. **As of
+2026-07-27 that doc is not read at all** — sharing is compiled in and always on.
 
 ## Follow-ups
 

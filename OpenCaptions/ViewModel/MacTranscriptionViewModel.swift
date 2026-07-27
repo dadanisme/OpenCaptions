@@ -50,8 +50,8 @@ final class MacTranscriptionViewModel {
 
     @ObservationIgnored var transcriptionService: (any RealtimeTranscriptionEngine)?
     @ObservationIgnored var audio: (any AudioCaptureSource)?
-    /// Records the captured audio to a local `.m4a` for playback, when both the
-    /// `sessionPlayback` remote flag and the local Settings toggle are on. Owned here
+    /// Records the captured audio to a local `.m4a` for playback, when the
+    /// "Save session audio" Settings toggle is on. Owned here
     /// (not the per-call push task) so it survives `resume()` re-running `sendData`.
     /// Lifecycle lives in `+AudioRecording`.
     @ObservationIgnored var audioRecorder: SessionAudioRecorder?
@@ -145,8 +145,8 @@ final class MacTranscriptionViewModel {
         // mic device/route change or an SCStream stop surfaces as a session
         // failure instead of silently recording nothing.
         audio = makeAudioSource(source)
-        // Open the audio recording (a fresh-UUID .m4a) when recording is enabled,
-        // and arm the remote-flag kill switch. No-op / audio-less when disabled.
+        // Open the audio recording (a fresh-UUID .m4a) when the "Save session audio"
+        // setting is on. No-op / audio-less when it's off.
         startAudioRecordingIfEnabled()
         // Begin sampling source-app activity when capturing system audio (no-op
         // for a mic-only session). `sessionStart` is already set above, so the
@@ -229,7 +229,7 @@ final class MacTranscriptionViewModel {
         let savedID = await finalLines.saveSession(
             to: container.mainContext, title: workingTitle, audioFileName: audioFileName)
         // Automatically re-transcribe for higher accuracy when the user opted in
-        // (no-op when the flag/setting is off). Runs in the background; the saved
+        // (no-op when the setting is off). Runs in the background; the saved
         // transcript updates in place when it finishes.
         RetranscriptionManager.shared.startAutomatic(sessionID: savedID, container: container)
         return savedID

@@ -56,8 +56,8 @@ struct TranscriptionsScreen: View {
         // Expose "New Recording" (Cmd+N) to the main menu. Nil while already
         // recording so the menu item disables instead of restarting a session.
         .focusedSceneValue(\.startRecording, startRecordingAction)
-        // Expose "Import Audio or Video…" (Cmd+I) to the File menu. Nil while the
-        // flag is off or a recording is active, so the menu item disables.
+        // Expose "Import Audio or Video…" (Cmd+I) to the File menu. Nil while a
+        // recording is active, so the menu item disables.
         .focusedSceneValue(\.importMedia, importMediaAction)
         // Mirror the same action to the system menu-bar item (a separate scene
         // that can't read focused values). Re-published whenever recording
@@ -108,13 +108,11 @@ struct TranscriptionsScreen: View {
             listContent
                 .navigationTitle("Transcriptions")
                 .toolbar {
-                    if showImport {
-                        ToolbarItem(placement: .primaryAction) {
-                            Button { isImporterPresented = true } label: {
-                                Label("Import", systemImage: "square.and.arrow.down")
-                            }
-                            .help("Import an audio or video file")
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { isImporterPresented = true } label: {
+                            Label("Import", systemImage: "square.and.arrow.down")
                         }
+                        .help("Import an audio or video file")
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: startNewRecording) {
@@ -141,14 +139,10 @@ struct TranscriptionsScreen: View {
         }
     }
 
-    /// Whether the import affordances are enabled (remote flag). Read in `body` so a
-    /// remote flip reactively shows/hides the button (FeatureFlagService is @Observable).
-    private var showImport: Bool { FeatureFlagService.shared.isEnabled(.fileImport) }
-
-    /// The File-menu import action, or nil while the flag is off / a session is active
-    /// (import is refused during a live recording), so the menu item disables.
+    /// The File-menu import action, or nil while a session is active (import is
+    /// refused during a live recording), so the menu item disables.
     private var importMediaAction: (() -> Void)? {
-        guard showImport, !store.isActive else { return nil }
+        guard !store.isActive else { return nil }
         return { isImporterPresented = true }
     }
 
