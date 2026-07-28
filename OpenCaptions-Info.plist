@@ -8,6 +8,15 @@
 	     Dock/Finder use CFBundleDisplayName, set via INFOPLIST_KEY_CFBundleDisplayName. -->
 	<key>CFBundleName</key>
 	<string>Open Captions</string>
+	<!-- Dock/Finder app icon, shipped as AppIcon.icns rather than an asset-catalog
+	     AppIcon set. On macOS 26 (Tahoe) an asset-catalog app icon built from plain
+	     PNG sizes is treated as a legacy icon: the system insets the artwork and
+	     draws it on a light rounded "plate", so the icon renders visibly smaller
+	     than neighbouring apps in the Dock. A CFBundleIconFile/.icns icon is drawn
+	     as-is at full size (the same path Chrome uses). ASSETCATALOG_COMPILER_APPICON_NAME
+	     is therefore intentionally unset — see docs/2026-07-28-macos-tahoe-app-icon.md. -->
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<!-- Export-compliance declaration. Open Captions only uses standard TLS/HTTPS (Soniox WSS,
 	     Firebase, Google Sign-In) — no proprietary/non-exempt encryption — so this is
 	     false, which suppresses the per-upload encryption question in App Store Connect. -->
