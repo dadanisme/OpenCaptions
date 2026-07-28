@@ -8,11 +8,19 @@
 //  variable-length list editor, which the fixed 480×460 Settings window can't host
 //  comfortably.
 //
-//  Edits are live-committed to `VocabularyStore` (no Save button, matching how the
-//  Settings toggles behave) but only READ at session start, so the copy says "next
-//  session" — the same convention as the other next-session preferences.
+//  Terms are entered through ONE add field and shown as chips (`VocabularyTermChip`
+//  in a `FlowLayout`). The first design gave every term its own text field, which
+//  repeated the same placeholder down the screen; a single field shows it once, and
+//  pasting a comma- or newline-separated list adds many at a time.
 //
-//  Rows live in `VocabularyTermRow`; the store hands over an already-clamped context.
+//  The always-included terms (the app's built-ins and the display name) are chips in
+//  the SAME list as the user's, just read-only — so the section reads as everything
+//  being sent, rather than splitting into an editable group and an informational one.
+//
+//  Adds and removes commit to `VocabularyStore` immediately (no Save button, matching
+//  how the Settings toggles behave) but are only READ at session start, so the copy
+//  says "next session" — the same convention as the other next-session preferences.
+//  The store hands the engines an already-clamped context.
 //
 
 import SwiftUI
@@ -20,7 +28,10 @@ import SwiftUI
 struct VocabularyScreen: View {
     @Environment(MacAuthManager.self) private var auth
     @State private var store = VocabularyStore.shared
-    @FocusState private var focusedTerm: UUID?
+    /// The add field's text. Uncommitted — nothing reaches the store until Add /
+    /// Return, so a half-typed term is never persisted or sent.
+    @State private var draft = ""
+    @FocusState private var isDraftFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -39,47 +50,80 @@ struct VocabularyScreen: View {
     @ViewBuilder
     private var termsSection: some View {
         Section {
-            if store.terms.isEmpty {
-                Text("Nothing added yet. Terms here are sent to the transcription engine as hints, so it's more likely to get them right.")
-                    .appScaledFont(.callout)
-                    .foregroundStyle(.secondary)
-            } else {
-                let duplicates = store.duplicateTermIDs(userName: auth.userName)
+            addField
+
+            // One list, not two: the always-included terms sit alongside the user's
+            // rather than in a separate group, so the section reads as "everything
+            // being sent". They lead because that's also their clamp priority, and
+            // they're read-only — dimmed, no remove button.
+            FlowLayout {
+                ForEach(store.alwaysIncludedTerms(userName: auth.userName), id: \.self) { term in
+                    VocabularyTermChip(text: term, onRemove: nil)
+                }
                 ForEach(store.terms) { term in
-                    VocabularyTermRow(
-                        id: term.id,
-                        text: binding(for: term.id),
-                        isDuplicate: duplicates.contains(term.id),
-                        focus: $focusedTerm,
+                    VocabularyTermChip(
+                        text: term.normalized,
                         onRemove: { store.removeTerm(term.id) }
                     )
                 }
             }
-
-            Button {
-                // Focus the new row so typing is immediate.
-                focusedTerm = store.addTerm()
-            } label: {
-                Label("Add Term", systemImage: "plus")
-            }
         } header: {
-            Text("Your Terms")
+            Text("Terms")
         } footer: {
-            Text(builtInsFootnote)
+            footnotes
+        }
+    }
+
+    /// The single entry point for new terms. One field, so the placeholder appears
+    /// once no matter how many terms exist.
+    @ViewBuilder
+    private var addField: some View {
+        HStack(spacing: 8) {
+            TextField("Name, product, acronym, or jargon", text: $draft)
+                .textFieldStyle(.roundedBorder)
+                .appScaledFont(.body)
+                .focused($isDraftFocused)
+                .onSubmit(commitDraft)
+
+            Button("Add", action: commitDraft)
+                .disabled(pendingTerms.isEmpty)
+        }
+
+        if pendingTerms.isEmpty && !VocabularyStore.splitCandidates(draft).isEmpty {
+            // Everything typed is already covered — say so rather than letting the
+            // disabled button look broken.
+            Text("Already in your list.")
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }
     }
 
-    /// Names what's biased on top of the user's list, so the built-ins aren't
-    /// invisible magic. The display name is included on purpose — it's what the
-    /// name-mention highlight and notification match against.
-    private var builtInsFootnote: String {
-        let always = VocabularyStore.builtInTerms.joined(separator: ", ")
-        guard let name = VocabularyStore.normalizedName(auth.userName) else {
-            return "Always included: \(always)."
+    /// Explains the dimmed chips (so the built-ins aren't invisible magic — the
+    /// display name is among them on purpose, since it's what the name-mention
+    /// highlight and notification match against) and how to add several at once.
+    @ViewBuilder
+    private var footnotes: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Dimmed terms are always included: the app's own names, plus your display name — that's what name mentions match.")
+            Text("Separate several terms with commas, or paste a list, to add them at once.")
         }
-        return "Always included: \(always), and your display name (\(name)) — that's what name mentions match."
+        .appScaledFont(.caption)
+        .foregroundStyle(.secondary)
+    }
+
+    // MARK: - Adding
+
+    /// What the current draft would actually add — drives both the Add button's
+    /// enabled state and the "already in your list" notice.
+    private var pendingTerms: [String] {
+        store.newTerms(in: draft, userName: auth.userName)
+    }
+
+    private func commitDraft() {
+        guard store.addTerms(from: draft, userName: auth.userName) > 0 else { return }
+        draft = ""
+        // Keep focus so several terms can be typed in a row.
+        isDraftFocused = true
     }
 
     // MARK: - Background
@@ -145,16 +189,9 @@ struct VocabularyScreen: View {
 
     // MARK: - Bindings
 
-    /// Hand-synthesized per-row binding into the store, the same shape
-    /// `MacEditSpeakersSheet` uses — the store owns the array and persists each edit,
-    /// so rows can't hold their own copy.
-    private func binding(for id: UUID) -> Binding<String> {
-        Binding(
-            get: { store.terms.first { $0.id == id }?.text ?? "" },
-            set: { store.updateTerm(id, text: $0) }
-        )
-    }
-
+    /// Hand-synthesized binding into the store, the same shape `MacEditSpeakersSheet`
+    /// uses — the store owns the value and persists each edit, so the field can't hold
+    /// its own copy.
     private var backgroundBinding: Binding<String> {
         Binding(
             get: { store.backgroundText },

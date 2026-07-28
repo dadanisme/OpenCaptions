@@ -135,18 +135,43 @@ removed.
 
 ## Editing semantics
 
-Edits live-commit to the store (no Save button — matching how the Settings toggles
-behave), but are read **once at session start**: the config is the socket's first
-frame and is never resent. Hence the "Applies to your next session" note, the same
-convention the other next-session preferences use.
+Adds and removes commit to the store immediately (no Save button — matching how the
+Settings toggles behave), but are read **once at session start**: the config is the
+socket's first frame and is never resent. Hence the "Applies to your next session"
+note, the same convention the other next-session preferences use.
 
-Blank rows are an editor affordance, not data: they are legal in memory so a fresh
-row can be typed into, excluded from what is persisted, dropped when building the
-context, and pruned on load so the editor never opens onto empty rows.
+**One add field, chips for what's added.** The first cut gave every term its own
+`TextField` in a `ForEach`. Tested, that reads badly: each row repeats the same
+placeholder, so a handful of terms becomes a wall of identical grey text. Replaced
+with a single add field — the placeholder appears once, no matter how many terms
+exist — and the terms themselves as capsule chips wrapped by `FlowLayout` (a `Layout`,
+not a `LazyVGrid`, because chips have naturally different widths and a grid would
+force uniform columns).
 
-Duplicates are folded case-insensitively (biasing is not case-sensitive, and sending
-both spellings just spends budget). Because a folded duplicate would otherwise look
-like a term that failed to save, the row flags it instead.
+The always-included terms are chips in the **same list** as the user's, just dimmed
+and without a remove button — so the section reads as "everything being sent" rather
+than splitting into an editable group plus a separate informational one. They lead,
+which is also their clamp priority. A footnote explains what the dimmed ones are; the
+user can see what is already biased without being able to break it.
+
+Because the built-ins always exist, the chip list is never empty, so the screen needs
+no empty state — the add field's placeholder already says what belongs there.
+
+Consequences of the change:
+
+- **No in-place editing.** Fixing a typo means removing the chip and retyping. An
+  accepted trade for a tag field; the terms are short.
+- **Bulk add works.** Input is split on commas and newlines, so pasting a list adds it
+  in one go. A term containing a comma is unsupported — the usual trade.
+- **Blank terms can no longer exist.** The draft lives in the view until Add/Return,
+  so nothing half-typed is ever persisted or sent. The blank filtering in
+  `+Persistence` and the context builder is now defensive only, and cleans up
+  anything the row-editor design left behind.
+- **Duplicates can no longer be created.** `addTerms` rejects anything already covered
+  by the list, a built-in, or the display name (case-insensitively — biasing is not
+  case-sensitive, and sending both spellings just spends budget). When everything
+  typed is already covered the screen says so, rather than leaving a disabled Add
+  button looking broken. The context builder still folds duplicates defensively.
 
 ## What changed, file by file
 
@@ -169,9 +194,11 @@ like a term that failed to save, the row flags it instead.
   wire list is assembled, plus the clamping. Both clamps binary-search rather than
   append-and-measure: serialized length is monotonic in the prefix, so it costs
   O(log n) measurements, and an over-budget list can hold thousands of short terms.
-- `Views/Vocabulary/VocabularyScreen.swift`, `Views/Vocabulary/VocabularyTermRow.swift`
-  — the editor. The row takes the `FocusState` binding as a parameter because
-  `.focused` has to sit on the `TextField` itself.
+- `Views/Vocabulary/VocabularyScreen.swift` — the editor: one add field, chips, the
+  background note, the budget meter.
+- `Views/Vocabulary/VocabularyTermChip.swift` — one term as a capsule. A nil
+  `onRemove` marks an always-included term: same shape, dimmed, no remove button.
+- `Views/Vocabulary/FlowLayout.swift` — the wrapping `Layout` the chips sit in.
 - `docs/2026-07-28-macos-custom-vocabulary.md` — this note.
 
 **Changed**

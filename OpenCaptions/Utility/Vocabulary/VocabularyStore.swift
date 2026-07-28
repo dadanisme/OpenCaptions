@@ -36,9 +36,10 @@ final class VocabularyStore {
         load()
     }
 
-    /// The user's terms in editor order. Blank entries are legal here — a freshly
-    /// added row is blank until typed into — and are dropped when building the engine
-    /// context and when persisting.
+    /// The user's terms in add order. `addTerms` rejects blanks, so entries here are
+    /// non-blank in practice; the blank filtering in `+Persistence` and the context
+    /// builder is defensive, and cleans up anything left by the earlier row-editor
+    /// design (which allowed a blank row while it was being typed into).
     ///
     /// Not `private(set)` only because `load()` assigns it and lives in the
     /// `+Persistence` extension file (the same reason `HotKeyManager.issues` can't
@@ -66,21 +67,17 @@ final class VocabularyStore {
 
     // MARK: - Editing
 
-    /// Appends a blank term and returns its id so the caller can focus the new row.
+    /// Adds every term in `input` that isn't already covered, and returns how many
+    /// were added. `input` is split on commas and newlines, so pasting a list adds it
+    /// in one go; blanks, in-batch repeats, and anything already covered by the list /
+    /// a built-in / the display name are skipped.
     @discardableResult
-    func addTerm() -> UUID {
-        let term = VocabularyTerm()
-        terms.append(term)
+    func addTerms(from input: String, userName: String?) -> Int {
+        let additions = newTerms(in: input, userName: userName)
+        guard !additions.isEmpty else { return 0 }
+        terms.append(contentsOf: additions.map { VocabularyTerm(text: $0) })
         persist()
-        return term.id
-    }
-
-    /// Replaces one term's text. Stored verbatim (not trimmed) so typing a space
-    /// mid-edit isn't fought by the field; trimming happens at the wire boundary.
-    func updateTerm(_ id: UUID, text: String) {
-        guard let index = terms.firstIndex(where: { $0.id == id }) else { return }
-        terms[index].text = text
-        persist()
+        return additions.count
     }
 
     func removeTerm(_ id: UUID) {
@@ -93,25 +90,42 @@ final class VocabularyStore {
         persist()
     }
 
-    // MARK: - Duplicates
+    // MARK: - Add-field support
 
-    /// Ids of rows whose term is already covered — by an earlier row, by a built-in,
-    /// or by the display name. Duplicates are harmless on the wire (the context
-    /// builder folds them) but confusing in the editor, so the screen flags them.
-    /// Computed for the whole list at once rather than per row, which would be O(n²).
-    func duplicateTermIDs(userName: String?) -> Set<UUID> {
-        var seen = Set(Self.builtInTerms.map { $0.lowercased() })
+    /// The terms `input` would actually contribute, in order — what the Add button
+    /// commits, and what tells the screen whether there is anything to add at all
+    /// (so it can say "already in your list" instead of no-oping silently).
+    func newTerms(in input: String, userName: String?) -> [String] {
+        var covered = Set(Self.builtInTerms.map { $0.lowercased() })
         if let name = Self.normalizedName(userName) {
-            seen.insert(name.lowercased())
+            covered.insert(name.lowercased())
+        }
+        for term in terms where !term.isBlank {
+            covered.insert(term.dedupeKey)
         }
 
-        var duplicates: Set<UUID> = []
-        for term in terms where !term.isBlank {
-            if !seen.insert(term.dedupeKey).inserted {
-                duplicates.insert(term.id)
-            }
+        var additions: [String] = []
+        for candidate in Self.splitCandidates(input) {
+            guard covered.insert(candidate.lowercased()).inserted else { continue }
+            additions.append(candidate)
         }
-        return duplicates
+        return additions
+    }
+
+    /// Splits raw field input into candidate terms on commas and newlines — the two
+    /// separators a pasted list realistically uses. A term containing a comma isn't
+    /// supported, which is the usual trade in a tag field.
+    static func splitCandidates(_ input: String) -> [String] {
+        input
+            .split(whereSeparator: { $0 == "," || $0.isNewline })
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Terms always sent on top of the user's list, for the screen to show as
+    /// non-removable chips: the app's built-ins plus the display name.
+    func alwaysIncludedTerms(userName: String?) -> [String] {
+        Self.builtInTerms + (Self.normalizedName(userName).map { [$0] } ?? [])
     }
 
     /// The signed-in display name, trimmed, or nil when absent/blank (offline guests
