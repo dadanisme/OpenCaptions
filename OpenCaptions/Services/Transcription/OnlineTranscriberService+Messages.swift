@@ -56,12 +56,19 @@ extension OnlineTranscriberService {
             return
         }
 
-        // Check for error responses
+        // Check for error responses. Soniox closes the socket right after one, so
+        // this used to reach the user only as the generic "Connection lost" that the
+        // close then triggered — the actual reason (a rejected config, an oversized
+        // `context`, quota) was printed and dropped. Reporting it lets the view model
+        // fail the session with Soniox's own message; because `failSession` is
+        // guarded on `isRunning || isPaused`, the close's generic failure that
+        // follows is a no-op and this more specific message is what the user sees.
         if let errorCode = obj["error_code"] as? Int {
             let errorMessage =
                 obj["error_message"] as? String ?? "No error message provided"
             print("❌ Transcription service error code: \(errorCode)")
             print("❌ Error message: \(errorMessage)")
+            onError?(.provider(code: errorCode, message: errorMessage))
             return
         }
 

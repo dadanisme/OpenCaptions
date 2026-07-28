@@ -28,8 +28,18 @@ extension MacTranscriptionViewModel {
                 self.updatePartialLine(partials)
             }
         }
-        service.onError = { error in
+        service.onError = { [weak self] error in
             print("❌ Transcription error: \(error)")
+            // Soniox reports a rejected config / server fault as an `error_code` frame
+            // and then closes the socket. Both paths end the session, but only this one
+            // knows WHY, so surface it here — the `.disconnected` failure that follows
+            // is swallowed by `failSession`'s running-or-paused guard, leaving this
+            // message on screen.
+            guard case .provider(_, let message) = error else { return }
+            Task { @MainActor in
+                guard let self, self.serviceGeneration == generation else { return }
+                self.failSession(message: "Transcription service error: \(message)")
+            }
         }
         service.onConnectionStateChange = { [weak self] state in
             Task { @MainActor in
@@ -49,30 +59,28 @@ extension MacTranscriptionViewModel {
     /// Builds the Soniox config for the standalone Mac app: fixed language hints
     /// (id/en/ar), diarization on.
     ///
-    /// - Parameter userName: the signed-in user's display name, appended to the
-    ///   Soniox context `terms` so recognition is biased toward transcribing it
-    ///   correctly — this is the string the name-mention highlight + notify key
-    ///   off, so getting it right at the source matters most. Nil/blank (offline
-    ///   guests have no name) simply appends nothing.
+    /// The biasing context — the user's custom vocabulary, the app's built-in terms,
+    /// and the display name — comes from `VocabularyStore`, which is also what the
+    /// async re-transcription path reads, so the two can't drift. Read ONCE here at
+    /// session start: editing the vocabulary mid-session doesn't affect the running
+    /// session (the config is the socket's first frame and is never resent), which is
+    /// what the Vocabulary screen's "next session" note refers to.
+    ///
+    /// - Parameter userName: the signed-in user's display name, biased into the
+    ///   context `terms` so recognition is pushed toward transcribing it correctly —
+    ///   this is the string the name-mention highlight + notify key off, so getting it
+    ///   right at the source matters most. Nil/blank (offline guests have no name)
+    ///   simply contributes nothing.
+    ///
+    /// `@MainActor` because `VocabularyStore` is — the class itself isn't isolated at
+    /// type level here, only its members are, so a static needs saying explicitly.
+    /// Its only caller, `start()`, is already on the main actor.
+    @MainActor
     static func makeSonioxConfig(userName: String?) -> SonioxConfig {
-        var terms = ["Open Captions", "Soniox", "Apple Developer Academy"]
-        if let name = userName?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !name.isEmpty, !terms.contains(name) {
-            terms.append(name)
-        }
-        let context = SonioxConfig.Context(
-            general: [
-                .init(key: "domain", value: "education/lecture/meeting"),
-                .init(key: "intent", value: "Transcription"),
-                .init(key: "app_name", value: "Open Captions"),
-            ],
-            terms: terms,
-            text: nil
-        )
-        return SonioxConfig(
+        SonioxConfig(
             languageHints: ["id", "en", "ar"],
             isLanguageHintsStrict: TranscriptionConstants.isLanguageHintsStrict,
-            context: context,
+            context: VocabularyStore.shared.sonioxContext(userName: userName),
             isSpeakerDiarizationEnabled: true
         )
     }

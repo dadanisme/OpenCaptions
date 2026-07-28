@@ -46,11 +46,23 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
 }
 
 enum PostSessionRetranscriptionFactory {
-    /// Builds the engine for `kind`. `userName` biases Soniox's context terms.
+    /// Builds the engine for `kind`.
+    ///
+    /// Soniox is handed the same biasing context a live session would use — the user's
+    /// custom vocabulary plus the app's built-ins plus `userName` — resolved HERE
+    /// because `VocabularyStore` is main-actor-isolated while the engine itself runs
+    /// off it. Parakeet takes none: FluidAudio's term-biasing hook exists only on the
+    /// sliding-window streaming manager, not the batch `AsrManager` this path uses, so
+    /// offline re-transcription is unbiased (see
+    /// `docs/2026-07-28-macos-custom-vocabulary.md`).
+    @MainActor
     static func make(_ kind: RetranscriptionEngineKind, userName: String?) -> any PostSessionTranscriptionEngine {
         switch kind {
         case .parakeet: return ParakeetPostSessionEngine()
-        case .soniox: return SonioxAsyncPostSessionEngine(userName: userName)
+        case .soniox:
+            return SonioxAsyncPostSessionEngine(
+                context: VocabularyStore.shared.sonioxContext(userName: userName)
+            )
         }
     }
 }

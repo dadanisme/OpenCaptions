@@ -80,6 +80,20 @@ final class LiveSessionStore {
     /// Default `false` (registered in `OpenCaptionsApp`).
     static let offlineModeKey = "opencaptions.offlineMode.enabled"
 
+    /// UserDefaults key for the user's custom vocabulary — the terms biased into
+    /// recognition. Holds JSON-encoded `[VocabularyTerm]` as `Data`, so it is
+    /// deliberately NOT in `register(defaults:)` (a blob has no sensible registered
+    /// default); `VocabularyStore+Persistence` defaults in code instead, and treats
+    /// the key's ABSENCE as a first launch to seed. Owned by `VocabularyStore`, read
+    /// by both Soniox paths. Device-local — never synced.
+    static let vocabularyTermsKey = "opencaptions.vocabulary.terms"
+
+    /// UserDefaults key (String) for the freeform background note sent as Soniox
+    /// `context.text` (an agenda, prior notes, a topic). Shares the context character
+    /// budget with `vocabularyTermsKey`. Removed rather than stored as "" when
+    /// cleared. Owned by `VocabularyStore`.
+    static let vocabularyBackgroundTextKey = "opencaptions.vocabulary.backgroundText"
+
     /// UserDefaults key (Bool) for the global "finished onboarding" gate flag. The
     /// app gate (`OpenCaptionsApp`) shows the main UI only when this is set AND the user
     /// is either signed in or a local guest. Written by `completeOnboarding` and

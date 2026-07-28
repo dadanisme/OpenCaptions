@@ -103,13 +103,23 @@ final class OnlineTranscriberService: RealtimeTranscriptionEngine {
         // still delivered before any audio chunk (audio only starts once this
         // returns). Sending it immediately — rather than after a fixed 500 ms
         // sleep — removes the startup delay and the clipped first ~0.5 s of speech.
-        if let json = try? JSONSerialization.data(withJSONObject: config.toDictionary()),
+        //
+        // A config that can't even be serialized would leave the socket open,
+        // streaming audio Soniox never configured — so fail the start instead of
+        // silently continuing. The send itself stays fire-and-forget: awaiting it
+        // would block on the handshake and bring back the startup delay above.
+        guard let json = try? JSONSerialization.data(withJSONObject: config.toDictionary()),
             let jsonString = String(data: json, encoding: .utf8)
-        {
-            task?.send(.string(jsonString)) { err in
-                if let err {
-                    print("❌ Error sending config: \(err)")
-                }
+        else {
+            task?.cancel()
+            task = nil
+            throw TranscriptionServiceError.configSendFailed
+        }
+
+        task?.send(.string(jsonString)) { [weak self] err in
+            if let err {
+                print("❌ Error sending config: \(err)")
+                self?.onError?(.configSendFailed)
             }
         }
     }
