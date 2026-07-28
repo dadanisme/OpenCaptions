@@ -44,6 +44,10 @@ struct ContentView: View {
                 // Same per-user scope: a read-only rollup of key points across
                 // all of this owner's sessions.
                 KeyPointsScreen(userId: auth.ownerId)
+            case .vocabulary:
+                // No user scope: the custom vocabulary is a device-local preference
+                // (see `VocabularyStore`), not per-owner data.
+                VocabularyScreen()
             }
         }
         // Claim any pre-auth (`userId == nil`) sessions for the signed-in user so
@@ -61,6 +65,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
     case transcriptions
     case actionItems
     case keyPoints
+    case vocabulary
 
     var id: String { rawValue }
 
@@ -69,6 +74,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .transcriptions: return "Transcriptions"
         case .actionItems: return "Action Items"
         case .keyPoints: return "Key Points"
+        case .vocabulary: return "Vocabulary"
         }
     }
 
@@ -77,6 +83,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .transcriptions: return "waveform"
         case .actionItems: return "checklist"
         case .keyPoints: return "lightbulb"
+        case .vocabulary: return "text.book.closed"
         }
     }
 }

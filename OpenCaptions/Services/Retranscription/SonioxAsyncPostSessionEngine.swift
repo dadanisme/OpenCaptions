@@ -29,22 +29,16 @@ final class SonioxAsyncPostSessionEngine: PostSessionTranscriptionEngine {
     let baseURL = URL(string: "https://api.soniox.com/v1")!
     let model = "stt-async-v5"
 
-    /// The signed-in user's name, biased into `context.terms` (mirrors the live
-    /// `makeSonioxConfig`) so the name-mention highlight keys off a correct spelling.
-    private let userName: String?
+    /// Biasing context sent with the create request: the user's custom vocabulary,
+    /// the app's built-in terms, and the display name (which the name-mention
+    /// highlight keys off, so a correct spelling matters). Resolved by
+    /// `VocabularyStore` on the main actor and injected here — the same context the
+    /// live config uses, so re-transcribing can't bias differently than the session
+    /// did. Already clamped to Soniox's context character cap.
+    let sonioxContext: SonioxConfig.Context
 
-    init(userName: String?) {
-        self.userName = userName
-    }
-
-    /// Context terms sent with the create request (matches the live config).
-    var contextTerms: [String] {
-        var terms = ["Open Captions", "Soniox", "Apple Developer Academy"]
-        if let name = userName?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !name.isEmpty, !terms.contains(name) {
-            terms.append(name)
-        }
-        return terms
+    init(context: SonioxConfig.Context) {
+        self.sonioxContext = context
     }
 
     func transcribe(

@@ -55,20 +55,18 @@ extension SonioxAsyncPostSessionEngine {
         request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let payload: [String: Any] = [
+        var payload: [String: Any] = [
             "model": model,
             "file_id": fileId,
             "enable_speaker_diarization": true,
             "language_hints": ["id", "en", "ar"],
-            "context": [
-                "general": [
-                    ["key": "domain", "value": "education/lecture/meeting"],
-                    ["key": "intent", "value": "Transcription"],
-                    ["key": "app_name", "value": "Open Captions"],
-                ],
-                "terms": contextTerms,
-            ],
         ]
+        // Same serialization the live config uses, so the two paths bias identically.
+        // Omitted entirely when empty rather than sent as an empty object.
+        let contextDict = sonioxContext.toDictionary()
+        if !contextDict.isEmpty {
+            payload["context"] = contextDict
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: payload)
 
         let (data, response) = try await URLSession.shared.data(for: request)

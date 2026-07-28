@@ -45,6 +45,11 @@ enum TranscriptionServiceError: Error, CustomStringConvertible {
     case receiveLoopEnded(underlying: Error?)
     case zombieConnection
     case configSendFailed
+    /// An `error_code` frame from Soniox — a rejected config (bad model, oversized
+    /// `context`, exhausted quota) or a mid-session server fault. Soniox closes the
+    /// socket right after sending one, so it is always terminal; carrying its message
+    /// is what lets the UI say WHY instead of only "Connection lost".
+    case provider(code: Int, message: String)
 
     var description: String {
         switch self {
@@ -58,6 +63,8 @@ enum TranscriptionServiceError: Error, CustomStringConvertible {
             return "Zombie connection detected: audio sent but no tokens received"
         case .configSendFailed:
             return "Failed to send configuration to Soniox"
+        case .provider(let code, let message):
+            return "Soniox error \(code): \(message)"
         }
     }
 
@@ -69,6 +76,7 @@ enum TranscriptionServiceError: Error, CustomStringConvertible {
         case .receiveLoopEnded: return "ws_receive_loop_ended"
         case .zombieConnection: return "ws_zombie_connection"
         case .configSendFailed: return "ws_config_send_failed"
+        case .provider(let code, _): return "ws_provider_error_\(code)"
         }
     }
 }
