@@ -7,7 +7,7 @@
 //  inside a floating, non-activating panel by `MacHUDOverlayController`.
 //
 //  `HotKeyOutcome` is what a hotkey actually DID (or why it was a no-op), so the
-//  same "Pause" chord confirms with "Paused" when it acted or "Not recording"
+//  same "Pause" chord confirms with "Paused" when it acted or "Not recording yet"
 //  when it didn't. Neutral outcomes (no-ops / prompts) render muted so a
 //  mis-timed press reads as informational, not as success.
 //
@@ -38,17 +38,17 @@ enum HotKeyOutcome {
 
     var message: String {
         switch self {
-        case .recordingStarted: return "Recording started"
-        case .recordingStopped: return "Recording saved"
+        case .recordingStarted: return "Session started"
+        case .recordingStopped: return "Session saved"
         case .recordingPaused: return "Paused"
         case .recordingResumed: return "Resumed"
         case .captionsShown: return "Captions shown"
         case .captionsHidden: return "Captions hidden"
-        case .notRecording: return "Not recording"
-        case .noSession: return "No active recording"
+        case .notRecording: return "Not recording yet"
+        case .noSession: return "No active session"
         case .resumeFailed: return "Couldn't resume"
         case .permissionNeeded: return "Microphone access needed"
-        case .signInRequired: return "Sign in to record"
+        case .signInRequired: return "Sign in to start a session"
         }
     }
 

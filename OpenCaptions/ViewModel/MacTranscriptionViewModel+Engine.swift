@@ -38,7 +38,7 @@ extension MacTranscriptionViewModel {
                     // Socket is dead and this target has no reconnection: stop
                     // cleanly instead of streaming mic audio into a void while
                     // the UI keeps claiming it's recording.
-                    self.failSession(message: "Connection lost. Recording stopped — tap End to keep this transcript.")
+                    self.failSession(message: "Connection lost. Session stopped — tap End to keep this transcript.")
                 }
             }
         }

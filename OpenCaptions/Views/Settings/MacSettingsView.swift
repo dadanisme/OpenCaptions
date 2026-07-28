@@ -14,7 +14,7 @@ import SwiftUI
 
 struct MacSettingsView: View {
     @Environment(MacAuthManager.self) private var auth
-    /// "Show captions overlay when recording starts" — read by `LiveSessionStore`
+    /// "Show captions overlay when a session starts" — read by `LiveSessionStore`
     /// at session start via the same UserDefaults key.
     @AppStorage(LiveSessionStore.captionsAutoShowKey) private var captionsAutoShow = true
     /// Overlay background opacity for the material fallback (macOS < 26).
@@ -142,9 +142,9 @@ struct MacSettingsView: View {
             // Disabled without saved session audio: with no `.m4a` there's nothing to
             // re-process, and the automatic pass is silent (no error surfaces), so an
             // enabled-but-inert toggle would look like a broken feature.
-            Toggle("Automatically re-transcribe after recording", isOn: $autoRetranscribe)
+            Toggle("Automatically re-transcribe after each session", isOn: $autoRetranscribe)
                 .disabled(!saveSessionAudio)
-            Text("After each recording is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+            Text("After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -159,21 +159,21 @@ struct MacSettingsView: View {
             return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."
         }
         return offlineModeEnabled
-            ? "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. AI summaries aren't available offline. Applies to your next recording."
-            : "Transcribe in the cloud with speaker labels. Requires an internet connection. Applies to your next recording."
+            ? "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. AI summaries aren't available offline. Applies to your next session."
+            : "Transcribe in the cloud with speaker labels. Requires an internet connection. Applies to your next session."
     }
 
     @ViewBuilder
     private var captionsSections: some View {
         Section("Captions") {
-            Toggle("Show captions overlay when recording starts", isOn: $captionsAutoShow)
+            Toggle("Show captions overlay when a session starts", isOn: $captionsAutoShow)
             LabeledContent("Transcript text size") {
                 Slider(value: $textSizeMultiplier,
                        in: TranscriptTextSize.range,
                        step: TranscriptTextSize.step)
                     .frame(width: 180)
             }
-            Text("Scales both the live transcript and the floating captions. Also adjustable while recording from the transport bar or the menu-bar item.")
+            Text("Scales both the live transcript and the floating captions. Also adjustable during a session from the transport bar or the menu-bar item.")
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
             LabeledContent("Background opacity") {
@@ -185,7 +185,7 @@ struct MacSettingsView: View {
                 .foregroundStyle(.secondary)
         }
         Section {
-            Text("The overlay floats above other apps so you can read live captions while watching a meeting, video, or slides. Drag it to move, drag an edge to resize, and toggle it any time from the Recording menu (⇧⌘C) or the menu-bar item.")
+            Text("The overlay floats above other apps so you can read live captions while watching a meeting, video, or slides. Drag it to move, drag an edge to resize, and toggle it any time from the Session menu (⇧⌘C) or the menu-bar item.")
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -71,7 +71,7 @@ final class FileImportManager {
     /// audio/CPU), mirroring `RetranscriptionManager`.
     func importFile(_ source: URL, container: ModelContainer) {
         if let live = LiveSessionStore.shared.viewModel, live.isRunning || live.isPaused {
-            errorMessage = "Finish your current recording before importing a file."
+            errorMessage = "Finish your current session before importing a file."
             return
         }
         let jobID = UUID()

@@ -4,7 +4,7 @@
 //
 //  The dropdown for the system menu-bar item: a status line + full recording
 //  transport (Pause-Resume / End & Save / Show-Hide Captions / Audio Source /
-//  New Recording) plus Open/Quit. Rendered as a native menu
+//  New Session) plus Open/Quit. Rendered as a native menu
 //  (`.menuBarExtraStyle(.menu)`), so each row maps to a menu item; actions read
 //  from the shared `MenuBarState` (or call `LiveSessionStore` directly) and bring
 //  the app forward. The Audio Source picker changes the live capture source (a
@@ -35,7 +35,7 @@ struct MenuBarContent: View {
     var body: some View {
         if state.status == .idle {
             Button(action: newRecording) {
-                Label("New Recording", systemImage: "record.circle")
+                Label("New Session", systemImage: "record.circle")
             }
         } else {
             Button { state.endAndSave?() } label: {
@@ -150,7 +150,7 @@ struct MenuBarContent: View {
         switch state.status {
         case .idle:
             Button(action: newRecording) {
-                Label("New Recording", systemImage: "record.circle")
+                Label("New Session", systemImage: "record.circle")
             }
         case .recording:
             Text("● Recording")

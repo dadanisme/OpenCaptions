@@ -73,7 +73,7 @@ struct PostSessionEngineCapabilities {
 
 /// Failures surfaced to the re-transcription UI.
 enum PostSessionEngineError: LocalizedError {
-    /// The session has no saved recording to re-transcribe.
+    /// The session has no saved audio to re-transcribe.
     case audioUnavailable
     /// The on-device model isn't downloaded yet.
     case modelNotDownloaded
@@ -87,11 +87,11 @@ enum PostSessionEngineError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .audioUnavailable:
-            return "This session has no saved recording to re-transcribe."
+            return "This session has no saved audio to re-transcribe."
         case .modelNotDownloaded:
             return "The offline model isn't downloaded yet. Download it from Settings → General → Offline Mode, then try again."
         case .emptyResult:
-            return "No speech was found in the recording."
+            return "No speech was found in the audio."
         case .network(let message):
             return "Network error: \(message)"
         case .provider(let message):

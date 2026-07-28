@@ -64,7 +64,7 @@ extension MacTranscriptionViewModel {
         // (keepalive should normally prevent this), fail the session but keep
         // whatever was already transcribed so Stop & Save still works.
         if transcriptionService?.needsReconnect == true {
-            failSession(message: "Connection lost while paused. Recording stopped — tap End to keep this transcript.")
+            failSession(message: "Connection lost while paused. Session stopped — tap End to keep this transcript.")
             return
         }
 
@@ -75,7 +75,7 @@ extension MacTranscriptionViewModel {
         do {
             try audio?.resume()
         } catch {
-            failSession(message: "Couldn't resume the microphone. Recording stopped — tap End to keep this transcript.")
+            failSession(message: "Couldn't resume the microphone. Session stopped — tap End to keep this transcript.")
             return
         }
         // Resume source-app sampling on the same clock anchor.

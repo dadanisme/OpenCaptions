@@ -53,7 +53,7 @@ struct TranscriptionsScreen: View {
                     }
                 }
         }
-        // Expose "New Recording" (Cmd+N) to the main menu. Nil while already
+        // Expose "New Session" (Cmd+N) to the main menu. Nil while already
         // recording so the menu item disables instead of restarting a session.
         .focusedSceneValue(\.startRecording, startRecordingAction)
         // Expose "Import Audio or Video…" (Cmd+I) to the File menu. Nil while a
@@ -63,7 +63,7 @@ struct TranscriptionsScreen: View {
         // that can't read focused values). Re-published whenever recording
         // starts/stops, and cleared when the list leaves the hierarchy.
         .onAppear { menuBar.startRecording = startRecordingAction }
-        // Consume a pending "New Recording" request — from the menu-bar item while
+        // Consume a pending "New Session" request — from the menu-bar item while
         // the window was closed, OR a global-hotkey Start whose mic-permission
         // fallback raised an ALREADY-OPEN window. `initial: true` covers the first
         // (onAppear-equivalent) case; the change covers the second, where onAppear
@@ -80,7 +80,7 @@ struct TranscriptionsScreen: View {
         .onDisappear { menuBar.startRecording = nil }
     }
 
-    /// The menu-bar "New Recording" action, or nil while a session is active so
+    /// The menu-bar "New Session" action, or nil while a session is active so
     /// the item disables. A guard + explicit closure literal (not a ternary over
     /// a bare method reference) keeps type inference unambiguous.
     private var startRecordingAction: (() -> Void)? {
@@ -116,9 +116,9 @@ struct TranscriptionsScreen: View {
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: startNewRecording) {
-                            Label("Record", systemImage: "mic")
+                            Label("New Session", systemImage: "mic")
                         }
-                        .help("Start a new recording")
+                        .help("Start a new session")
                     }
                 }
                 // Audio covers m4a/mp3/wav/aiff/caf; movie covers mp4/mov/etc. — the
@@ -170,9 +170,9 @@ struct TranscriptionsScreen: View {
     private var listContent: some View {
         if sessions.isEmpty {
             ContentUnavailableView(
-                "No Recordings",
+                "No Sessions",
                 systemImage: "waveform",
-                description: Text("Tap Record to start your first transcription.")
+                description: Text("Tap New Session to start your first transcription.")
             )
         } else {
             List {

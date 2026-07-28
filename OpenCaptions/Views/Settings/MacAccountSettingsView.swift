@@ -127,7 +127,7 @@ struct MacAccountSettingsView: View {
                     }
                     // The name feeds both recognition and the mention alert, so a
                     // short calling name works better than a full legal name.
-                    Text("Use the name people actually call you — Open Captions listens for it and alerts you when it's spoken during a recording.")
+                    Text("Use the name people actually call you — Open Captions listens for it and alerts you when it's spoken during a session.")
                         .appScaledFont(.caption)
                         .foregroundStyle(.secondary)
                     LabeledContent("Email", value: auth.userEmail ?? "—")

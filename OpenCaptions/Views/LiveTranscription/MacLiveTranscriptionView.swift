@@ -93,13 +93,13 @@ struct MacLiveTranscriptionView: View {
         .sheet(item: $shareTarget) { target in
             MacShareSessionSheet(sessionId: target.id)
         }
-        .alert("End recording?", isPresented: $showBackConfirm) {
+        .alert("End session?", isPresented: $showBackConfirm) {
             Button("End") { Task { await stopAndExit() } }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Going back will end and save this transcription.")
         }
-        .alert("End recording?", isPresented: $showStopConfirm) {
+        .alert("End session?", isPresented: $showStopConfirm) {
             Button("End") { Task { await stopAndSave() } }
             Button("Cancel", role: .cancel) {}
         } message: {

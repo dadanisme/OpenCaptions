@@ -5,7 +5,7 @@
 //  Step 4: choose what Open Captions listens to — the microphone alone, or the microphone
 //  plus other apps' audio (meetings, calls, videos). Writes the coordinator's
 //  `source` binding, which is persisted to the shared `opencaptions.audioSource` key on
-//  finish so the choice flows to the menu bar and recording bar automatically.
+//  finish so the choice flows to the menu bar and transport bar automatically.
 //  System-only capture is intentionally left to the menu bar (not an onboarding
 //  choice) to keep the decision binary here.
 //
@@ -20,7 +20,7 @@ struct MacOnboardingCaptureStep: View {
             MacOnboardingHeader(
                 systemImage: "mic",
                 title: "What should Open Captions listen to?",
-                subtitle: "You can change this anytime from the menu bar or the recording bar."
+                subtitle: "You can change this anytime from the menu bar or during a session."
             )
 
             VStack(spacing: 12) {
