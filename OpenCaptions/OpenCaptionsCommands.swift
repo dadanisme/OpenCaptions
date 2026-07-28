@@ -2,7 +2,7 @@
 //  OpenCaptionsCommands.swift
 //  OpenCaptions
 //
-//  The app's menu-bar commands. A single "Recording" menu carries
+//  The app's menu-bar commands. A single "Session" menu carries
 //  every transcription action; each item reads a `@FocusedValue` published by
 //  the relevant screen and disables itself when that context isn't frontmost.
 //  Settings (Cmd+,) and the standard App/Edit/View/Window/Help menus come from
@@ -23,7 +23,7 @@ struct OpenCaptionsCommands: Commands {
 
     var body: some Commands {
         // Drop the default WindowGroup "New Window" command so its Cmd+N doesn't
-        // collide with "New Recording" below.
+        // collide with "New Session" below.
         CommandGroup(replacing: .newItem) {}
 
         // File ▸ Import Audio or Video… (published by the session list; nil while a
@@ -34,8 +34,8 @@ struct OpenCaptionsCommands: Commands {
                 .disabled(importMedia == nil)
         }
 
-        CommandMenu("Recording") {
-            Button("New Recording") { startRecording?() }
+        CommandMenu("Session") {
+            Button("New Session") { startRecording?() }
                 .keyboardShortcut("n", modifiers: .command)
                 .disabled(startRecording == nil)
 

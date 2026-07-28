@@ -50,7 +50,7 @@ final class RetranscriptionManager {
     // MARK: - Automatic
 
     /// Starts automatic re-transcription for a just-saved session when the user's
-    /// "Automatically re-transcribe after recording" preference is on. The
+    /// "Automatically re-transcribe after each session" preference is on. The
     /// engine follows Offline Mode. Background, silent (no error surfacing).
     func startAutomatic(sessionID: PersistentIdentifier, container: ModelContainer) {
         guard UserDefaults.standard.bool(forKey: LiveSessionStore.retranscriptionAutoKey) else { return }
@@ -78,7 +78,7 @@ final class RetranscriptionManager {
 
         // Never run alongside a live recording (shared audio/CPU).
         if let live = LiveSessionStore.shared.viewModel, live.isRunning || live.isPaused {
-            if interactive { errorBySession[sessionID] = "Finish your current recording before re-transcribing." }
+            if interactive { errorBySession[sessionID] = "Finish your current session before re-transcribing." }
             return
         }
         guard let session = context.model(for: sessionID) as? TranscriptionSession,

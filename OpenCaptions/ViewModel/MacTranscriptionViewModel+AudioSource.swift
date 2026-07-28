@@ -64,11 +64,11 @@ extension MacTranscriptionViewModel {
     private static func interruptionMessage(for kind: AudioSource) -> String {
         switch kind {
         case .microphone:
-            return "Audio input changed. Recording stopped — tap End to keep this transcript."
+            return "Audio input changed. Session stopped — tap End to keep this transcript."
         case .systemAudio:
-            return "System audio capture stopped. Recording stopped — tap End to keep this transcript."
+            return "System audio capture was interrupted. Session stopped — tap End to keep this transcript."
         case .microphoneAndSystem:
-            return "Audio capture stopped. Recording stopped — tap End to keep this transcript."
+            return "Audio capture was interrupted. Session stopped — tap End to keep this transcript."
         }
     }
 }

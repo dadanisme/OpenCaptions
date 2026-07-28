@@ -39,7 +39,7 @@ final class MenuBarState {
     /// idle; nil otherwise (e.g. the window is closed) — in which case the
     /// menu-bar item opens the window and sets `pendingStartRequest` instead.
     var startRecording: (() -> Void)?
-    /// Set by the menu-bar "New Recording" when there's no live `startRecording`
+    /// Set by the menu-bar "New Session" when there's no live `startRecording`
     /// (window closed). The list screen consumes it on appear to auto-start.
     var pendingStartRequest = false
     /// Pause/resume the live session. Nil when not recording.

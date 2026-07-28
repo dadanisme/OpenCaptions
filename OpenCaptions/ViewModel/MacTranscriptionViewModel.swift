@@ -132,7 +132,7 @@ final class MacTranscriptionViewModel {
             manager.refreshStatus()
             if manager.status != .ready {
                 isRunning = false
-                errorMessage = "Offline transcription needs the on-device model. Open Settings → Recording to download it, then try again."
+                errorMessage = "Offline transcription needs the on-device model. Open Settings → General → Offline Mode to download it, then try again."
                 return
             }
         }

@@ -16,7 +16,7 @@ extension MacSessionDetailView {
 
     // MARK: - Menu
 
-    /// The "Re-transcribe" action, shown when the session has a saved recording. No
+    /// The "Re-transcribe" action, shown when the session has saved audio. No
     /// engine choice — it follows Offline Mode (Parakeet offline / Soniox cloud).
     /// Disabled while a run is in flight for this session, or when the offline model is
     /// missing while Offline Mode is on.

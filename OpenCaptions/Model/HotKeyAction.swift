@@ -20,7 +20,7 @@ import Carbon.HIToolbox
 import Foundation
 
 enum HotKeyAction: String, CaseIterable, Identifiable {
-    /// Start a recording when idle; Stop & Save when one is active.
+    /// Start a session when idle; Stop & Save when one is active.
     case toggleRecording
     /// Pause when recording; Resume when paused.
     case togglePause
@@ -43,7 +43,7 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
     /// Settings-row title.
     var title: String {
         switch self {
-        case .toggleRecording: return "Start / Stop Recording"
+        case .toggleRecording: return "Start / Stop Session"
         case .togglePause: return "Pause / Resume"
         case .toggleCaptions: return "Show / Hide Captions"
         }

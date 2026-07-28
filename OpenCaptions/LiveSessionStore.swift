@@ -29,7 +29,7 @@ final class LiveSessionStore {
     static let shared = LiveSessionStore()
     private init() {}
 
-    /// UserDefaults key for the "show captions overlay when recording starts"
+    /// UserDefaults key for the "show captions overlay when a session starts"
     /// preference. Shared with `MacSettingsView`'s `@AppStorage` toggle.
     static let captionsAutoShowKey = "opencaptions.captionsOverlay.autoShow"
 
@@ -155,7 +155,7 @@ final class LiveSessionStore {
     }
 
     /// Starts a new recording from the menu-bar item WITHOUT needing the main
-    /// window on screen — the whole point of the status-bar "New Recording": just
+    /// window on screen — the whole point of the status-bar "New Session": just
     /// start transcribing, don't also raise the app.
     ///
     /// Returns `true` if capture started headlessly. Returns `false` when the
