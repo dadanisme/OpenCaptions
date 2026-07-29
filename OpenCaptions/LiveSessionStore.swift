@@ -73,6 +73,19 @@ final class LiveSessionStore {
     /// `false` (registered in `OpenCaptionsApp`).
     static let retranscriptionAutoKey = "opencaptions.retranscription.auto"
 
+    /// UserDefaults key (Bool) for AUTOMATIC speaker naming from the summary pass.
+    /// When on, a generated summary also predicts who each diarized speaker is and
+    /// confidently-named speakers are renamed silently; when off, labels stay
+    /// "Speaker N" and Edit Speakers is the only way to name them. Bound to
+    /// `MacSettingsView`'s toggle and read by `SummaryViewModel` at apply time.
+    /// Gates only whether the prediction is APPLIED — the request Gemini receives is
+    /// identical either way, so toggling this never changes the summary text itself.
+    /// Diarization is cloud-only, so this has no effect in Offline Mode. Default
+    /// `true` (registered in `OpenCaptionsApp`) — it must be registered, since a raw
+    /// `UserDefaults.bool` read of an unregistered key returns `false` and would ship
+    /// the feature silently off. See docs/2026-07-29-macos-speaker-auto-naming.md.
+    static let speakerNamingAutoKey = "opencaptions.speakerNaming.auto"
+
     /// UserDefaults key for the Offline Mode toggle (Bool). Off → Soniox (cloud);
     /// on → on-device Nemotron transcription with no network. Read at session start
     /// by `MacTranscriptionViewModel.start` and by `MacSessionDetailView` to gate

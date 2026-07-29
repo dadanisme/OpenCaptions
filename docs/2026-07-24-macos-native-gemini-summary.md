@@ -42,10 +42,24 @@ is untouched.
    `actionItems` stays **optional**, matching `SummaryAPIResponse.actionItems: [String]?`),
    and pins `propertyOrdering` for stable output.
 
+   **Update 2026-07-29 (#14):** both halves of this changed. The transcript is no
+   longer a plain speaker-labelled blob — every diarized line now carries its
+   numeric speaker id (`Speaker 2 (Alice)：…`) and a speaker roster precedes the
+   dialogue, so the response can map a predicted name back to an id. And the schema
+   gained a second optional field, `speakers`, alongside `actionItems`; it also moved
+   out of `SummaryService+Gemini.swift` into its own `SummaryService+Schema.swift`.
+   See `docs/2026-07-29-macos-speaker-auto-naming.md`.
+
 4. **Response is a JSON string inside a JSON envelope.** The structured summary
    arrives as `candidates[0].content.parts[0].text` — itself a JSON string shaped
    by `responseSchema` — which we then decode into `SummaryAPIResponse` with a plain
    `JSONDecoder` (camelCase keys matched verbatim).
+
+   **Update 2026-07-29 (#14):** still a plain `JSONDecoder`, but note that this
+   decode is **all-or-nothing** — a type mismatch in any field aborts the whole
+   response. That is why the `speakers` field added for speaker auto-naming is
+   wrapped in a type whose `init(from:)` cannot throw, rather than declared as a
+   plain optional array.
 
 5. **Prompt reworded off the Ogmo persona.** The system prompt was ported verbatim
    in behavior but its persona changed from "note summarization assistant for deaf
@@ -110,7 +124,8 @@ Gemini failures map onto the **existing** `SessionSummaryError` cases (no new ca
   real value; documented placeholder in the example).
 
 The three-file split keeps each under the ~250-line house limit (`Type+Feature.swift`
-convention).
+convention). (**Update 2026-07-29:** now four — #14 extracted `responseSchema` into
+`SummaryService+Schema.swift` for the same reason.)
 
 ## Config note (`SUMMARIZE_API_TOKEN`)
 

@@ -14,6 +14,15 @@ final class SummaryViewModel {
 
     private let service = SummaryService()
 
+    /// The Settings → "Speaker Names" preference. Read raw (not `@AppStorage`) because
+    /// this is a view model, and read at apply time rather than cached so a mid-session
+    /// change takes effect on the next summary. `OpenCaptionsApp` registers `true`, so
+    /// an untouched install gets the feature; without that registration this read would
+    /// return `false` and silently disable it.
+    private var isAutoSpeakerNamingEnabled: Bool {
+        UserDefaults.standard.bool(forKey: LiveSessionStore.speakerNamingAutoKey)
+    }
+
     func generateSummary(session: TranscriptionSession, context: ModelContext) async {
         guard !session.lines.isEmpty else { return }
 
@@ -27,6 +36,18 @@ final class SummaryViewModel {
             session.sessionTitle = response.title
             session.shortDescription = response.shortDescription
             try? context.save()
+
+            // Auto-name the diarized speakers the model was confident about. Silent
+            // and best-effort: no-op when it named nobody (or named nobody
+            // confidently enough), and it never affects whether the summary saved.
+            // Edit Speakers remains the correction path.
+            if isAutoSpeakerNamingEnabled {
+                SpeakerRenamer.apply(
+                    SpeakerNameResolver.resolve(response.identifiedSpeakers),
+                    to: session,
+                    context: context
+                )
+            }
 
             // If this session is shared, mirror the fresh summary to the web view
             // so it matches the app (no-op when sharing is off / session unshared).

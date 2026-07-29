@@ -55,6 +55,19 @@ struct SummaryAPIResponse: Decodable {
     let summary: [String]
     let keyPoints: [String]
     let actionItems: [String]?
+
+    /// Who the model thinks each diarized speaker is — optional in the response
+    /// schema, so a transcript with no identity signal simply omits it.
+    ///
+    /// Wrapped in `SpeakerPredictions` rather than declared `[SpeakerIdentification]?`
+    /// on purpose: the synthesized decoder would call `decodeIfPresent` on a plain
+    /// array, which THROWS on a type mismatch and would take the whole summary down
+    /// with a malformed prediction. `SpeakerPredictions.init(from:)` cannot throw.
+    let speakers: SpeakerPredictions?
+
+    /// The speakers the model named — empty when the field was absent, null, or
+    /// malformed. The accessor callers should use; see `SpeakerNameResolver`.
+    var identifiedSpeakers: [SpeakerIdentification] { speakers?.identifications ?? [] }
 }
 
 // MARK: - Summary Service

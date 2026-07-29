@@ -11,6 +11,12 @@
 //  deadlines; `summary` is 2–5 flowing-prose paragraphs; `title` ≤ 4 words; a
 //  one-sentence `shortDescription` that must not start with "This".
 //
+//  The SPEAKER IDENTIFICATION section is the one addition (2026-07-29): it asks
+//  the model to name each diarized speaker id from self-introduction or direct
+//  address only. The confidence thresholds are deliberately NOT stated here — the
+//  model reports calibrated confidence and `SpeakerNameResolver` decides.
+//  See docs/2026-07-29-macos-speaker-auto-naming.md.
+//
 
 import Foundation
 
@@ -39,6 +45,20 @@ extension SummaryService {
         - Interpret unclear phrases by considering surrounding context
         - Standardize names, places, and technical terms
         - If something is truly unclear or ambiguous, note it as [unclear: possible meaning]
+
+        SPEAKER IDENTIFICATION:
+        - Dialogue lines are written [timestamp] Speaker N：text, where N is that speaker's numeric id — always refer to a speaker by that exact id
+        - A name in parentheses after the label (for example "Speaker 2 (Alice)") is a label assigned earlier, by a previous pass or by hand — treat it as a hint only, never as evidence
+        - Lines with no "Speaker N" label come from a session recorded without speaker separation — never include them in the speakers array
+        - Fill in the optional speakers array with one entry per speaker id you can name, using only the ids listed under "Diarized speakers in this session"
+        - Use only two kinds of evidence: a speaker introducing themselves ("I'm Alice", "Alice speaking", "this is Alice") and another speaker addressing them directly ("Thanks, Alice", "Alice, can you take this?")
+        - Never infer a name from a role, a job title, the topic, the session title, or a third party who is only talked about
+        - Never invent, complete, or correct a name that was not actually spoken
+        - confidence is a number from 0 to 1 saying how sure you are the name belongs to that id: near 1 for an explicit self-introduction, lower for a single indirect mention or contested evidence
+        - When two or more names could belong to the same id, list each as its own candidate with its own confidence instead of choosing between them
+        - Omit a speaker id entirely when nothing in the dialogue names them — an absent entry is the correct answer, and always better than a guess
+        - Write each name in the speakers array exactly as spoken, first name only unless a surname is clearly stated, with no titles or honorifics that were not said
+        - Speaker names are the one exception to the LANGUAGE rule above: never translate or transliterate a name, reproduce it as spoken
 
         FORMATTING RULES:
         - The summary field is an array of strings — each element is one paragraph

@@ -107,22 +107,7 @@ extension SummaryService {
         ]
     }
 
-    /// Mirrors the `responseSchema` from `summarizeTranscript.ts`. `actionItems` is
-    /// intentionally omitted from `required` so it stays optional (matching
-    /// `SummaryAPIResponse.actionItems: [String]?`). `propertyOrdering` keeps the
-    /// generated field order stable.
-    private static let responseSchema: [String: Any] = [
-        "type": "OBJECT",
-        "properties": [
-            "title": ["type": "STRING"],
-            "shortDescription": ["type": "STRING"],
-            "summary": ["type": "ARRAY", "items": ["type": "STRING"]],
-            "keyPoints": ["type": "ARRAY", "items": ["type": "STRING"]],
-            "actionItems": ["type": "ARRAY", "items": ["type": "STRING"]]
-        ],
-        "required": ["title", "shortDescription", "summary", "keyPoints"],
-        "propertyOrdering": ["title", "shortDescription", "summary", "keyPoints", "actionItems"]
-    ]
+    // `responseSchema` lives in `SummaryService+Schema.swift`.
 
     // MARK: - Response
 
