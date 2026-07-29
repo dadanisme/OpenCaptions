@@ -3,12 +3,15 @@
 //  OpenCaptions
 //
 //  Groups a flat batch of `PostSessionToken`s (from any post-session engine) into
-//  readable, persist-ready lines, reusing the live accumulator's speaker/sentence/
-//  word rules via the shared `SentenceHeuristics`. It intentionally uses a SIMPLER
-//  grouping than the live path — one paragraph per line, capped at
-//  `maxWordsPerParagraph` words — rather than the live accumulator's multi-paragraph
-//  bubbles (`\n\n` up to `maxParagraphsPerBubble`). The result is a few more, shorter
-//  lines; for a clean batch transcript that reads fine and keeps this builder simple.
+//  readable, persist-ready lines, sharing the live path's speaker/sentence/word rules
+//  via `SentenceHeuristics`. It intentionally uses a SIMPLER grouping than the live
+//  builder — one paragraph per line, capped at `maxWordsPerParagraph` words — rather
+//  than the live path's multi-paragraph bubbles (`\n\n` up to
+//  `maxParagraphsPerBubble`). The result is a few more, shorter lines; for a clean
+//  batch transcript that reads fine and keeps this builder simple.
+//
+//  Batch input is a finished token list, so unlike the live path this can buffer a
+//  sentence before emitting it — nothing is waiting to be rendered.
 //
 //  Also unlike the live path there's no source-app attribution (a saved recording is a
 //  single mixed stream), so every line's `sourceAppBundleID` stays nil.
@@ -30,7 +33,7 @@ enum PostSessionSegmentBuilder {
     /// Assembles ordered lines from ordered tokens. A line accumulates consecutive
     /// same-speaker sentences up to `maxWordsPerParagraph` words; a speaker change,
     /// or exceeding that cap, starts a new line. A runaway sentence with no
-    /// punctuation is force-flushed at `maxAccumulatorWords`.
+    /// punctuation is force-flushed at `maxWordsWithoutSentenceBreak`.
     static func build(from tokens: [PostSessionToken]) -> [RetranscribedLine] {
         var lines: [RetranscribedLine] = []
 
@@ -69,7 +72,7 @@ enum PostSessionSegmentBuilder {
             guard sentHasContent else { return }
             let words = SentenceHeuristics.countWords(in: sentText)
             // Close the current line first on a speaker change or when this sentence
-            // would overflow the paragraph word cap (mirrors the live accumulator).
+            // would overflow the paragraph word cap (mirrors the live builder).
             if lineHasContent && (lineSpeaker != sentSpeaker
                 || lineWords + words > TranscriptionConstants.maxWordsPerParagraph) {
                 flushLine()
@@ -101,7 +104,7 @@ enum PostSessionSegmentBuilder {
             sentEnd = token.endMs
 
             if SentenceHeuristics.endsWithSentence(sentText)
-                || SentenceHeuristics.countWords(in: sentText) > TranscriptionConstants.maxAccumulatorWords {
+                || SentenceHeuristics.countWords(in: sentText) > TranscriptionConstants.maxWordsWithoutSentenceBreak {
                 flushSentenceIntoLine()
             }
         }

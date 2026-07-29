@@ -9,8 +9,12 @@
 //  Focus-gated hybrid: when Open Captions is the frontmost app the user is looking at the
 //  transcript, so a transient in-app HUD badge (the same overlay the hotkeys use)
 //  is enough; when Open Captions is backgrounded, a macOS local notification reaches them in
-//  whatever app they're in. Fires only on FINALIZED sentences (never the noisy
-//  partial) and debounces so a name repeated in quick succession doesn't spam.
+//  whatever app they're in. Fires only on FINALIZED text (never the noisy partial)
+//  and debounces so a name repeated in quick succession doesn't spam.
+//
+//  The live path commits one token at a time, so this keeps a short rolling window of
+//  recently finalized text and matches against that — a name split across tokens
+//  ("Muhammad" + " Ramdan") still triggers, which a per-token match would miss.
 //
 //  Detection reuses `NameMentionMatcher` (the same whole-word matcher backing the
 //  transcript highlight), so what gets highlighted and what triggers an alert can
@@ -46,17 +50,48 @@ final class MacNameMentionNotifier {
     /// alerts). `MacTranscriptionViewModel.serviceGeneration` supplies it.
     private var trackedGeneration = -1
 
-    /// Handles one finalized transcript sentence. Fires an alert when the sentence
-    /// mentions the signed-in user's name. No-op for an offline guest (nil name).
-    func handle(finalizedLine text: String, sessionGeneration: Int) {
-        // New session → reset the debounce clock so the first mention always alerts.
+    /// Recently finalized text, so a name spread over consecutive tokens still
+    /// matches. Bounded to `windowLimit` characters and cleared whenever a mention is
+    /// detected — including one the debounce suppresses — so a matched name can never
+    /// re-trigger from stale text once the debounce window elapses.
+    private var window = ""
+    private let windowLimit = 240
+
+    /// Compiled matcher for the current display name (see `mentionsName`).
+    private var cachedRegex: NSRegularExpression?
+    private var cachedRegexName: String?
+
+    /// Handles one fragment of finalized transcript text (a token, a sentence, or the
+    /// tail committed at stop). Fires an alert when the rolling window mentions the
+    /// signed-in user's name. No-op for an offline guest (nil name).
+    func handle(finalizedFragment text: String, sessionGeneration: Int) {
+        // New session → reset the window and debounce clock so the first mention
+        // always alerts and no text carries over from the previous recording.
         if sessionGeneration != trackedGeneration {
             trackedGeneration = sessionGeneration
             lastFiredAt = 0
+            window = ""
+        }
+
+        window += text
+        if window.count > windowLimit {
+            window = String(window.suffix(windowLimit))
+            // The cut lands at an arbitrary offset, and a regex `\b` matches at the
+            // START of the searched string — so "…Ramdan" trimmed to "dan …" would
+            // alert a user named Dan. Drop the partial leading word so only whole
+            // spoken words can match. (Spaceless scripts have no such boundary; they
+            // keep the raw suffix, where `\b` semantics don't apply anyway.)
+            if let firstSpace = window.firstIndex(where: { $0.isWhitespace }) {
+                window = String(window[firstSpace...])
+            }
         }
 
         guard let name = MacAuthManager.shared.userName,
-              NameMentionMatcher.containsMention(of: name, in: text) else { return }
+              mentionsName(name, in: window) else { return }
+
+        // Consume the match either way: alerting again for the same words after the
+        // debounce elapsed would be a false second mention.
+        window = ""
 
         let now = CFAbsoluteTimeGetCurrent()
         guard now - lastFiredAt >= debounceInterval else { return }
@@ -69,6 +104,20 @@ final class MacNameMentionNotifier {
         } else {
             postLocalNotification()
         }
+    }
+
+    /// Whole-word match against the rolling window, reusing one compiled regex per
+    /// name — this runs once per finalized token now, not once per sentence, so
+    /// recompiling the pattern each time would be pure waste. Pattern construction
+    /// still comes from `NameMentionMatcher`, the single source of truth.
+    private func mentionsName(_ name: String, in text: String) -> Bool {
+        if cachedRegexName != name {
+            cachedRegexName = name
+            cachedRegex = NameMentionMatcher.regex(for: name)
+        }
+        guard let regex = cachedRegex else { return false }
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        return regex.firstMatch(in: text, options: [], range: range) != nil
     }
 
     private func postLocalNotification() {

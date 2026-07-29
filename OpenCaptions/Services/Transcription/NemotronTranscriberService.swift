@@ -8,9 +8,9 @@
 //
 //  Audio never leaves
 //  the device and there is no socket. Nemotron emits punctuation and capitalization natively
-//  (and exposes no end-of-utterance signal), so this engine promotes each completed sentence to
-//  a final (the ViewModel flushes it into a bubble on punctuation) and shows the in-progress
-//  remainder as a live partial. English only; no diarization.
+//  (and exposes no end-of-utterance signal), so this engine emits each completed sentence as its
+//  own final and finalizes all but the last few words of an unpunctuated run, keeping only a
+//  short live tail as the partial. English only; no diarization.
 //
 
 import AVFoundation
@@ -22,7 +22,7 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
     // MARK: - Engine Capabilities
 
     /// On-device traits: no diarization, no reliable per-token clock (the ViewModel stamps from
-    /// its own clock), no endpoint tokens (the ViewModel flushes on Nemotron's native
+    /// its own clock), no endpoint tokens (paragraph breaks fall to Nemotron's native
     /// punctuation), and `maxSessionSeconds = .infinity` so the ViewModel never hot-swaps us — a
     /// reset would reload the CoreML model and discard streaming state.
     let capabilities = EngineCapabilities(
@@ -59,8 +59,8 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
     private var feedContinuation: AsyncStream<AVAudioPCMBuffer>.Continuation?
     private var feedTask: Task<Void, Never>?
 
-    /// The full transcript already emitted to the ViewModel (through the last completed sentence).
-    /// Mutated only inside FluidAudio's partial callback, which the actor invokes serially.
+    /// The full transcript already emitted to the ViewModel as finals. Mutated only inside
+    /// FluidAudio's partial callback, which the actor invokes serially.
     private var confirmedPrefix = ""
 
     // MARK: - Lifecycle
@@ -99,8 +99,8 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
         feedContinuation?.yield(buffer)
     }
 
-    /// End-of-audio. Intentionally a no-op: `MacTranscriptionViewModel.stop()` flushes the
-    /// current partial line (our in-progress sentence tail) into a final line before teardown.
+    /// End-of-audio. Intentionally a no-op: `MacTranscriptionViewModel.stop()` commits the
+    /// current partial line (our short live tail) into the transcript before teardown.
     func finalize() {}
 
     func close() {
@@ -147,9 +147,9 @@ final class NemotronTranscriberService: RealtimeTranscriptionEngine {
 
     // MARK: - Transcript Bridging
 
-    /// Promotes each completed sentence to a final (the ViewModel flushes it into a bubble on
-    /// Nemotron's native punctuation) and shows the in-progress remainder as a live partial. The
-    /// shared bridge advances `confirmedPrefix` by exactly what it finalized.
+    /// Emits already-segmented finals (one per completed sentence, plus the stable head of an
+    /// unpunctuated run) and shows the short remainder as a live partial. The shared bridge
+    /// advances `confirmedPrefix` by exactly what it finalized.
     private func handlePartial(_ full: String) {
         let (finals, partials) = FluidAudioStreamBridge.tokens(
             forFull: full, confirmedPrefix: &confirmedPrefix)

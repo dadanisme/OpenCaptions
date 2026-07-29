@@ -16,15 +16,19 @@ extension MacTranscriptionViewModel {
 
     /// Installs the engine's token / error / connection callbacks, each guarded by the captured
     /// `serviceGeneration` so a stale callback after a stop/swap is dropped. `onTokens` hops to the
-    /// main actor and feeds the accumulator; a `.disconnected` state aborts the session (this target
-    /// has no reconnection). On-device engines only ever report `.connected`, so they never trip it.
+    /// main actor and builds lines (`+Lines`); a `.disconnected` state aborts the session (this
+    /// target has no reconnection). On-device engines only ever report `.connected`, so they never
+    /// trip it.
+    ///
+    /// Finals are committed BEFORE the partial is published, so the live view never shows the same
+    /// words twice — the partial that replaces them is whatever the engine still has in flight.
     func wireCallbacks(_ service: any RealtimeTranscriptionEngine) {
         let generation = serviceGeneration
         service.onTokens = { [weak self] finals, partials in
             guard let self else { return }
             Task { @MainActor in
                 guard self.serviceGeneration == generation else { return }
-                self.processFinalTokens(finals)
+                self.commitFinalTokens(finals)
                 self.updatePartialLine(partials)
             }
         }

@@ -9,7 +9,7 @@
 //  A live swap reuses the pause/resume teardown: cancel the streaming task
 //  WITHOUT closing the Soniox socket (the `pushGeneration` guard in `sendData`),
 //  stop the old source, then spin the pump back up on the new source. The
-//  connection, accumulator, and transcript survive the swap.
+//  connection, line cursor, and transcript survive the swap.
 //
 
 import Foundation

@@ -176,8 +176,11 @@ struct MacLiveTranscriptionView: View {
                     ForEach(Array(viewModel.finalLines.ids.enumerated()), id: \.element) { index, id in
                         bubble(at: index).id(id)
                     }
-                    if !viewModel.partialLine.isEmpty {
-                        partialBubble.id("partial")
+                    // Only when the partial can't continue the last bubble — nothing
+                    // committed yet, or a new speaker. Otherwise it renders inside
+                    // that bubble (see `bubble(at:)`).
+                    if let partial = viewModel.standalonePartial {
+                        partialBubble(partial).id("partial")
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -194,12 +197,16 @@ struct MacLiveTranscriptionView: View {
             // view — the live partial if present, else the last committed line — never
             // a zero-height anchor a LazyVStack may not have materialized. The newest
             // line settles just above the floating pill (whose height the
-            // `.safeAreaInset` in `body` reserves). Fires on ids.count (a new line OR
-            // a top flush both change it, so a flush re-pins) and partialLine
-            // (streaming) — but ONLY while pinned to the bottom, so a token
+            // `.safeAreaInset` in `body` reserves). Fires on finalLines.revision (every
+            // committed token, INCLUDING one that only grows the last bubble in place),
+            // on ids.count (a top flush changes it, so a flush re-pins), and on
+            // partialLine (streaming) — but ONLY while pinned to the bottom, so a token
             // arriving while the user reads earlier text leaves their position alone.
             // We deliberately do NOT use `.defaultScrollAnchor(.bottom)`: it hangs the
             // app when the flush removes rows from the LazyVStack.
+            .onChange(of: viewModel.finalLines.revision) { _, _ in
+                if shouldAutoScroll { scrollToNewest(proxy) }
+            }
             .onChange(of: viewModel.finalLines.ids.count) { _, _ in
                 if shouldAutoScroll { scrollToNewest(proxy) }
             }
@@ -219,7 +226,9 @@ struct MacLiveTranscriptionView: View {
     /// anchor — so it pins reliably and re-pins after a top flush, with no
     /// `.defaultScrollAnchor(.bottom)` (which hangs on row removal).
     private func scrollToNewest(_ proxy: ScrollViewProxy) {
-        if !viewModel.partialLine.isEmpty {
+        // The partial only has its own row when it can't continue the last bubble;
+        // otherwise it grows inside that bubble, which is the row to pin.
+        if viewModel.standalonePartial != nil {
             proxy.scrollTo("partial", anchor: .bottom)
         } else if let lastID = viewModel.finalLines.ids.last {
             proxy.scrollTo(lastID, anchor: .bottom)
@@ -243,7 +252,8 @@ struct MacLiveTranscriptionView: View {
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                     // Speaker label only for diarized speakers (positive ids). On-device
-                    // engines are single-stream (speaker == -1) — no label, no rename.
+                    // engines are single-stream (`TranscriptionToken.unknownSpeaker`) —
+                    // no label, no rename.
                     if speaker > 0 {
                         Text(speakerName(at: index))
                             .font(.transcript(.caption, multiplier: textSizeMultiplier))
@@ -259,7 +269,10 @@ struct MacLiveTranscriptionView: View {
                 }
                 // No .textSelection here: the whole bubble is a click target for
                 // rename, and selectable text would swallow clicks on the words.
-                HighlightedMessageText(viewModel.finalLines.textLines[index], userName: auth.userName)
+                // The newest bubble carries the engine's in-flight text at its tail
+                // (dimmed, same paragraph) so a partial reads as this line
+                // continuing rather than a separate one appearing below.
+                bubbleText(at: index)
                     .font(.transcript(.body, multiplier: textSizeMultiplier))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -292,10 +305,25 @@ struct MacLiveTranscriptionView: View {
         return ConversationFormatter.speakerTimestamp(fromMs: viewModel.finalLines.times[index].start_ms)
     }
 
-    private var partialBubble: some View {
+    /// A bubble's text, with the live partial concatenated onto the LAST bubble as a
+    /// dimmed tail. `Text + Text` keeps both in one paragraph — a sibling view would
+    /// wrap to a new line, which is the thing this avoids. The committed part stays
+    /// `cached: true` so it keeps its `@Name` highlight and its cache entry; only the
+    /// ephemeral tail is uncached.
+    private func bubbleText(at index: Int) -> Text {
+        let committed = HighlightedMessageText(
+            viewModel.finalLines.textLines[index], userName: auth.userName).asText
+        guard index == viewModel.finalLines.ids.count - 1,
+              let partial = viewModel.trailingPartial else { return committed }
+        return committed + Text(partial).foregroundStyle(.secondary)
+    }
+
+    /// The partial on its own, for when it can't continue a bubble (session start, or
+    /// a new speaker whose first words are still in flight).
+    private func partialBubble(_ partial: String) -> some View {
         // `cached: false` — the partial streams a new string each token; keep it out
         // of the shared segment cache so it can't evict committed-line entries.
-        HighlightedMessageText(viewModel.partialLine, userName: auth.userName, cached: false)
+        HighlightedMessageText(partial, userName: auth.userName, cached: false)
             .font(.transcript(.body, multiplier: textSizeMultiplier))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)

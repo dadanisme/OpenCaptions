@@ -3,8 +3,9 @@
 //  OpenCaptions
 //
 //  Session-document sync for FirestoreSyncService: the shared session/
-//  backfill writer, speaker renames, AI summary fields, launch-time
-//  reconciliation, and the shared-session password flag.
+//  backfill writer, the live session's pause/resume/end lifecycle, speaker
+//  renames, AI summary fields, launch-time reconciliation, and the
+//  shared-session password flag.
 //
 
 import Foundation
@@ -189,5 +190,51 @@ extension FirestoreSyncService {
             print("⚠️ FirestoreSync fetchHasPassword failed: \(error.localizedDescription)")
             return nil
         }
+    }
+
+    // MARK: - Live session lifecycle
+
+    func pauseSession() {
+        guard let session = currentSessionRef, let uid = currentUid() else { return }
+        // Drop the in-flight preview — nothing should be growing while paused.
+        pendingAccumulator = nil
+        pendingAccumulatorFlush?.cancel()
+        pendingAccumulatorFlush = nil
+        hasAccumulatorPreview = false
+        // Committed line text is NOT dropped: land the open bubble's latest words
+        // before the session goes quiet.
+        flushPendingLineUpdate()
+        updateDoc(session, uid: uid, data: [
+            F.status: Status.paused,
+            F.accumulator: NSNull(),
+        ])
+    }
+
+    func resumeSession() {
+        guard let session = currentSessionRef, let uid = currentUid() else { return }
+        updateDoc(session, uid: uid, data: [F.status: Status.live])
+    }
+
+    /// Marks the session ended and clears the in-flight `accumulator` field.
+    /// The open line's last coalesced growth is flushed first so the final bubble
+    /// isn't left a second behind; every other line document was already in its
+    /// committed state.
+    func endSession() {
+        guard let session = currentSessionRef, let uid = currentUid() else { return }
+        pendingAccumulator = nil
+        pendingAccumulatorFlush?.cancel()
+        pendingAccumulatorFlush = nil
+        hasAccumulatorPreview = false
+        flushPendingLineUpdate()
+
+        updateDoc(session, uid: uid, data: [
+            F.status: Status.ended,
+            F.endedAt: FieldValue.serverTimestamp(),
+            F.accumulator: NSNull(),
+        ])
+
+        currentSessionRef = nil
+        lastAccumulatorWrite = 0
+        lastLineUpdateWrite = 0
     }
 }

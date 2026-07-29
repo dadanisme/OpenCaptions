@@ -6,9 +6,9 @@
 //  The single source of truth for how a name becomes a regex, shared by the two
 //  places that need it: the transcript highlight
 //  (`HighlightedMessageText`, which caches the compiled regex for per-line render
-//  speed) and the name-mention notifier (`MacNameMentionNotifier`, which only needs
-//  a yes/no per finalized sentence). Stateless, so it is safe to call from any actor
-//  and needs no isolation.
+//  speed) and the name-mention notifier (`MacNameMentionNotifier`, which caches it
+//  too — it only needs a yes/no, but runs per finalized token). Stateless, so it is
+//  safe to call from any actor and needs no isolation.
 //
 
 import Foundation

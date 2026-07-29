@@ -58,16 +58,24 @@ struct HighlightedMessageText: View {
         self.shouldCache = cached
     }
 
-    var body: some View {
+    var body: some View { asText }
+
+    /// The rendered line as a `Text`, so a caller can concatenate it — the live
+    /// transcript appends the engine's in-flight partial to the open bubble's tail
+    /// this way (`Text + Text` keeps both in ONE paragraph, where two sibling views
+    /// would start a new line). Exposed rather than folding the partial into
+    /// `message`: that would change the string on every token, forcing
+    /// `cached: false` on the committed part too and so dropping its `@Name`
+    /// highlight on the very bubble the user is reading.
+    var asText: Text {
         let segments = parseMessage()
         // Fast path: nothing to highlight → a plain `Text` so the font and
         // foreground inherit exactly as before (the overwhelmingly common case,
         // and identical to the pre-port rendering).
         if segments.count == 1 && segments[0].type == .normal {
-            Text(message)
-        } else {
-            Text(buildAttributedString(from: segments))
+            return Text(message)
         }
+        return Text(buildAttributedString(from: segments))
     }
 }
 

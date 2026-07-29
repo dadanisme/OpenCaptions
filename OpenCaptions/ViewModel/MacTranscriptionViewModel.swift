@@ -2,9 +2,9 @@
 //  MacTranscriptionViewModel.swift
 //  OpenCaptions
 //
-//  Standalone macOS transcription state machine. Drives the Soniox engine +
-//  MacAudioService and feeds tokens through the (diarization-on) accumulator
-//  into an in-memory TranscriberModel, then persists on stop.
+//  Standalone macOS transcription state machine. Drives the selected engine +
+//  MacAudioService and commits every finalized token straight into an in-memory
+//  TranscriberModel (see `+Lines`), then persists on stop.
 //
 //  A focused state machine that omits Firestore sync, Live
 //  Activity, reconnection, periodic connection
@@ -22,7 +22,9 @@ final class MacTranscriptionViewModel {
 
     /// Finalized transcript lines (speaker-grouped bubbles).
     var finalLines = TranscriberModel()
-    /// In-progress partial text shown live below the committed lines.
+    /// The engine's in-flight hypothesis, shown live below the committed lines.
+    /// Holds ONLY un-finalized text — finalized tokens are committed to
+    /// `finalLines` immediately (see `+Lines`).
     var partialLine = ""
     /// Whether a session is actively recording.
     var isRunning = false
@@ -62,15 +64,25 @@ final class MacTranscriptionViewModel {
     @ObservationIgnored var currentSource: AudioSource = .microphone
     /// Samples which app is outputting audio over time, so committed lines can be
     /// attributed to a source app. Non-nil only while capturing system audio.
-    /// Lifecycle lives in `+AppMonitor`; queried from `saveTranscriptionLine`.
+    /// Lifecycle lives in `+AppMonitor`; queried from `+Lines`.
     @ObservationIgnored var appMonitor: SystemAudioActivityMonitor?
     @ObservationIgnored var pushTask: Task<Void, Error>?
     @ObservationIgnored var flushTask: Task<Void, Never>?
-    @ObservationIgnored var accumulator = AccumulatorState()
+    /// Where the transcript stands, so the next finalized token knows whether to
+    /// merge, open a paragraph, or start a bubble. Holds no text (see `+Lines`).
+    @ObservationIgnored var lineCursor = LiveLineCursor()
+    /// Diarized speaker of the current partial, when the engine reports one. Lets a
+    /// Stop & Save mid-sentence, and the web preview, attribute the tail correctly.
+    /// Observed (not `@ObservationIgnored`): the live views read it through
+    /// `trailingPartial` to decide whether the partial belongs at the open bubble's
+    /// tail or in its own bubble, so they must re-render when it changes.
+    var partialSpeaker: Int?
+    /// Time bounds of the current partial, resolved the same way committed lines are.
+    @ObservationIgnored var partialStartMs = 0
+    @ObservationIgnored var partialEndMs = 0
     @ObservationIgnored var speakerMapping: [Int: String] = [:]
     @ObservationIgnored var modelContainer: ModelContainer?
     @ObservationIgnored var lastAudioLevelUpdate: CFAbsoluteTime = 0
-    @ObservationIgnored var lastPartialLineUpdate: CFAbsoluteTime = 0
     @ObservationIgnored var sessionStart: CFAbsoluteTime = 0
     /// Bumped on every service swap/stop to invalidate stale callbacks. Also
     /// serves as a "has this session ever started" signal (0 == never started),
@@ -88,8 +100,11 @@ final class MacTranscriptionViewModel {
     /// already reused for a fresh push task.
     @ObservationIgnored var pushGeneration = 0
 
-    /// Session-relative active time in seconds; used for bubble timestamps
-    /// (Soniox's own per-token timestamps are unreliable, so we use our clock).
+    /// Session-relative active time in seconds. Stamps bubble timestamps for engines
+    /// with no usable per-token clock — the on-device ones, which report 0/0. Soniox
+    /// timestamps ARE reliable (they are audio-stream offsets and drive playback
+    /// seek), so its lines are stamped from the tokens themselves. See
+    /// `resolvedTimes(startMs:endMs:)` in `+Lines`.
     var totalActiveTime: TimeInterval {
         sessionStart == 0 ? 0 : CFAbsoluteTimeGetCurrent() - sessionStart
     }
@@ -111,8 +126,7 @@ final class MacTranscriptionViewModel {
         errorMessage = nil
         finalLines.clear()
         finalLines.ownerUserId = userId
-        partialLine = ""
-        accumulator.reset()
+        resetLineState()
         speakerMapping.removeAll()
         sessionStart = CFAbsoluteTimeGetCurrent()
         sessionStartDate = Date()
@@ -176,7 +190,7 @@ final class MacTranscriptionViewModel {
         sendData()
     }
 
-    /// Flushes any buffered text, tears down capture + connection, and persists
+    /// Commits the in-flight tail, tears down capture + connection, and persists
     /// the session. Returns the saved session's ID (nil if nothing to save).
     @MainActor
     func stop() async -> PersistentIdentifier? {
@@ -190,18 +204,9 @@ final class MacTranscriptionViewModel {
         serviceGeneration += 1
         transcriptionService?.onTokens = nil
 
-        if !accumulator.isEmpty { flushAccumulator() }
-
-        if !partialLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let lastSpeaker = finalLines.speakers.last ?? 0
-            let lastEndMs = finalLines.times.last?.end_ms ?? 0
-            let sourceApp = appMonitor?.dominantApp(fromMs: lastEndMs, toMs: lastEndMs)
-            saveTranscriptionLine(
-                text: partialLine, speaker: lastSpeaker,
-                forceNewLine: false, start: lastEndMs, end: lastEndMs, sourceApp: sourceApp
-            )
-            partialLine = ""
-        }
+        // Nothing is buffered — finalized tokens were committed as they arrived — so
+        // only the engine's in-flight tail is still uncommitted.
+        commitPartialTail()
 
         // Seal the shared Firestore doc (no-op if this session was never shared).
         FirestoreSyncService.shared.endSession()
@@ -210,7 +215,7 @@ final class MacTranscriptionViewModel {
         // Kill any keepalive timer left running from a pause before this stop.
         transcriptionService?.stopKeepalive()
         audio?.stop()
-        // Stop AFTER the flush/partial-save above so they could still query it.
+        // Stop AFTER the tail commit above so it could still query it.
         stopAppMonitor()
         if let task = pushTask {
             task.cancel()
@@ -256,8 +261,7 @@ final class MacTranscriptionViewModel {
         // Discard the recording — nothing will reference it.
         finishAudioRecording(keepFile: false)
         finalLines.clear()
-        accumulator.reset()
-        partialLine = ""
+        resetLineState()
     }
 
     /// Aborts a live session on an unrecoverable failure (connection lost, mic

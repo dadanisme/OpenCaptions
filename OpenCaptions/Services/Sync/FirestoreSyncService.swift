@@ -26,18 +26,19 @@ import FirebaseFirestore
 /// for the in-flight preview. Firestore stores those same two units:
 ///
 /// - `lines/{lineId}` — one document per committed bubble. Uniform shape; no
-///   `live`/`sealed` distinction. Text may still
-///   grow at sentence boundaries within the most recent same-speaker bubble
-///   (an append-or-add behaviour); web simply re-renders.
-/// - `session.accumulator` — current in-flight preview (Soniox partial +
-///   sentence accumulator). Throttled to 1 write/sec. Cleared the
-///   moment the partial graduates into a committed line, and on
+///   `live`/`sealed` distinction. The most recent same-speaker bubble keeps
+///   growing as tokens are committed (an append-or-add behaviour), so
+///   same-bubble updates are throttled to 1 write/sec with a trailing flush;
+///   web simply re-renders.
+/// - `session.accumulator` — current in-flight preview (the engine's
+///   un-finalized partial). Throttled to 1 write/sec. Cleared the
+///   moment the partial graduates into committed lines, and on
 ///   pause/end. Web renders this as a separate preview bubble below the
 ///   lines list — *not* joined to any line.
 ///
-/// Threading: all public methods must be called from the main actor — the
-/// accumulator throttle uses `CFAbsoluteTimeGetCurrent()` and an internal
-/// `DispatchWorkItem` that is created/cancelled without locking.
+/// Threading: all public methods must be called from the main actor — both
+/// throttles use `CFAbsoluteTimeGetCurrent()` and internal
+/// `DispatchWorkItem`s that are created/cancelled without locking.
 @MainActor
 final class FirestoreSyncService {
 
@@ -50,6 +51,14 @@ final class FirestoreSyncService {
     /// Maximum upsert rate for the in-flight `accumulator` field. Bounded at
     /// one write per second; trailing flush ensures the last keystroke lands.
     static let accumulatorMinInterval: CFAbsoluteTime = 1.0
+
+    /// Maximum update rate for the OPEN line document. The live path commits one
+    /// finalized token at a time, so a same-speaker bubble grows several times a
+    /// second; without this each token would be its own write (well past
+    /// Firestore's ~1 write/sec/document guidance). A trailing flush, plus a
+    /// forced flush when the next bubble opens or the session pauses/ends,
+    /// guarantees the bubble's final text always lands.
+    static let lineUpdateMinInterval: CFAbsoluteTime = 1.0
 
     /// Zero-padding width for lineId so lexical order matches numeric order.
     /// 6 digits supports a single session with up to 999,999 bubbles.
@@ -97,8 +106,8 @@ final class FirestoreSyncService {
     /// for the current recording. All public methods short-circuit on nil.
     var currentSessionRef: DocumentReference?
 
-    /// Snapshot of the in-flight (partial+sentence-accumulator) text and the
-    /// throttle bookkeeping for writes to the session doc's `accumulator`
+    /// Snapshot of the in-flight preview text (the engine's un-finalized partial)
+    /// and the throttle bookkeeping for writes to the session doc's `accumulator`
     /// field. Snapshots are coalesced; only the most recent one is ever sent.
     struct AccumulatorSnapshot {
         let text: String
@@ -115,6 +124,30 @@ final class FirestoreSyncService {
     /// Pending trailing flush of the accumulator. Cancelled when superseded
     /// by an actual write, by a line commit, or by `endSession()`.
     var pendingAccumulatorFlush: DispatchWorkItem?
+
+    /// Whether the `accumulator` field currently holds a preview (or has a pending
+    /// write that will put one there). Lets `clearAccumulator()` no-op when the field
+    /// is already null: the live path asks it to clear on every frame that carries
+    /// finals but no partial, and that clear is deliberately unthrottled, so without
+    /// this a finalization burst would be one wasted write per frame.
+    var hasAccumulatorPreview = false
+
+    /// Coalesced growth of the currently-open line document. Only the most recent
+    /// snapshot is ever sent; `lineId` is carried so a flush after the next bubble
+    /// opened still targets the right document.
+    struct LineUpdateSnapshot {
+        let lineId: String
+        let text: String
+        let endMs: Int
+    }
+    var pendingLineUpdate: LineUpdateSnapshot?
+
+    /// Last time we wrote the open line document; gates the 1-write/sec throttle.
+    var lastLineUpdateWrite: CFAbsoluteTime = 0
+
+    /// Pending trailing flush of the open line. Cancelled when superseded by an
+    /// actual write, by a new bubble, or by pause/end.
+    var pendingLineUpdateFlush: DispatchWorkItem?
 
     // MARK: - Public API
 
@@ -160,6 +193,11 @@ final class FirestoreSyncService {
         lastAccumulatorWrite = 0
         pendingAccumulatorFlush?.cancel()
         pendingAccumulatorFlush = nil
+        pendingLineUpdate = nil
+        lastLineUpdateWrite = 0
+        pendingLineUpdateFlush?.cancel()
+        pendingLineUpdateFlush = nil
+        hasAccumulatorPreview = false
 
         writeSessionDocs(
             to: ref,
@@ -211,41 +249,5 @@ final class FirestoreSyncService {
         )
 
         return sessionId
-    }
-
-    func pauseSession() {
-        guard let session = currentSessionRef, let uid = currentUid() else { return }
-        // Drop the in-flight preview — nothing should be growing while paused.
-        pendingAccumulator = nil
-        pendingAccumulatorFlush?.cancel()
-        pendingAccumulatorFlush = nil
-        updateDoc(session, uid: uid, data: [
-            F.status: Status.paused,
-            F.accumulator: NSNull(),
-        ])
-    }
-
-    func resumeSession() {
-        guard let session = currentSessionRef, let uid = currentUid() else { return }
-        updateDoc(session, uid: uid, data: [F.status: Status.live])
-    }
-
-    /// Marks the session ended and clears the in-flight `accumulator` field.
-    /// Line documents need no per-end mutation — they were already in their
-    /// committed state.
-    func endSession() {
-        guard let session = currentSessionRef, let uid = currentUid() else { return }
-        pendingAccumulator = nil
-        pendingAccumulatorFlush?.cancel()
-        pendingAccumulatorFlush = nil
-
-        updateDoc(session, uid: uid, data: [
-            F.status: Status.ended,
-            F.endedAt: FieldValue.serverTimestamp(),
-            F.accumulator: NSNull(),
-        ])
-
-        currentSessionRef = nil
-        lastAccumulatorWrite = 0
     }
 }

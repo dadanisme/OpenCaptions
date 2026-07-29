@@ -105,6 +105,17 @@ each bubble's glyph reflects a single app, mirroring the existing speaker-change
 Granularity is the sentence boundary (bubbles split between sentences, not mid-sentence;
 a sentence spanning an app change resolves to its window's dominant app).
 
+**Updated 2026-07-29** (`2026-07-29-macos-live-line-building.md`): `flushSentence` is gone
+with the token accumulator, and the comparison no longer reads
+`finalLines.sourceApps.last`. The rule is the same but expressed on the line cursor:
+`LiveLineCursor.place` forces a new bubble when `sourceApp != self.sourceApp`, and
+`MacTranscriptionViewModel+Lines.commit` re-reads `dominantApp` only when
+`lineCursor.needsSourceAppRefresh(for:speaker:)` says so — a bubble opening, a natural
+break (sentence end / `<end>`), or a mid-sentence speaker change. A plain mid-sentence
+merge inherits the open bubble's app instead, which keeps one app per bubble and keeps the
+`O(samples)` scan off the per-token path. **Granularity is unchanged** (bubbles still split
+at sentence/endpoint boundaries, not mid-sentence).
+
 ## Known limitations / caveats (v1)
 
 1. **Heuristic, not exact** — overlapping apps can't be disambiguated (global mixdown).
@@ -126,7 +137,10 @@ a sentence spanning an app change resolves to its window's dominant app).
   (`processObjectList`, `isRunningOutput`, `pid(for:)`, `bundleID(for:)`).
 - Model: `TranscriptionLine.sourceAppBundleID`, `TranscriberModel.sourceApps`,
   persistence plumbing.
-- VM: `appMonitor` on `MacTranscriptionViewModel`; stamp in `+Accumulator`; pause/resume
-  in `+Lifecycle`; swap reconcile in `+AudioSource`.
+- VM: `appMonitor` on `MacTranscriptionViewModel`; stamp in `+Lines` (was `+Accumulator`
+  before 2026-07-29); pause/resume in `+Lifecycle`; swap reconcile in `+AudioSource`.
+  The dominant app is re-read when a bubble opens or at a sentence/endpoint break — not
+  per token — so a bubble still reflects a single app; see
+  `2026-07-29-macos-live-line-building.md`.
 - UI: `SourceAppIcon` prepended in `MacLiveTranscriptionView`, `MacSessionDetailView`,
   `CaptionsOverlayView`.

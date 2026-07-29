@@ -7,6 +7,12 @@
 //  chunks for FluidAudio; `tokens(forFull:confirmedPrefix:)` diffs the full accumulated
 //  transcript Nemotron reports on each partial callback into (finals, partials).
 //
+//  This is the SOLE owner of on-device segmentation: it emits finals that are already
+//  the segments the view model should commit (one per completed sentence, plus the
+//  stable head of an unpunctuated run), and the view model never re-splits them. Only
+//  the last `keepTailWords` words stay volatile, so text reaches the transcript without
+//  waiting for punctuation. See docs/2026-07-29-macos-live-line-building.md.
+//
 //  Nemotron uses the
 //  full-transcript diff below; Parakeet (SlidingWindow) reuses only `makeBuffer(from:)`
 //  and does its own confirmed/volatile mapping (see `ParakeetTranscriberService`).
@@ -17,7 +23,10 @@ import Foundation
 
 enum FluidAudioStreamBridge {
 
-    /// Words of un-finalized tail kept live when the safety net promotes a long punctuation-free run.
+    /// Words held back as the live partial. Everything before them is finalized, so the
+    /// transcript never waits on punctuation and the partial stays a short, readable tail.
+    /// FluidAudio revises only the most recent words, so this doubles as the safety margin
+    /// against finalizing text the model is still changing.
     private static let keepTailWords = 8
 
     // MARK: - Audio
@@ -49,11 +58,13 @@ enum FluidAudioStreamBridge {
     /// Translates a FluidAudio full-transcript update into `(finals, partials)` and advances
     /// `confirmedPrefix` to mark what was emitted as finals:
     ///
-    /// 1. Each completed sentence (ending at a `.`/`!`/`?`) becomes a **final** — the ViewModel
-    ///    flushes it into a bubble on the punctuation (Nemotron's native punctuation).
-    /// 2. If the remaining tail grows past `maxAccumulatorWords` without punctuation, a
-    ///    word-bounded prefix is promoted to a **final** so the partial stays bounded.
-    /// 3. Whatever remains is the live **partial**.
+    /// 1. Each completed sentence (ending at a `.`/`!`/`?`) becomes its own **final**, so the
+    ///    view model can break paragraphs exactly at Nemotron's native punctuation without
+    ///    re-splitting the text itself.
+    /// 2. Of what follows, everything but the last `keepTailWords` words is promoted to a
+    ///    **final** too — unconditionally, not only past some word cap. Text therefore reaches
+    ///    the transcript continuously even in a punctuation-free monologue.
+    /// 3. The remaining short tail is the live **partial**.
     ///
     /// Mutated `confirmedPrefix` is always advanced by byte-exact substrings of `full`, so the
     /// append-only `delta` diff keeps matching across callbacks.
@@ -71,13 +82,10 @@ enum FluidAudioStreamBridge {
             confirmedPrefix += sentence
         }
 
-        var tail = afterSentences
-        let (promoted, liveTail) = promoteIfTooLong(
-            tail, maxWords: TranscriptionConstants.maxAccumulatorWords)
-        if !promoted.isEmpty {
-            finals.append(token(text: promoted, isFinal: true))
-            confirmedPrefix += promoted
-            tail = liveTail
+        let (stable, tail) = splitKeepingTail(afterSentences, words: keepTailWords)
+        if !stable.isEmpty {
+            finals.append(token(text: stable, isFinal: true))
+            confirmedPrefix += stable
         }
 
         let partials = tail.isEmpty ? [] : [token(text: tail, isFinal: false)]
@@ -87,10 +95,10 @@ enum FluidAudioStreamBridge {
     /// Builds an engine token with the on-device defaults (no diarization, no timestamps).
     /// Shared with `ParakeetTranscriberService`, which maps its own confirmed/volatile text.
     static func token(text: String, isFinal: Bool) -> TranscriptionToken {
-        // speaker -1 (no diarization); timestamps unused (providesReliableTimestamps == false,
-        // so the ViewModel stamps bubbles from its own clock).
+        // No diarization; timestamps unused (providesReliableTimestamps == false, so the
+        // ViewModel stamps bubbles from its own clock).
         TranscriptionToken(
-            text: text, isFinal: isFinal, speaker: -1,
+            text: text, isFinal: isFinal, speaker: TranscriptionToken.unknownSpeaker,
             isEndpoint: false, start_ms: 0, end_ms: 0
         )
     }
@@ -130,11 +138,11 @@ enum FluidAudioStreamBridge {
         return (sentences, String(text[segmentStart...]))
     }
 
-    /// If `text` exceeds `maxWords`, returns a word-bounded prefix to promote (keeping the last
-    /// `keepTailWords` words live) and the remaining tail; otherwise ("", text). Exact substrings.
-    private static func promoteIfTooLong(
-        _ text: String, maxWords: Int
-    ) -> (promote: String, tail: String) {
+    /// Splits `text` at a word boundary into the stable head to finalize and the last `words`
+    /// words to keep live. Returns ("", text) when there is nothing to spare. Exact substrings.
+    private static func splitKeepingTail(
+        _ text: String, words: Int
+    ) -> (stable: String, tail: String) {
         var wordStarts: [String.Index] = []
         var prevWasSpace = true
         var i = text.startIndex
@@ -145,8 +153,7 @@ enum FluidAudioStreamBridge {
             i = text.index(after: i)
         }
 
-        guard wordStarts.count > maxWords else { return ("", text) }
-        let cutWordIndex = wordStarts.count - keepTailWords
+        let cutWordIndex = wordStarts.count - words
         guard cutWordIndex > 0, cutWordIndex < wordStarts.count else { return ("", text) }
         let cut = wordStarts[cutWordIndex]
         return (String(text[text.startIndex..<cut]), String(text[cut...]))

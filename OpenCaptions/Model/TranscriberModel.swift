@@ -41,6 +41,13 @@ class TranscriberModel {
     /// SwiftData now has the flushed lines and sortedLines can be recomputed.
     var persistenceVersion: Int = 0
 
+    /// Bumped on every `appendOrAdd`, including one that grows the LAST bubble in
+    /// place. The live views' auto-scroll pins on this: the transcript now commits
+    /// one token at a time, so the newest text often arrives without `ids.count` or
+    /// `partialLine` changing, and pinning on those alone would leave it below the
+    /// fold. See docs/2026-07-29-macos-live-line-building.md.
+    var revision: Int = 0
+
     /// Number of lines that have been flushed to SwiftData
     var flushedLineCount: Int = 0
 
@@ -84,6 +91,7 @@ class TranscriberModel {
     ///     caveat in docs/2026-07-07-macos-source-app-attribution.md).
     func appendOrAdd(text: String, speaker: Int, forceNewLine: Bool = false, time: TimeRange, sourceApp: String? = nil) {
         guard !text.isEmpty else { return }
+        defer { revision += 1 }
 
         // Track session time bounds so duration is O(1) at flush/save time
         if time.start_ms >= 0 && time.end_ms >= 0 {
@@ -144,6 +152,7 @@ class TranscriberModel {
         sourceApps.removeAll()
         ids.removeAll()
         nextBubbleId = 0
+        revision = 0
         flushedLineCount = 0
         activeSessionID = nil
         cloudSessionId = nil

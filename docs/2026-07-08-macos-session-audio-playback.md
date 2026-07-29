@@ -37,7 +37,7 @@ Two earlier approaches were tried and discarded:
 
 ## Sync — match Soniox's token timestamps, not the wall clock
 
-**Root cause of the initial ~5 s desync:** `accumulateText` received each token's Soniox `start_ms`/`end_ms` but ignored them, stamping `totalActiveTime` (wall clock at final-arrival) instead. Soniox holds a final back until its accumulator/finalization window settles, so a final arrives **seconds after** the audio it describes — wall-clock-at-arrival lags the audio by that delay (this is finalization/accumulator delay, not raw ASR compute latency).
+**Root cause of the initial ~5 s desync:** the (since-deleted) `accumulateText` received each token's Soniox `start_ms`/`end_ms` but ignored them, stamping `totalActiveTime` (wall clock at final-arrival) instead. The token timestamps are now applied in `resolvedTimes(startMs:endMs:)` (`MacTranscriptionViewModel+Lines`); see `2026-07-29-macos-live-line-building.md`. Soniox holds a final back until its accumulator/finalization window settles, so a final arrives **seconds after** the audio it describes — wall-clock-at-arrival lags the audio by that delay (this is finalization/accumulator delay, not raw ASR compute latency).
 
 **Fix:** stamp line `startMs`/`endMs` from the token's own Soniox timestamps (`OnlineTranscriberService+Messages` already parses them). Because the recording is the exact stream Soniox received, `token.start_ms` maps **directly** to a file offset — seeking to a line needs no correction, highlighting is exact, and pauses stay aligned for free. This also drops the recording padding entirely (see above). Display timestamps and the cached session duration are now audio-stream-relative, which matches the scrubber.
 

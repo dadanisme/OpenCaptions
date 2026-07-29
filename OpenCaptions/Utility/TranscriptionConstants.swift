@@ -25,32 +25,31 @@ enum TranscriptionConstants {
 
     // MARK: - Bubble Grouping
 
-    /// Maximum words per paragraph within a bubble
+    /// Soft target for words per paragraph within a bubble. Once a paragraph passes
+    /// this, the live builder breaks at the next sentence end / engine endpoint.
     static let maxWordsPerParagraph = 50
 
     /// Maximum paragraphs per bubble before splitting to new bubble
     static let maxParagraphsPerBubble = 3
 
-    /// Diarization-off streaming: soft paragraph target in characters (~maxWordsPerParagraph
-    /// of English). Once a paragraph passes this it breaks at the next sentence end.
-    /// Char-based so it also bounds scripts without inter-word spaces (e.g. zh-Hans),
-    /// where whitespace word counts stay ~1.
-    static let maxCharsPerParagraph = 300
+    /// Hard cap on words run without a sentence break. The live builder breaks a
+    /// paragraph here even with no punctuation in sight (at a non-word-splitting
+    /// boundary), and the batch `PostSessionSegmentBuilder` closes a runaway
+    /// sentence at the same count — runaway safety for punctuation-free speech.
+    static let maxWordsWithoutSentenceBreak = 100
 
-    /// Diarization-off streaming: hard paragraph cap in characters (~maxAccumulatorWords of
-    /// English). Breaks at the next safe (non-word-splitting) boundary even without
-    /// sentence punctuation — runaway safety for punctuation-free speech.
-    static let maxStreamingParagraphChars = 600
+    /// Absolute ceiling on paragraph length for the live builder. The cap above only
+    /// breaks at a boundary that won't split a word; this one breaks regardless.
+    /// Only reachable if an engine never emits a breakable token boundary — a
+    /// mid-word break is still better than a bubble that grows without bound, which
+    /// would also stall the line-count-driven SwiftData flush.
+    static let paragraphCeilingWords = 200
 
     // MARK: - Connection Health
 
     /// Interval in seconds between periodic Soniox connection resets.
     /// Temporarily set to 5 hours to evaluate whether the workaround is still needed.
     static let connectionResetIntervalSeconds: TimeInterval = 18000
-
-    /// Max words allowed in the accumulator before force-flushing without punctuation.
-    /// Safety net: if Soniox stops sending punctuation, prevents unbounded partial bubble growth.
-    static let maxAccumulatorWords = 100
 
     // MARK: - WebSocket Reconnect
 
