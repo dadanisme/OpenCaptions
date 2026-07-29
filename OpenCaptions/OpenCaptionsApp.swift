@@ -54,6 +54,7 @@ struct OpenCaptionsApp: App {
             LiveSessionStore.sessionAudioKey: true,
             LiveSessionStore.offlineModeKey: false,
             LiveSessionStore.retranscriptionAutoKey: false,
+            LiveSessionStore.speakerNamingAutoKey: true,
         ])
         FirebaseApp.configure()
         // Mirror the signed-in Firebase profile (name/email/photo) into the auth

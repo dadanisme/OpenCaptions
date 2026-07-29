@@ -104,6 +104,36 @@ making.
    correction path. It runs on every summary generation, including re-runs and the
    post-session re-transcription path.
 
+6. **A Settings toggle can turn it off, and it gates the APPLY step only.**
+   `LiveSessionStore.speakerNamingAutoKey` (`opencaptions.speakerNaming.auto`), bound to
+   Settings → General → Speaker Names and read raw by `SummaryViewModel` at apply time.
+   A local per-device preference, not a feature flag — there is no remote configuration
+   in this app (see `docs/2026-07-27-remove-feature-flags.md`).
+
+   **The request Gemini receives is identical either way.** The gate deliberately does
+   *not* strip the `speakers` field from the schema, the `SPEAKER IDENTIFICATION` section
+   from the prompt, or the ids and roster from the transcript. Two reasons: toggling the
+   preference then never changes the summary *text* — only whether a rename happens —
+   which is a much easier property to reason about and to support; and threading the flag
+   down through `summarize` → `callSummarizeAPI` → `requestBody` would make the schema a
+   function of state instead of a constant. The cost is a few dozen wasted output tokens
+   per summary while it's off, against a transcript-sized input. If that ever matters,
+   the place to fix it is the request builder, not the resolver.
+
+   Two details that are load-bearing:
+
+   - **The default MUST be registered.** `OpenCaptionsApp.register(defaults:)` sets it
+     `true`. A raw `UserDefaults.standard.bool(forKey:)` read of an unregistered key
+     returns `false`, so without that line the feature would ship silently off on every
+     install — the same trap `sessionAudioKey` documents.
+   - **Read at apply time, not cached**, so flipping the toggle takes effect on the very
+     next summary rather than needing an app relaunch.
+
+   The toggle is **disabled in Offline Mode**: on-device transcription produces no
+   speaker labels and summary generation is skipped upstream, so it would be inert.
+   That follows the existing re-transcription toggle, which is disabled without saved
+   session audio for the same "an enabled-but-inert toggle reads as broken" reason.
+
 ### Thresholds
 
 Both live as `private static let` on `SpeakerNameResolver` — the one place that decides
@@ -249,7 +279,10 @@ everything else.
 - `OpenCaptions/Services/SummaryService+Prompt.swift` — the `SPEAKER IDENTIFICATION`
   section.
 - `OpenCaptions/ViewModel/SummaryViewModel.swift` — the one call site, right after the
-  summary save.
+  summary save, behind the Settings preference.
+- `OpenCaptions/LiveSessionStore.swift` — the `speakerNamingAutoKey` preference key.
+- `OpenCaptions/OpenCaptionsApp.swift` — registers that key's `true` default.
+- `OpenCaptions/Views/Settings/MacSettingsView.swift` — the Speaker Names section.
 - `OpenCaptions/Views/SessionDetail/MacSessionDetailView.swift` — two sheets now call
   `SpeakerRenamer` directly.
 - `OpenCaptions/Views/SessionDetail/MacSessionDetailView+SpeakerEditing.swift` —
@@ -283,3 +316,10 @@ Manual, in Xcode, with a real `GEMINI_API_KEY`:
 7. Re-transcribe a session (`PostSessionRetranscriber`) → the fresh generic labels get
    auto-named by the regenerated summary.
 8. Open Edit Speakers and rename by hand → still works, still mirrors, unchanged.
+9. **Fresh install / never-opened Settings** → naming happens (proves the registered
+   default is in effect, not a `false` read of an unregistered key).
+10. Settings → General → Speaker Names, turn it **off** → re-summarize a diarized session:
+    the summary regenerates but every speaker keeps its `Speaker N` label. Turn it back
+    on and re-summarize the same session → names appear, no relaunch needed.
+11. Turn Offline Mode on → the Speaker Names toggle greys out with the "Unavailable in
+    Offline Mode" note; turn it off → the toggle is live again with its previous value.

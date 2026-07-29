@@ -37,6 +37,9 @@ struct MacSettingsView: View {
     /// gate cloud summary generation. Can only be turned on once both on-device models
     /// are downloaded.
     @AppStorage(LiveSessionStore.offlineModeKey) private var offlineModeEnabled = false
+    /// Automatic speaker naming from the summary pass. When on, a generated summary
+    /// also names the diarized speakers it recognises. Read by `SummaryViewModel`.
+    @AppStorage(LiveSessionStore.speakerNamingAutoKey) private var autoNameSpeakers = true
 
     var body: some View {
         TabView {
@@ -148,6 +151,27 @@ struct MacSettingsView: View {
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }
+        Section("Speaker Names") {
+            // Disabled in Offline Mode: on-device transcription produces no speaker
+            // labels and skips summary generation, so there is nothing to name — an
+            // enabled-but-inert toggle would read as a broken feature (same reasoning
+            // as the re-transcription toggle above).
+            Toggle("Name speakers automatically from the summary", isOn: $autoNameSpeakers)
+                .disabled(offlineModeEnabled)
+            Text(speakerNamingFootnote)
+                .appScaledFont(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Explanatory note under the automatic speaker-naming toggle.
+    private var speakerNamingFootnote: String {
+        if offlineModeEnabled {
+            return "Unavailable in Offline Mode — on-device transcription doesn't separate speakers, and AI summaries don't run offline."
+        }
+        return autoNameSpeakers
+            ? "When a summary is generated, speakers who introduce themselves or are addressed by name are renamed for you — \"Speaker 1\" becomes \"Ramdan\". Uncertain speakers keep their generic label, and you can always correct a name from Edit Speakers."
+            : "Speakers keep their generic \"Speaker 1\" labels. You can name them yourself any time from a session's Edit Speakers."
     }
 
     /// Explanatory note under the Offline Mode toggle.
