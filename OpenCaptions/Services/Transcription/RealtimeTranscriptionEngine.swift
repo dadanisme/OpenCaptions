@@ -38,7 +38,7 @@ struct EngineCapabilities {
 ///
 /// This mirrors the callback + lifecycle surface that `OnlineViewModel` already drives, so
 /// any conforming engine (Soniox, Gladia, …) is interchangeable behind the same ViewModel
-/// pipeline (accumulator → bubble grouping → SwiftData flush → Firestore sync).
+/// pipeline (per-token line building → bubble grouping → SwiftData flush → Firestore sync).
 ///
 /// Intentionally **not** `@MainActor`-isolated: the concrete clients are plain
 /// `URLSessionWebSocketTask` wrappers and the ViewModel hops to the main actor in its

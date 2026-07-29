@@ -69,8 +69,11 @@ protocol PostSessionTranscriptionEngine: AnyObject {
 
 - `PostSessionToken { text, speaker (-1 = none), startMs, endMs }` — engine-agnostic.
 - `PostSessionSegmentBuilder` groups tokens into `TranscriptionLine`-shaped rows using the
-  **same** speaker/sentence/word-cap rules as the live accumulator (shared via
-  `SentenceHeuristics`), so a re-transcribed transcript reads like a recorded one.
+  **same** speaker/sentence/word-cap rules as the live path (shared via
+  `SentenceHeuristics`), so a re-transcribed transcript reads like a recorded one. Being a
+  batch path over a finished token list, it may buffer a sentence before emitting it —
+  unlike the live builder, where nothing may wait to be rendered
+  (`2026-07-29-macos-live-line-building.md`).
 - Implementations must honor cooperative cancellation and report `PostSessionProgress`.
 
 ### Adding a provider

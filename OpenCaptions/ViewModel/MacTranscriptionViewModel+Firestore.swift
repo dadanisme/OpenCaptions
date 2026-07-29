@@ -68,6 +68,10 @@ extension MacTranscriptionViewModel {
     /// Mirrors the just-committed bubble to Firestore. Reads the last bubble's
     /// *post-mutation* state because `appendOrAdd` may have grown the existing
     /// tail rather than created a new line.
+    ///
+    /// Called once per finalized token now (not once per sentence), so the service
+    /// coalesces same-bubble growth at 1 write/sec with a trailing flush; a NEW
+    /// bubble always writes straight through.
     @MainActor
     func mirrorCommittedLine(isNewBubble: Bool) {
         guard let lastId = finalLines.ids.last,
@@ -84,32 +88,38 @@ extension MacTranscriptionViewModel {
         )
     }
 
-    /// Mirrors the in-flight (accumulator + partial) preview to the session
-    /// doc's `accumulator` field so the web client renders a typing preview
-    /// without touching committed `lines/{id}` docs. The service throttles to
-    /// 1 write/sec. Clears the field when there is nothing in flight so a stale
-    /// preview doesn't linger between sentences.
+    /// Mirrors the in-flight partial to the session doc's `accumulator` field so
+    /// the web client renders a typing preview without touching committed
+    /// `lines/{id}` docs. (That Firestore field name predates this app and is
+    /// unrelated to the deleted token accumulator — it is the web client's
+    /// preview channel and keeps its name.) The service throttles to 1 write/sec.
+    /// Clears the field when there is nothing in flight so a stale preview
+    /// doesn't linger.
+    ///
+    /// Now that finalized tokens commit immediately, this carries ONLY
+    /// un-finalized text — the web no longer sees the same words in both the
+    /// preview and a line doc.
     @MainActor
-    func pushPartialToFirestore(partialText: String) {
-        let inflight = accumulator.text + partialText
-        guard !inflight.isEmpty else {
+    func pushPartialToFirestore() {
+        guard !partialLine.isEmpty else {
             FirestoreSyncService.shared.clearAccumulator()
             return
         }
-        // Carry whichever speaker the accumulator currently belongs to; fall
-        // back to the last committed speaker so the web can still bind the
-        // preview to a bubble, else -1 (unknown).
-        let speakerId = accumulator.speaker != -1
-            ? accumulator.speaker
-            : (finalLines.speakers.last ?? -1)
-        // Best-effort time hints: fall back to the last committed end time when
-        // the accumulator hasn't claimed bounds yet (startMs/endMs == 0).
+        // The partial's own diarized speaker; fall back to the open bubble, then
+        // the last committed speaker so the web can still bind the preview to a
+        // bubble, else unknown.
+        let speakerId = partialSpeaker
+            ?? lineCursor.speaker
+            ?? finalLines.speakers.last
+            ?? TranscriptionToken.unknownSpeaker
+        // Best-effort time hints: fall back to the last committed end time when the
+        // partial has no bounds yet (an engine that reports no timestamps at 0 ms).
         let lastEndMs = finalLines.times.last?.end_ms ?? 0
-        let startMs = accumulator.startMs != 0 ? accumulator.startMs : lastEndMs
-        let endMs = accumulator.endMs != 0 ? accumulator.endMs : lastEndMs
+        let startMs = partialStartMs != 0 ? partialStartMs : lastEndMs
+        let endMs = partialEndMs != 0 ? partialEndMs : lastEndMs
 
         FirestoreSyncService.shared.updateAccumulator(
-            text: inflight,
+            text: partialLine,
             speakerId: speakerId,
             startMs: startMs,
             endMs: endMs

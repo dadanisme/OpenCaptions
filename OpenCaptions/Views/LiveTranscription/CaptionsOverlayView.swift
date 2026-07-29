@@ -50,10 +50,13 @@ struct CaptionsOverlayView: View {
                         ForEach(Array(viewModel.finalLines.ids.enumerated()), id: \.element) { index, id in
                             line(at: index).id(id)
                         }
-                        if !viewModel.partialLine.isEmpty {
+                        // Only when the partial can't continue the last caption —
+                        // nothing committed yet, or a new speaker. Otherwise it
+                        // renders at that caption's tail (see `line(at:)`).
+                        if let partial = viewModel.standalonePartial {
                             // `cached: false` — streaming partial stays out of the
-                            // shared segment cache (see partialBubble).
-                            HighlightedMessageText(viewModel.partialLine, userName: userName, cached: false)
+                            // shared segment cache so it can't evict committed lines.
+                            HighlightedMessageText(partial, userName: userName, cached: false)
                                 .font(.transcript(.body, multiplier: textSizeMultiplier))
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -76,12 +79,16 @@ struct CaptionsOverlayView: View {
             // Pin to the newest content with an imperative scroll to a REAL realized
             // view — the live partial if present, else the last committed line — never
             // a zero-height anchor a LazyVStack may not have materialized. Fires on
-            // ids.count (a new line OR a top flush both change it, so a flush re-pins —
-            // the old net-zero totalLineCount signal missed that) and on partialLine
-            // (streaming) — but ONLY while pinned to the bottom, so a caption
-            // arriving while the user reads earlier text leaves their position alone.
-            // We deliberately do NOT use `.defaultScrollAnchor(.bottom)`: it hangs the
-            // app when the flush removes rows from the LazyVStack.
+            // finalLines.revision (every committed token, INCLUDING one that only grows
+            // the last caption in place), on ids.count (a top flush changes it, so a
+            // flush re-pins — the old net-zero totalLineCount signal missed that), and
+            // on partialLine (streaming) — but ONLY while pinned to the bottom, so a
+            // caption arriving while the user reads earlier text leaves their position
+            // alone. We deliberately do NOT use `.defaultScrollAnchor(.bottom)`: it
+            // hangs the app when the flush removes rows from the LazyVStack.
+            .onChange(of: viewModel.finalLines.revision) { _, _ in
+                if shouldAutoScroll { scrollToNewest(proxy) }
+            }
             .onChange(of: viewModel.finalLines.ids.count) { _, _ in
                 if shouldAutoScroll { scrollToNewest(proxy) }
             }
@@ -121,7 +128,9 @@ struct CaptionsOverlayView: View {
     /// the last committed line. Targets a real, realized row — never a zero-height
     /// anchor — so the short strip pins reliably (and re-pins after a top flush).
     private func scrollToNewest(_ proxy: ScrollViewProxy) {
-        if !viewModel.partialLine.isEmpty {
+        // The partial only has its own row when it can't continue the last caption;
+        // otherwise it grows inside that caption, which is the row to pin.
+        if viewModel.standalonePartial != nil {
             proxy.scrollTo("partial", anchor: .bottom)
         } else if let lastID = viewModel.finalLines.ids.last {
             proxy.scrollTo(lastID, anchor: .bottom)
@@ -148,11 +157,26 @@ struct CaptionsOverlayView: View {
                             .foregroundStyle(SpeakerPalette.color(for: speaker))
                     }
                 }
-                HighlightedMessageText(viewModel.finalLines.textLines[index], userName: userName)
+                // The newest caption carries the engine's in-flight text at its
+                // tail (dimmed, same paragraph) so a partial reads as this caption
+                // continuing rather than a separate one appearing below.
+                captionText(at: index)
                     .font(.transcript(.body, multiplier: textSizeMultiplier))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// A caption's text, with the live partial concatenated onto the LAST one as a
+    /// dimmed tail. `Text + Text` keeps both in one paragraph; a sibling view would
+    /// wrap to a new line. Only the ephemeral tail is uncached — the committed part
+    /// keeps its `@Name` highlight and its cache entry.
+    private func captionText(at index: Int) -> Text {
+        let committed = HighlightedMessageText(
+            viewModel.finalLines.textLines[index], userName: userName).asText
+        guard index == viewModel.finalLines.ids.count - 1,
+              let partial = viewModel.trailingPartial else { return committed }
+        return committed + Text(partial).foregroundStyle(.secondary)
     }
 }
 

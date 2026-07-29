@@ -55,6 +55,19 @@ focus-gated hybrid, defer}: **focus-gated hybrid**.
 - **Finalized lines only** (never the noisy ~5 fps partial) and **debounced** (≥5 s
   between alerts) so a name repeated in quick succession doesn't spam. The debounce
   clock resets per session (generation change).
+
+  **Updated 2026-07-29** (`2026-07-29-macos-live-line-building.md`): `flushSentence()` is
+  gone with the token accumulator. The entry point is now
+  `handle(finalizedFragment:sessionGeneration:)`, called from `commit(...)` in
+  `MacTranscriptionViewModel+Lines` once per finalized **token** with that token's raw
+  text. Because a name can span two tokens, the notifier matches against a 240-character
+  rolling window of recently finalized text, trimmed at a word boundary (a regex `\b`
+  matches at the start of the searched string, so a mid-word cut could make "…Ramdan"
+  alert a user named Dan), and clears the window on every detected mention — including
+  one the debounce suppresses — so a matched name can't re-fire from stale text. It also
+  caches the compiled regex, since it now runs per token. Still finalized text only; the
+  partial is still never matched, and the ~5 fps partial throttle referenced above no
+  longer exists.
 - **Focus gate:** `NSApp.isActive` → show the transient HUD badge (the same overlay
   the global hotkeys use, generalized to take an icon + message); otherwise post a
   macOS local notification so the alert reaches the user in whatever app they're in.

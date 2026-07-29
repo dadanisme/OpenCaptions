@@ -97,6 +97,15 @@ protocol. Nothing else changes — the view model, factory, settings, model down
   (`totalActiveTime`) instead of the token's `start_ms` (which is 0). The single-stream case already
   works: `speaker == -1` is both the accumulator's "unset" sentinel and the on-device value, so it
   never flushes on speaker change and merges into one stream.
+
+  **Superseded 2026-07-29** (`2026-07-29-macos-live-line-building.md`): that file is deleted. The
+  clock-vs-token stamping decision moved to `resolvedTimes(startMs:endMs:)` in
+  `MacTranscriptionViewModel+Lines`, and the double meaning of `-1` is gone —
+  `TranscriptionToken.unknownSpeaker` now means only "diarization unavailable", while "no bubble
+  open yet" is `LiveLineCursor.speaker == nil`. On-device tokens all carry `unknownSpeaker`, so
+  they still merge into one stream. `FluidAudioStreamBridge` also stopped waiting on punctuation:
+  it finalizes everything but the last 8 words, so offline text lands in the transcript
+  continuously.
 - `Views/MacSettingsView.swift` — Recording tab "Transcription Engine" section (picker + conditional
   `MacFluidAudioModelCard`).
 - `Views/MacPreparingModelOverlay.swift` (new) + `MacLiveTranscriptionView.swift` — "Preparing model…"

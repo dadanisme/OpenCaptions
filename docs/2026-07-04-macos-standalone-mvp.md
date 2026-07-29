@@ -26,9 +26,14 @@ the product owner chose standalone during implementation.
 
 ### Accepted trade-off
 
-The Soniox `URLSessionWebSocketTask` client and the token/diarization accumulation
-logic live in this project as their own self-contained implementation. This is the
+The Soniox `URLSessionWebSocketTask` client and the token/diarization grouping logic
+live in this project as their own self-contained implementation. This is the
 deliberate price of a clean, independently-evolving Mac app for a minimal first cut.
+
+**Update 2026-07-29:** the "token accumulation" half of that trade-off is gone. The
+sentence-buffering accumulator was removed in favour of committing each finalized token
+straight into the transcript; what remains is presentation grouping at commit time. See
+`2026-07-29-macos-live-line-building.md`.
 
 ## Scope
 
@@ -62,6 +67,8 @@ history lists all local sessions.
   token→bubble accumulation (sentence flush, word/paragraph limits, CJK-safe
   boundaries), without Firestore/Live Activity/subscription/reconnection/
   periodic-reset. Instantiates the Soniox engine directly (no multi-engine factory).
+  *(Superseded 2026-07-29: `+Accumulator` is deleted; grouping now lives in
+  `+Lines` / `LiveLineCursor` and commits every token immediately.)*
 - UI: `OpenCaptionsApp` (schema container, no Firebase), `ContentView`
   (`NavigationSplitView` list + detail), `MacLiveTranscriptionView` (record/stop +
   live transcript), `MacSessionDetailView` (summary + transcript).

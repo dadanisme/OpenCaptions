@@ -2,10 +2,13 @@
 //  SentenceHeuristics.swift
 //  OpenCaptions
 //
-//  Pure, CJK-aware sentence/word heuristics shared by the LIVE token accumulator
-//  (`MacTranscriptionViewModel+Accumulator`) and the BATCH post-session segment
-//  builder (`PostSessionSegmentBuilder`). Extracted so the two line-grouping paths
-//  can never drift on what counts as a word or a sentence boundary.
+//  Pure, CJK-aware sentence/word heuristics shared by the two line-grouping paths:
+//  the LIVE per-token builder (`LiveLineCursor`, which asks whether a just-committed
+//  token closed a sentence and whether the next one may start a paragraph) and the
+//  BATCH post-session segment builder (`PostSessionSegmentBuilder`, which groups a
+//  finished token list). Kept shared — deliberately, not by inertia — so the two can
+//  never drift on what counts as a word or a sentence boundary. Nothing here buffers
+//  text or decides when text becomes visible.
 //
 
 import Foundation
@@ -30,9 +33,18 @@ enum SentenceHeuristics {
     }
 
     /// A space-delimited word character (letter, not from a space-less script).
+    /// A token starting with one continues the preceding word, so a line break
+    /// before it would split that word; spaceless scripts (CJK) break anywhere.
     static func isWordCharacter(_ ch: Character?) -> Bool {
         guard let ch, ch.isLetter else { return false }
         return !isSpacelessScript(ch)
+    }
+
+    /// Whether text carries any actual word content, as opposed to being pure
+    /// punctuation/whitespace (a bare "." token, say). Such a token belongs to the
+    /// text it punctuates, whatever speaker the engine attributed it to.
+    static func hasWordContent(_ text: String) -> Bool {
+        text.contains { $0.isLetter || $0.isNumber }
     }
 
     /// Whether text ends a complete sentence (Latin `.!?`, CJK `。！？`, and a

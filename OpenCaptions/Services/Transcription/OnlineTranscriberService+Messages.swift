@@ -92,12 +92,14 @@ extension OnlineTranscriberService {
                 if text == "<fin>" { continue }
 
                 // `<end>` is Soniox's endpoint marker: keep it as an endpoint
-                // signal (empty text) rather than transcription content.
+                // signal (empty text) rather than transcription content. The line
+                // builder reads it as "the next token may start a paragraph" — it
+                // carries no text, speaker, or time of its own.
                 if text == "<end>" {
                     let endpointToken = Token(
                         text: "",
                         isFinal: true,
-                        speaker: -1,
+                        speaker: Token.unknownSpeaker,
                         isEndpoint: true,
                         start_ms: -1,
                         end_ms: -1
@@ -118,7 +120,7 @@ extension OnlineTranscriberService {
                 {
                     speakerValue = intValue
                 } else {
-                    speakerValue = -1
+                    speakerValue = Token.unknownSpeaker
                 }
 
                 // Create token with extracted data

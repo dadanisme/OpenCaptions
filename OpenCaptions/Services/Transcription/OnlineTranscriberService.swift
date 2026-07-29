@@ -13,18 +13,17 @@ final class OnlineTranscriberService: RealtimeTranscriptionEngine {
 
     // MARK: - Engine Capabilities
 
-    /// Soniox traits: token-level diarization, unreliable per-token timestamps (the ViewModel
-    /// uses its own clock), explicit `<end>` endpoint tokens, and a periodic reset matching the
-    /// tuned 5-hour connection-reset interval.
+    /// Soniox traits: token-level diarization, reliable per-token timestamps, explicit `<end>`
+    /// endpoint tokens, and a periodic reset matching the tuned 5-hour connection-reset interval.
     let capabilities = EngineCapabilities(
         engineId: "soniox",
         displayName: "Soniox",
         supportsDiarization: true,
         // Soniox's audio-relative token start_ms/end_ms map straight to the saved-recording
         // file offset and drive session-audio playback seek on macOS, so they are
-        // "reliable" here. This keeps the accumulator on start_ms for Soniox; only the on-device
+        // "reliable" here. Committed lines are stamped from start_ms; only the on-device
         // engines (Parakeet/Nemotron), which emit 0/0, fall back to the VM clock. See
-        // MacTranscriptionViewModel+Accumulator and docs/2026-07-10-macos-on-device-engines.md.
+        // MacTranscriptionViewModel+Lines and docs/2026-07-10-macos-on-device-engines.md.
         providesReliableTimestamps: true,
         emitsEndpointTokens: true,
         maxSessionSeconds: TranscriptionConstants.connectionResetIntervalSeconds,
