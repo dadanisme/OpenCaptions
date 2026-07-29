@@ -28,6 +28,16 @@ final class SummaryViewModel {
             session.shortDescription = response.shortDescription
             try? context.save()
 
+            // Auto-name the diarized speakers the model was confident about. Silent
+            // and best-effort: no-op when it named nobody (or named nobody
+            // confidently enough), and it never affects whether the summary saved.
+            // Edit Speakers remains the correction path.
+            SpeakerRenamer.apply(
+                SpeakerNameResolver.resolve(response.identifiedSpeakers),
+                to: session,
+                context: context
+            )
+
             // If this session is shared, mirror the fresh summary to the web view
             // so it matches the app (no-op when sharing is off / session unshared).
             FirestoreSyncService.shared.writeSummary(

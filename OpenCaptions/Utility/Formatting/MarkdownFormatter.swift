@@ -58,7 +58,7 @@ enum MarkdownFormatter {
     private static func line(_ line: TranscriptionLine) -> String {
         let time = TimestampFormatter.hms(fromMs: line.startMs)
         guard line.speakerId > 0 else { return "**[\(time)]** \(line.text)" }
-        let name = line.speakerName.isEmpty ? "Speaker \(line.speakerId)" : line.speakerName
+        let name = SpeakerLabel.display(line.speakerName, id: line.speakerId)
         return "**[\(time)] \(name):** \(line.text)"
     }
 
@@ -69,7 +69,7 @@ enum MarkdownFormatter {
         var names: [String] = []
         for line in lines where line.speakerId > 0 && !seen.contains(line.speakerId) {
             seen.insert(line.speakerId)
-            names.append(line.speakerName.isEmpty ? "Speaker \(line.speakerId)" : line.speakerName)
+            names.append(SpeakerLabel.display(line.speakerName, id: line.speakerId))
         }
         return names
     }

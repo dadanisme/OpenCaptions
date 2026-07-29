@@ -3,13 +3,14 @@
 //  OpenCaptions
 //
 //  Speaker-rename support for a SAVED session's detail view: derives the
-//  session's distinct diarized speakers for the edit sheet, then persists the
-//  new names onto every matching line in SwiftData and mirrors the change to
-//  the shared Firestore doc (when the session was shared). Split from
+//  session's distinct diarized speakers for the edit sheet. Split from
 //  MacSessionDetailView to stay under the line limit.
 //
+//  The persistence itself lives in `SpeakerRenamer` (Services/Speakers), not here,
+//  so the summary pass's automatic naming can reuse the same write path without
+//  going through a view.
+//
 
-import SwiftData
 import SwiftUI
 
 /// Identifies the speaker being renamed from a transcript bubble's right-click
@@ -41,33 +42,6 @@ extension MacSessionDetailView {
                 originalName: nameById[id] ?? "Speaker \(id)",
                 color: SpeakerPalette.color(for: id)
             )
-        }
-    }
-
-    /// Persists renamed speakers: writes the new name onto every line of each
-    /// changed speaker id, saves SwiftData, then mirrors the changes to the
-    /// shared Firestore doc when this session was shared. `edits` is id → new
-    /// (already-trimmed) name for every speaker; only ids whose name actually
-    /// changed are written and synced.
-    func saveSpeakerNames(_ edits: [Int: String]) {
-        var changed: [Int: String] = [:]
-        for line in session.lines {
-            guard let newName = edits[line.speakerId], line.speakerName != newName else { continue }
-            line.speakerName = newName
-            changed[line.speakerId] = newName
-        }
-        guard !changed.isEmpty else { return }
-
-        do {
-            try modelContext.save()
-        } catch {
-            print("❌ Edit Speakers: failed to save renamed speakers: \(error.localizedDescription)")
-        }
-
-        // Mirror to the shared web transcript's `speakers` map when this session
-        // was shared (no-op otherwise, or when signed out).
-        if let cloudId = session.cloudSessionId {
-            FirestoreSyncService.shared.updateSpeakerNames(cloudSessionId: cloudId, names: changed)
         }
     }
 }

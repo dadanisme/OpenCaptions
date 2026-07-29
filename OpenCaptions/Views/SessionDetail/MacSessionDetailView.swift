@@ -163,13 +163,15 @@ struct MacSessionDetailView: View {
             MacShareSessionSheet(sessionId: target.id)
         }
         .sheet(isPresented: $showSpeakerEditor) {
-            MacEditSpeakersSheet(speakers: editableSpeakers) { saveSpeakerNames($0) }
+            MacEditSpeakersSheet(speakers: editableSpeakers) { edits in
+                SpeakerRenamer.apply(edits, to: session, context: modelContext)
+            }
         }
         // Single-speaker rename from a transcript bubble's right-click menu;
         // routes through the same persist + Firestore-sync path as the batch editor.
         .sheet(item: $renameTarget) { target in
             MacRenameSpeakerSheet(currentName: target.currentName) { newName in
-                saveSpeakerNames([target.speakerID: newName])
+                SpeakerRenamer.apply([target.speakerID: newName], to: session, context: modelContext)
             }
         }
         .confirmationDialog(
