@@ -2,18 +2,20 @@
 //  MarkdownFormatter.swift
 //  OpenCaptions
 //
-//  Formats a saved session's transcript as GitHub-flavored markdown for
-//  copy-to-clipboard. It formats the full transcript (metadata + lines),
-//  not the summary.
+//  Formats a saved session as GitHub-flavored markdown for copy-to-clipboard:
+//  metadata, the AI summary (when one exists), then the full transcript. Section
+//  order and headings mirror the detail view and `PDFExporter`.
 //
 
 import Foundation
 
 enum MarkdownFormatter {
-    /// Formats a session's metadata + full transcript as GitHub-flavored markdown.
-    /// Includes the title, date, duration, and — when diarization was on — the set
-    /// of speaker names and per-line speaker attribution. Empty sections are omitted.
-    static func formatTranscript(session: TranscriptionSession) -> String {
+    /// Formats a session's metadata + summary + full transcript as GitHub-flavored
+    /// markdown. Includes the title, date, duration, and — when diarization was on —
+    /// the set of speaker names and per-line speaker attribution. Empty sections
+    /// (no summary yet, no lines) are omitted, so this is safe to call for a
+    /// summary-only or transcript-only session.
+    static func formatSession(session: TranscriptionSession) -> String {
         var parts: [String] = []
 
         // Title
@@ -41,6 +43,9 @@ enum MarkdownFormatter {
         }
         parts.append(meta.joined(separator: "\n"))
 
+        // Summary (omitted entirely when the session hasn't been summarized).
+        parts.append(contentsOf: summarySections(session: session))
+
         // Transcript
         if !sortedLines.isEmpty {
             let body = sortedLines.map(line(_:)).joined(separator: "\n\n")
@@ -48,6 +53,41 @@ enum MarkdownFormatter {
         }
 
         return parts.joined(separator: "\n\n")
+    }
+
+    // MARK: - Summary
+
+    /// The AI-summary sections — Overview paragraphs, Key Points bullets, and
+    /// Action Items as GFM task-list items carrying their completion state.
+    /// Returns an empty array when the session has no summary content, so the
+    /// caller can splice it in unconditionally.
+    private static func summarySections(session: TranscriptionSession) -> [String] {
+        var sections: [String] = []
+
+        let paragraphs = session.summaryParagraphs.filter { !$0.isEmpty }
+        if !paragraphs.isEmpty {
+            sections.append("## Overview\n\n" + paragraphs.joined(separator: "\n\n"))
+        }
+
+        let keyPoints = session.summaryKeyPoints.filter { !$0.isEmpty }
+        if !keyPoints.isEmpty {
+            let body = keyPoints.map { "- \($0)" }.joined(separator: "\n")
+            sections.append("## Key Points\n\n" + body)
+        }
+
+        // Same sort as the detail view / PDF export so the copied order matches
+        // what the user sees.
+        let actionItems = session.actionItems
+            .sorted { $0.sortOrder < $1.sortOrder }
+            .filter { !$0.text.isEmpty }
+        if !actionItems.isEmpty {
+            let body = actionItems
+                .map { "- [\($0.isCompleted ? "x" : " ")] \($0.text)" }
+                .joined(separator: "\n")
+            sections.append("## Action Items\n\n" + body)
+        }
+
+        return sections
     }
 
     // MARK: - Helpers

@@ -99,11 +99,13 @@ struct MacSessionDetailView: View {
             ToolbarItem {
                 Menu {
                     Button {
-                        copyTranscriptMarkdown()
+                        copySessionMarkdown()
                     } label: {
                         Label("Copy as Markdown", systemImage: "doc.on.clipboard")
                     }
-                    .disabled(session.lines.isEmpty)
+                    // Copies the summary too, so a summary-only session (transcript
+                    // cleared, or lines still syncing) is still worth copying.
+                    .disabled(session.lines.isEmpty && !hasSummaryContent)
 
                     Button {
                         Task { await exportPDF() }
@@ -242,10 +244,11 @@ struct MacSessionDetailView: View {
         SessionAudioStore.delete(fileName: audioFileName)
     }
 
-    /// Copies the full transcript (metadata + lines) to the clipboard as
-    /// GitHub-flavored markdown. Menu item is disabled when there are no lines.
-    private func copyTranscriptMarkdown() {
-        let markdown = MarkdownFormatter.formatTranscript(session: session)
+    /// Copies the whole session — metadata, the AI summary when one exists, then
+    /// the full transcript — to the clipboard as GitHub-flavored markdown. Menu
+    /// item is disabled only when there's neither a transcript nor a summary.
+    private func copySessionMarkdown() {
+        let markdown = MarkdownFormatter.formatSession(session: session)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(markdown, forType: .string)
     }
