@@ -154,6 +154,9 @@ extension MacAuthManager {
                 predicate: #Predicate { $0.userId == uid })
             let sessions = try context.fetch(descriptor)
             let audioNames = sessions.compactMap(\.audioFileName)
+            // Exported markdown is external to SwiftData, like the audio below.
+            // Runs before the delete so it can read the rows it needs.
+            SessionExportCoordinator.remove(sessions)
             sessions.forEach { context.delete($0) }
             try context.save()
             audioNames.forEach { SessionAudioStore.delete(fileName: $0) }

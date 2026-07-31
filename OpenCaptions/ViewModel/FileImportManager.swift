@@ -166,6 +166,12 @@ final class FileImportManager {
             session.audioFileName = nil
             try? context.save()
         }
+
+        // Final markdown export. `PostSessionRetranscriber` already exported the
+        // transcript and summary as they landed; this last pass is what settles the
+        // AUDIO mirror — the branch above may have just dropped the recording, and
+        // an export is the only thing that removes the copy beside the markdown.
+        SessionExportCoordinator.export(session, context: context)
     }
 
     /// Whether to keep the normalized audio — same gate as live recording

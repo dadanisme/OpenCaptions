@@ -162,6 +162,7 @@ struct MacSettingsView: View {
                 .appScaledFont(.caption)
                 .foregroundStyle(.secondary)
         }
+        MacMarkdownExportSection()
     }
 
     /// Explanatory note under the automatic speaker-naming toggle.

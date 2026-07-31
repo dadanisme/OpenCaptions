@@ -2,9 +2,18 @@
 //  MarkdownFormatter.swift
 //  OpenCaptions
 //
-//  Formats a saved session as GitHub-flavored markdown for copy-to-clipboard:
-//  metadata, the AI summary (when one exists), then the full transcript. Section
-//  order and headings mirror the detail view and `PDFExporter`.
+//  Formats a saved session as GitHub-flavored markdown: metadata, the AI summary
+//  (when one exists), then the full transcript. Section order and headings mirror
+//  the detail view and `PDFExporter`.
+//
+//  Three entry points, all sharing one header so the copied and the exported text
+//  can't drift: `formatSession` (Copy as Markdown — everything in one string),
+//  `formatTranscript` (the exported `transcript.md`), and `formatSummary` in
+//  `MarkdownFormatter+Summary` (the exported `summary.md`).
+//
+//  Nothing here is actor-isolated — the markdown export renders on a background
+//  context during backfill — but a `TranscriptionSession` is only valid on the
+//  context that vended it, so callers must stay on that context.
 //
 
 import Foundation
@@ -16,17 +25,32 @@ enum MarkdownFormatter {
     /// (no summary yet, no lines) are omitted, so this is safe to call for a
     /// summary-only or transcript-only session.
     static func formatSession(session: TranscriptionSession) -> String {
-        var parts: [String] = []
+        let lines = sortedLines(of: session)
+        var parts = header(session: session, sortedLines: lines)
+        parts.append(contentsOf: summarySections(session: session))
+        if let transcript = transcriptSection(lines) { parts.append(transcript) }
+        return parts.joined(separator: "\n\n")
+    }
 
-        // Title
-        parts.append("# \(session.sessionTitle)")
+    /// The exported `transcript.md`: the same header as `formatSession`, then the
+    /// transcript — but never the summary, which is exported as its own file so
+    /// each can be fed to other tools independently.
+    static func formatTranscript(session: TranscriptionSession) -> String {
+        let lines = sortedLines(of: session)
+        var parts = header(session: session, sortedLines: lines)
+        if let transcript = transcriptSection(lines) { parts.append(transcript) }
+        return parts.joined(separator: "\n\n")
+    }
 
-        // Lines in display order (matches the detail view's transcript sort).
-        let sortedLines = session.lines.sorted {
-            ($0.startMs, $0.timestamp) < ($1.startMs, $1.timestamp)
-        }
+    // MARK: - Shared sections
 
-        // Metadata block (date, duration, speakers).
+    /// Title + metadata block (date, duration, speakers) — the two leading parts
+    /// every rendering starts with.
+    ///
+    /// Not `private`: `MarkdownFormatter+Summary` is a separate file (the ~250-line
+    /// limit), and Swift's `private` doesn't reach across files even for extensions
+    /// of the same type.
+    static func header(session: TranscriptionSession, sortedLines: [TranscriptionLine]) -> [String] {
         var meta: [String] = []
         let dateString = DateFormatter.localizedString(
             from: session.sessionDate, dateStyle: .long, timeStyle: .short)
@@ -41,27 +65,16 @@ enum MarkdownFormatter {
         if !speakers.isEmpty {
             meta.append("**Speakers:** \(speakers.joined(separator: ", "))")
         }
-        parts.append(meta.joined(separator: "\n"))
 
-        // Summary (omitted entirely when the session hasn't been summarized).
-        parts.append(contentsOf: summarySections(session: session))
-
-        // Transcript
-        if !sortedLines.isEmpty {
-            let body = sortedLines.map(line(_:)).joined(separator: "\n\n")
-            parts.append("## Transcript\n\n" + body)
-        }
-
-        return parts.joined(separator: "\n\n")
+        return ["# \(session.sessionTitle)", meta.joined(separator: "\n")]
     }
-
-    // MARK: - Summary
 
     /// The AI-summary sections — Overview paragraphs, Key Points bullets, and
     /// Action Items as GFM task-list items carrying their completion state.
     /// Returns an empty array when the session has no summary content, so the
-    /// caller can splice it in unconditionally.
-    private static func summarySections(session: TranscriptionSession) -> [String] {
+    /// caller can splice it in unconditionally. Internal for the same
+    /// cross-file-extension reason as `header`.
+    static func summarySections(session: TranscriptionSession) -> [String] {
         var sections: [String] = []
 
         let paragraphs = session.summaryParagraphs.filter { !$0.isEmpty }
@@ -91,6 +104,17 @@ enum MarkdownFormatter {
     }
 
     // MARK: - Helpers
+
+    /// Lines in display order (matches the detail view's transcript sort).
+    static func sortedLines(of session: TranscriptionSession) -> [TranscriptionLine] {
+        session.lines.sorted { ($0.startMs, $0.timestamp) < ($1.startMs, $1.timestamp) }
+    }
+
+    /// The `## Transcript` section, or nil when there are no lines.
+    private static func transcriptSection(_ sortedLines: [TranscriptionLine]) -> String? {
+        guard !sortedLines.isEmpty else { return nil }
+        return "## Transcript\n\n" + sortedLines.map(line(_:)).joined(separator: "\n\n")
+    }
 
     /// A single transcript line. `-1` means diarization was off — emit the plain
     /// timestamped text with no speaker label (never a placeholder like

@@ -238,6 +238,10 @@ struct MacSessionDetailView: View {
     /// so the popped view is torn down rather than re-rendered against the dead model.
     private func deleteSession() {
         let audioFileName = session.audioFileName
+        // The exported markdown folder is external too, so the cascade misses it.
+        // Called BEFORE the delete: it reads the folder name and the persistent id
+        // off a row that still exists.
+        SessionExportCoordinator.remove([session])
         dismiss()
         modelContext.delete(session)
         try? modelContext.save()
