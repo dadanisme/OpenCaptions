@@ -264,6 +264,10 @@ struct TranscriptionsScreen: View {
         // Capture the filename up front so the on-disk cleanup never reads a model
         // after it's been deleted.
         let audioFileName = session.audioFileName
+        // Same story for the exported markdown folder — external to SwiftData, so
+        // the cascade misses it. Must run before the delete: it reads the folder
+        // name and the persistent id off a row that still exists.
+        SessionExportCoordinator.remove([session])
         withAnimation {
             modelContext.delete(session)
             // Persist now (every other write path saves explicitly) rather than

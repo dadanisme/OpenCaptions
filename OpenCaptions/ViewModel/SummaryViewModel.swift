@@ -49,6 +49,10 @@ final class SummaryViewModel {
                 )
             }
 
+            // Rewrite the markdown export: `summary.md` appears (or is refreshed),
+            // and the retitle above renames the session's folder to match.
+            SessionExportCoordinator.export(session, context: context)
+
             // If this session is shared, mirror the fresh summary to the web view
             // so it matches the app (no-op when sharing is off / session unshared).
             FirestoreSyncService.shared.writeSummary(

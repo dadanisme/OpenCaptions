@@ -29,5 +29,12 @@
 	     via NSSavePanel (Powerbox). Without it the save panel refuses to open. -->
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
+	<!-- Markdown export writes to a folder the user picks ONCE and the app reuses on
+	     every later save. The user-selected grant above only lasts as long as the
+	     Powerbox session, so the folder is persisted as an app-scoped
+	     security-scoped bookmark (MarkdownExportLocation) — which needs this.
+	     See docs/2026-07-31-macos-markdown-export.md. -->
+	<key>com.apple.security.files.bookmarks.app-scope</key>
+	<true/>
 </dict>
 </plist>

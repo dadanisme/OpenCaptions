@@ -233,6 +233,12 @@ final class MacTranscriptionViewModel {
         guard hadContent, let container = modelContainer else { return nil }
         let savedID = await finalLines.saveSession(
             to: container.mainContext, title: workingTitle, audioFileName: audioFileName)
+        // Mirror the finished session to markdown on disk. Fire-and-forget and
+        // non-fatal — the SwiftData row is the source of truth. Re-transcription
+        // and the summary pass below each re-export as they land.
+        if let saved = container.mainContext.model(for: savedID) as? TranscriptionSession {
+            SessionExportCoordinator.export(saved, context: container.mainContext)
+        }
         // Automatically re-transcribe for higher accuracy when the user opted in
         // (no-op when the setting is off). Runs in the background; the saved
         // transcript updates in place when it finishes.

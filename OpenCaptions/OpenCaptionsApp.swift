@@ -116,6 +116,12 @@ struct OpenCaptionsApp: App {
                     // never swept.
                     await SessionAudioOrphanSweep.run(container: sharedModelContainer)
                 }
+                // Mirror any session that has never been exported to markdown. On
+                // the first launch after the feature shipped that is the whole
+                // library (the one-time backfill); afterwards it is an empty fetch
+                // that also self-heals an export interrupted by a quit or crash.
+                // Safe alongside a live session — it only touches saved rows.
+                await SessionExportCoordinator.backfillMissing(container: sharedModelContainer)
             }
             .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
         }

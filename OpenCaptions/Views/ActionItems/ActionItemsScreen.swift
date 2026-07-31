@@ -110,6 +110,11 @@ struct ActionItemsScreen: View {
     private func toggle(_ item: ActionItem) {
         item.isCompleted.toggle()
         try? modelContext.save()
+        // Completion state is part of the exported `summary.md` (GFM task-list
+        // items carry `[x]`), so the file has to be rewritten to stay in step.
+        if let session = item.session {
+            SessionExportCoordinator.export(session, context: modelContext)
+        }
     }
 
     /// Opens exactly one session's detail. Assigns the path (rather than

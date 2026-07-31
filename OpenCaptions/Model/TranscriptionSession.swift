@@ -36,6 +36,17 @@ final class TranscriptionSession {
     /// discarded/empty session). Optional so existing stores migrate
     /// automatically (SwiftData lightweight migration).
     var audioFileName: String?
+    /// Folder name (not path) of this session's markdown export under the current
+    /// export root, resolved via `MarkdownExportLocation`. Shaped
+    /// `<yyyy-MM-dd>-<slug>`, with a `-2`/`-3` suffix when a same-day same-title
+    /// folder was already taken. Nil until the session has been exported once.
+    ///
+    /// Persisted for the same reason `audioFileName` is: only the RELATIVE
+    /// reference is stored, so moving the export root (Settings → Browse…) never
+    /// invalidates it. It is also what lets a retitle RENAME the existing folder
+    /// instead of orphaning it, and what a delete needs to clean up. Optional so
+    /// existing stores migrate automatically (SwiftData lightweight migration).
+    var exportFolderName: String?
     /// Server-owned flag mirrored from `sessionIndex/{cloudSessionId}.hasPassword`.
     /// The client NEVER writes this to Firestore (the Cloud Function flips it);
     /// cached here so list/detail show the lock state offline. Refreshed on

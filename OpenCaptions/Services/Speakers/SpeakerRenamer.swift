@@ -50,6 +50,10 @@ enum SpeakerRenamer {
             print("❌ Speaker rename: failed to save renamed speakers: \(error.localizedDescription)")
         }
 
+        // Speaker names appear in the exported transcript's per-line labels and its
+        // `**Speakers:**` header, so a rename has to rewrite the file too.
+        SessionExportCoordinator.export(session, context: context)
+
         // Mirror to the shared web transcript's `speakers` map when this session was
         // shared. A nil id just means it was never shared — not a failure — and the
         // guard stays here so no caller has to know that.

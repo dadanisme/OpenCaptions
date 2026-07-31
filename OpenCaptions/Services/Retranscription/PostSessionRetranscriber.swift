@@ -86,5 +86,11 @@ enum PostSessionRetranscriber {
         } catch {
             print("❌ Re-transcribe: failed to save replaced transcript: \(error)")
         }
+
+        // Rewrite the export against the new transcript. This is also what REMOVES
+        // the now-stale `summary.md` — the summary was just cleared above, and a
+        // session with no summary exports no summary file. Regeneration (when it
+        // runs) exports again and brings it back.
+        SessionExportCoordinator.export(session, context: context)
     }
 }
