@@ -31,8 +31,10 @@ balance, or paywall in any code path.
 - **Offline Mode** — on-device Nemotron (FluidAudio), network-free after a one-time
   CoreML model download. Trade-off: English only, no speaker diarization, no custom
   vocabulary, and no AI summary.
-- **AI summaries** — a direct call from the app to Google Gemini using your own
-  `GEMINI_API_KEY`; there is no backend server in the loop.
+- **AI summaries** — a direct call from the app to OpenRouter using your own
+  `OPENROUTER_API_KEY`; there is no backend server in the loop. Routing through
+  OpenRouter (rather than a single vendor's API) lets an overloaded upstream be
+  retried and routed around instead of failing the summary.
 - **Automatic speaker naming** — the summary pass names the diarized speakers from
   self-introductions and direct address (Settings → Speaker Names, on by default),
   with manual batch and per-bubble renaming on top.
@@ -59,7 +61,7 @@ balance, or paywall in any code path.
    `C4SQMCY5WT`) and, if desired, your own bundle id.
 3. Supply credentials (both git-ignored; copy `Config.xcconfig.example` →
    `Config.xcconfig` and provide `OpenCaptions/GoogleService-Info.plist`):
-   - **`Config.xcconfig`** (repo root) — `SONIOX_API_KEY`, `GEMINI_API_KEY`,
+   - **`Config.xcconfig`** (repo root) — `SONIOX_API_KEY`, `OPENROUTER_API_KEY`,
      `SUPPORT_EMAIL`, `REVERSED_CLIENT_ID`.
    - **`OpenCaptions/GoogleService-Info.plist`** — Firebase config.
 4. Swift Package Manager resolves the dependencies automatically:
@@ -104,7 +106,7 @@ own independent infrastructure under the bundle id
 `com.muhammadramdan.OpenCaptions`. The external surface is: Soniox (the real-time
 WebSocket plus `api.soniox.com/v1` for post-session re-transcription), Firebase
 Auth and Firestore, two Firebase callables for share passwords, Google Sign-In, a
-direct client-side call to Gemini for summaries, and FluidAudio's one-time model
+direct client-side call to OpenRouter for summaries, and FluidAudio's one-time model
 download. Firebase and Google Sign-In are keyed to that bundle id, so a fork
 changing it must re-register both.
 

@@ -4,9 +4,10 @@
 // Soniox real-time STT API key — https://soniox.com
 SONIOX_API_KEY = YOUR_SONIOX_API_KEY
 
-// Google Gemini API key for native AI summaries (no backend server).
-// Create one at https://aistudio.google.com/apikey — bring your own key.
-GEMINI_API_KEY = YOUR_GEMINI_API_KEY
+// OpenRouter API key for AI summaries (no backend server). OpenRouter fronts several
+// upstream providers for the pinned model, so an overloaded one is routed around.
+// Create one at https://openrouter.ai/keys — bring your own key.
+OPENROUTER_API_KEY = YOUR_OPENROUTER_API_KEY
 
 // Support inbox surfaced in Settings → Support (mailto: subjects distinguish the action).
 SUPPORT_EMAIL = support@YOUR-DOMAIN

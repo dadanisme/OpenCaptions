@@ -13,6 +13,12 @@ import SwiftData
 enum SessionSummaryError: LocalizedError {
     case emptyConversation
     case unauthorized
+    case insufficientCredits
+    /// Every upstream provider was rate-limited or unavailable, even after the
+    /// transport's bounded retry. Distinct from `.serverError` so the user gets
+    /// "try again in a moment" rather than a raw HTTP message they can't act on —
+    /// this was the whole point of moving off the direct Gemini call.
+    case overloaded(String?)
     case badRequest(String)
     case serverError(String)
     case networkError(String)
@@ -22,7 +28,12 @@ enum SessionSummaryError: LocalizedError {
         case .emptyConversation:
             return "There are no valid subtitle records for this conversation, so a summary cannot be generated."
         case .unauthorized:
-            return "Unauthorized — check that GEMINI_API_KEY is set correctly in Config.xcconfig."
+            return "Unauthorized — check that OPENROUTER_API_KEY is set correctly in Config.xcconfig."
+        case .insufficientCredits:
+            return "Out of OpenRouter credits — top up the account that owns OPENROUTER_API_KEY."
+        case .overloaded(let detail):
+            let suffix = detail.map { " (\($0))" } ?? ""
+            return "Every summary provider is busy right now\(suffix). Try Re-summarize in a moment."
         case .badRequest(let message):
             return "Bad request: \(message)"
         case .serverError(let message):
@@ -36,6 +47,8 @@ enum SessionSummaryError: LocalizedError {
         switch self {
         case .emptyConversation: return "emptyConversation"
         case .unauthorized: return "unauthorized"
+        case .insufficientCredits: return "insufficientCredits"
+        case .overloaded: return "overloaded"
         case .badRequest: return "badRequest"
         case .serverError: return "serverError"
         case .networkError: return "networkError"
@@ -47,8 +60,9 @@ enum SessionSummaryError: LocalizedError {
 
 /// The structured summary contract. Kept identical to the old Cloud Function
 /// response so everything downstream (`SummaryViewModel`, `saveStructuredSummary`,
-/// the Firestore mirror, the ActionItems/KeyPoints screens) is untouched by the
-/// migration to a direct Gemini call. See `SummaryService+Gemini`.
+/// the Firestore mirror, the ActionItems/KeyPoints screens) was untouched first by
+/// the move to a direct Gemini call and then by the move to OpenRouter. Only the
+/// transport has ever changed — see `SummaryService+OpenRouter`.
 struct SummaryAPIResponse: Decodable {
     let title: String
     let shortDescription: String

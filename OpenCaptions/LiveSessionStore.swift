@@ -78,7 +78,7 @@ final class LiveSessionStore {
     /// confidently-named speakers are renamed silently; when off, labels stay
     /// "Speaker N" and Edit Speakers is the only way to name them. Bound to
     /// `MacSettingsView`'s toggle and read by `SummaryViewModel` at apply time.
-    /// Gates only whether the prediction is APPLIED — the request Gemini receives is
+    /// Gates only whether the prediction is APPLIED — the request the model receives is
     /// identical either way, so toggling this never changes the summary text itself.
     /// Diarization is cloud-only, so this has no effect in Offline Mode. Default
     /// `true` (registered in `OpenCaptionsApp`) — it must be registered, since a raw

@@ -2,13 +2,17 @@
 //  SummaryService+Schema.swift
 //  OpenCaptions
 //
-//  The Gemini `generationConfig.responseSchema` for the summary request — the
-//  structured-output contract that shapes `SummaryAPIResponse`. Split out of
-//  `SummaryService+Gemini` (which owns the transport) when the `speakers` array
-//  was added, to keep both files under the line limit.
+//  The JSON Schema sent as `response_format.json_schema.schema` on the summary
+//  request — the structured-output contract that shapes `SummaryAPIResponse`. Split
+//  out of the transport file when the `speakers` array was added, to keep both under
+//  the line limit.
 //
-//  Uppercase REST type names (`OBJECT`/`STRING`/`ARRAY`/`INTEGER`/`NUMBER`) are
-//  what the `v1beta` REST API expects — not the lowercase JSON Schema spelling.
+//  Lowercase type names (`object`/`string`/`array`/`integer`/`number`) are the
+//  standard JSON Schema spelling that OpenRouter's OpenAI-compatible API expects.
+//  They were UPPERCASE while summaries went straight to Gemini's `v1beta` REST API,
+//  which accepts only its own uppercase names — don't reintroduce those here.
+//  `propertyOrdering` went with them: it is a Gemini extension with no OpenAI
+//  equivalent, so field order is no longer pinned (nothing downstream depends on it).
 //
 
 import Foundation
@@ -20,26 +24,25 @@ extension SummaryService {
     ///
     /// `actionItems` and `speakers` are deliberately left out of `required` so both
     /// stay optional (matching `SummaryAPIResponse`) — a transcript with no action
-    /// items, or with no identity signal to go on, simply omits them.
-    /// `propertyOrdering` keeps the generated field order stable.
+    /// items, or with no identity signal to go on, simply omits them. This is why
+    /// `additionalProperties: false` is absent too: the strict-mode convention of
+    /// requiring every property would defeat that, and the pinned model's providers
+    /// honor a partial `required` list as-is.
     ///
     /// Internal (not `private`) because `requestBody` reads it from
-    /// `SummaryService+Gemini.swift` and Swift `private`/`fileprivate` don't cross
-    /// files.
+    /// `SummaryService+OpenRouter.swift` and Swift `private`/`fileprivate` don't
+    /// cross files.
     static let responseSchema: [String: Any] = [
-        "type": "OBJECT",
+        "type": "object",
         "properties": [
-            "title": ["type": "STRING"],
-            "shortDescription": ["type": "STRING"],
-            "summary": ["type": "ARRAY", "items": ["type": "STRING"]],
-            "keyPoints": ["type": "ARRAY", "items": ["type": "STRING"]],
-            "actionItems": ["type": "ARRAY", "items": ["type": "STRING"]],
+            "title": ["type": "string"],
+            "shortDescription": ["type": "string"],
+            "summary": ["type": "array", "items": ["type": "string"]],
+            "keyPoints": ["type": "array", "items": ["type": "string"]],
+            "actionItems": ["type": "array", "items": ["type": "string"]],
             "speakers": speakersSchema
         ],
-        "required": ["title", "shortDescription", "summary", "keyPoints"],
-        "propertyOrdering": [
-            "title", "shortDescription", "summary", "keyPoints", "actionItems", "speakers"
-        ]
+        "required": ["title", "shortDescription", "summary", "keyPoints"]
     ]
 
     /// One entry per diarized speaker the model could name, keyed by the numeric
@@ -50,26 +53,24 @@ extension SummaryService {
     /// `SpeakerNameResolver` applies the thresholds, so the model is never told what
     /// they are.
     private static let speakersSchema: [String: Any] = [
-        "type": "ARRAY",
+        "type": "array",
         "items": [
-            "type": "OBJECT",
+            "type": "object",
             "properties": [
-                "speakerId": ["type": "INTEGER"],
+                "speakerId": ["type": "integer"],
                 "candidates": [
-                    "type": "ARRAY",
+                    "type": "array",
                     "items": [
-                        "type": "OBJECT",
+                        "type": "object",
                         "properties": [
-                            "name": ["type": "STRING"],
-                            "confidence": ["type": "NUMBER"]
+                            "name": ["type": "string"],
+                            "confidence": ["type": "number"]
                         ],
-                        "required": ["name", "confidence"],
-                        "propertyOrdering": ["name", "confidence"]
+                        "required": ["name", "confidence"]
                     ]
                 ]
             ],
-            "required": ["speakerId", "candidates"],
-            "propertyOrdering": ["speakerId", "candidates"]
+            "required": ["speakerId", "candidates"]
         ]
     ]
 }
