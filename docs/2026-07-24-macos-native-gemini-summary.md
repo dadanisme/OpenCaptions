@@ -1,8 +1,17 @@
 # macOS: Native Gemini summary service (backend-less AI summaries)
 
+> **⚠️ HISTORICAL — superseded 2026-08-04.** The *transport* described below (a
+> direct call to Google's `generateContent` REST endpoint with a `GEMINI_API_KEY`
+> in an `x-goog-api-key` header) no longer exists; summaries now go through
+> OpenRouter. See **`docs/2026-08-04-macos-openrouter-summaries.md`**. What this
+> note still documents accurately: *why* summaries are backend-less at all, the
+> prompt's provenance in `ogmo-cf/summarizeTranscript.ts`, and the
+> `SummaryAPIResponse` contract — none of which the migration changed.
+
 **Date:** 2026-07-24 · **Scope:** Open Captions only · **Closes:** #3
 **Related:** `docs/2026-07-10-macos-offline-mode.md` (the offline gate),
-`docs/2026-07-12-macos-consolidated-action-items.md` (a downstream consumer)
+`docs/2026-07-12-macos-consolidated-action-items.md` (a downstream consumer),
+`docs/2026-08-04-macos-openrouter-summaries.md` (**supersedes the transport**)
 
 ## Context
 

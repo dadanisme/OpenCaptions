@@ -275,7 +275,10 @@ everything else.
   `SpeakerLabel.display` (identical output).
 - `OpenCaptions/Services/SummaryService.swift` — `speakers` + `identifiedSpeakers` on
   `SummaryAPIResponse`.
-- `OpenCaptions/Services/SummaryService+Gemini.swift` — schema extracted out.
+- `OpenCaptions/Services/SummaryService+Gemini.swift` — schema extracted out. (That
+  transport file was replaced by `SummaryService+OpenRouter.swift` on 2026-08-04; the
+  schema and the `speakers` contract carried over unchanged. See
+  `docs/2026-08-04-macos-openrouter-summaries.md`.)
 - `OpenCaptions/Services/SummaryService+Prompt.swift` — the `SPEAKER IDENTIFICATION`
   section.
 - `OpenCaptions/ViewModel/SummaryViewModel.swift` — the one call site, right after the
@@ -301,7 +304,8 @@ summary intact; a genuinely broken summary still failing; and every transcript b
 including the non-diarized layout (no roster, original blank-line spacing). The simulation
 is scratch, not committed.
 
-Manual, in Xcode, with a real `GEMINI_API_KEY`:
+Manual, in Xcode, with a real summary API key (`GEMINI_API_KEY` at the time; since
+2026-08-04 it is `OPENROUTER_API_KEY`):
 
 1. Record a diarized session where someone self-introduces → after the summary lands, the
    transcript shows the real name on every line of that speaker, not just the first.

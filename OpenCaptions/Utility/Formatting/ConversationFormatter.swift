@@ -8,7 +8,7 @@
 import Foundation
 
 enum ConversationFormatter {
-    /// The flat transcript blob sent to Gemini as the summary request's `contents`.
+    /// The flat transcript blob sent as the summary request's `user` message.
     /// Its ONLY caller is `SummaryService.summarize(session:language:)` — the
     /// user-facing transcript exports go through `MarkdownFormatter` instead — so
     /// this format is free to carry model-facing scaffolding (the speaker roster,

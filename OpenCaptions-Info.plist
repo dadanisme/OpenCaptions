@@ -29,11 +29,11 @@
 	<string>Open Captions records other apps' audio so it can transcribe your session.</string>
 	<key>SONIOX_API_KEY</key>
 	<string>$(SONIOX_API_KEY)</string>
-	<!-- Google Gemini API key for native (backend-less) AI summaries — read at
-	     runtime via Bundle.main.infoDictionary in SummaryService+Gemini. Supplied
+	<!-- OpenRouter API key for backend-less AI summaries — read at runtime via
+	     Bundle.main.infoDictionary in SummaryService+OpenRouter. Supplied
 	     per-deployment via the git-ignored Config.xcconfig (bring-your-own key). -->
-	<key>GEMINI_API_KEY</key>
-	<string>$(GEMINI_API_KEY)</string>
+	<key>OPENROUTER_API_KEY</key>
+	<string>$(OPENROUTER_API_KEY)</string>
 	<!-- Support inbox surfaced in Settings → Support. Supplied per-deployment via the
 	     git-ignored Config.xcconfig. -->
 	<key>SUPPORT_EMAIL</key>

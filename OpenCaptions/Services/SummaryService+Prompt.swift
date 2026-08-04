@@ -2,8 +2,8 @@
 //  SummaryService+Prompt.swift
 //  OpenCaptions
 //
-//  The Gemini `systemInstruction` for transcript summarization. Ported from
-//  `ogmo-cf/summarizeTranscript.ts` and reworded off the old Ogmo
+//  The summary request's system instruction (sent as the `system` message). Ported
+//  from `ogmo-cf/summarizeTranscript.ts` and reworded off the old Ogmo
 //  "deaf/hard-of-hearing students" persona to Open Captions. The behavior is
 //  preserved verbatim: write in the requested language; silently correct STT /
 //  homophone errors from context; never fabricate; flag genuinely ambiguous spots

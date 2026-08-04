@@ -3,7 +3,7 @@
 //  OpenCaptions
 //
 //  The `speakers` half of the summary response: who the model thinks each
-//  diarized speaker is. Optional in the Gemini response schema, so a transcript
+//  diarized speaker is. Optional in the summary response schema, so a transcript
 //  with no identity signal simply omits it.
 //  See docs/2026-07-29-macos-speaker-auto-naming.md.
 //
@@ -31,7 +31,7 @@ struct SpeakerIdentification: Decodable {
 /// call `decodeIfPresent([SpeakerIdentification].self, …)` for a plain array — and
 /// that throws on any type mismatch, aborting the decode of `title` / `summary` /
 /// `keyPoints` along with it and surfacing as "The summary response was malformed"
-/// (`SummaryService+Gemini.decodeSummary`). Because `init(from:)` below never
+/// (`SummaryService+OpenRouterResponse.decodeSummary`). Because `init(from:)` below never
 /// throws, a malformed field degrades to "the model named nobody" instead.
 struct SpeakerPredictions: Decodable {
     let identifications: [SpeakerIdentification]
