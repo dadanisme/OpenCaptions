@@ -22,16 +22,39 @@ extension TranscriptionSession {
         previewText ?? scannedPreviewText
     }
 
+    /// Speaker-names row summary, preferring the cached field. Falls back to
+    /// scanning `lines` (O(n)) only for legacy rows.
+    var resolvedSpeakerNamesSummary: String {
+        speakerNamesSummary ?? scannedSpeakerNamesSummary
+    }
+
     /// Recomputes and stores the derived fields by scanning `lines`.
     /// Used by the one-time launch backfill for legacy sessions.
     func recomputeDerivedFields() {
         durationMs = scannedDurationMs
         previewText = scannedPreviewText
+        speakerNamesSummary = scannedSpeakerNamesSummary
     }
 
     /// Builds the cached card preview from the first few line texts.
     static func makePreviewText(from texts: [String]) -> String {
         texts.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Builds the cached "who was in this session" row summary (e.g.
+    /// "Yoga, Abby, and 2 more"). Prefers named speakers over generic
+    /// "Speaker N" placeholders when picking which two names to show — see
+    /// docs/2026-08-04-session-list-speaker-names.md for the truncation rule.
+    static func makeSpeakerNamesSummary(from lines: [TranscriptionLine]) -> String {
+        let speakers = SpeakerLabel.distinctSpeakers(from: lines)
+        guard !speakers.isEmpty else { return "" }
+        if speakers.count == 1 { return speakers[0].name }
+        if speakers.count == 2 { return "\(speakers[0].name) and \(speakers[1].name)" }
+        let named = speakers.filter { !SpeakerLabel.isDefault($0.name, id: $0.id) }
+        let generic = speakers.filter { SpeakerLabel.isDefault($0.name, id: $0.id) }
+        let shown = Array((named + generic).prefix(2))
+        let remaining = speakers.count - shown.count
+        return "\(shown.map(\.name).joined(separator: ", ")), and \(remaining) more"
     }
 
     // MARK: - Full Scans (legacy rows only)
@@ -53,5 +76,9 @@ extension TranscriptionSession {
             .prefix(5)
             .map(\.text)
         return Self.makePreviewText(from: firstLines)
+    }
+
+    private var scannedSpeakerNamesSummary: String {
+        Self.makeSpeakerNamesSummary(from: lines)
     }
 }

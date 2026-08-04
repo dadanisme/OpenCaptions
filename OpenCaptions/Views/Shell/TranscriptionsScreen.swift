@@ -229,9 +229,12 @@ struct TranscriptionsScreen: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
-            Text(session.sessionDate, format: .dateTime.month().day().hour().minute())
-                .appScaledFont(.caption)
-                .foregroundStyle(.tertiary)
+            HStack(spacing: 4) {
+                Text(session.sessionDate, format: .dateTime.month().day().hour().minute())
+                    .appScaledFont(.caption)
+                SessionSpeakersLine(session: session)
+            }
+            .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 2)
     }

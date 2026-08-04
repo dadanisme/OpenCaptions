@@ -30,18 +30,14 @@ extension MacSessionDetailView {
     /// action is disabled in that case. Lines with the same id share a name
     /// (renames apply to all of them), so the first occurrence is authoritative.
     var editableSpeakers: [MacEditSpeakersSheet.Speaker] {
-        var nameById: [Int: String] = [:]
-        for line in session.lines where line.speakerId > 0 {
-            if nameById[line.speakerId] == nil {
-                nameById[line.speakerId] = line.speakerName
+        SpeakerLabel.distinctSpeakers(from: session.lines)
+            .map { speaker in
+                MacEditSpeakersSheet.Speaker(
+                    id: speaker.id,
+                    originalName: speaker.name,
+                    color: SpeakerPalette.color(for: speaker.id)
+                )
             }
-        }
-        return nameById.keys.sorted().map { id in
-            MacEditSpeakersSheet.Speaker(
-                id: id,
-                originalName: nameById[id] ?? "Speaker \(id)",
-                color: SpeakerPalette.color(for: id)
-            )
-        }
+            .sorted { $0.id < $1.id }
     }
 }
