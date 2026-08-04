@@ -80,6 +80,7 @@ enum PostSessionRetranscriber {
 
         session.durationMs = lines.map(\.endMs).max() ?? session.durationMs
         session.previewText = TranscriptionSession.makePreviewText(from: lines.prefix(5).map(\.text))
+        session.speakerNamesSummary = TranscriptionSession.makeSpeakerNamesSummary(from: session.lines)
 
         do {
             try context.save()

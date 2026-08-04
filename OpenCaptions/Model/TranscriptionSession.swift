@@ -30,6 +30,12 @@ final class TranscriptionSession {
     /// Cached preview (first lines of the transcript) so list cards never
     /// sort/scan `lines`. Nil means "not yet computed" (legacy row).
     var previewText: String?
+    /// Cached "who was in this session" summary for list rows (e.g. "Yoga, Abby,
+    /// and 2 more"), preferring named speakers over generic "Speaker N"
+    /// placeholders. Nil means "not yet computed" (legacy row) — backfilled at
+    /// app launch. Empty string means the session has no diarized speakers
+    /// (render nothing).
+    var speakerNamesSummary: String?
     /// Filename (not path) of the session's recorded audio under
     /// Application Support/SessionAudio, resolved via `SessionAudioStore.url(for:)`.
     /// Nil when audio wasn't captured (recording disabled, legacy row, or a

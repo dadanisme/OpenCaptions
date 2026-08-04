@@ -44,6 +44,9 @@ enum SpeakerRenamer {
         }
         guard !changed.isEmpty else { return [:] }
 
+        // Refresh the cached list-row summary so a rename shows up immediately.
+        session.speakerNamesSummary = TranscriptionSession.makeSpeakerNamesSummary(from: session.lines)
+
         do {
             try context.save()
         } catch {

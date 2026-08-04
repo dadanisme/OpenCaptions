@@ -78,6 +78,9 @@ extension TranscriberModel {
         if session.previewText == nil {
             session.previewText = TranscriptionSession.makePreviewText(from: lines.prefix(5).map(\.text))
         }
+        // Unlike previewText, this is recomputed on every flush (not captured once):
+        // new speakers can appear later in a session.
+        session.speakerNamesSummary = TranscriptionSession.makeSpeakerNamesSummary(from: session.lines)
         try? context.save()
     }
 
@@ -142,6 +145,7 @@ extension TranscriberModel {
         if session.previewText == nil {
             session.previewText = TranscriptionSession.makePreviewText(from: Array(textLines.prefix(5)))
         }
+        session.speakerNamesSummary = TranscriptionSession.makeSpeakerNamesSummary(from: session.lines)
 
         do {
             try modelContext.save()

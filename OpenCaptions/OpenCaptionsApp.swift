@@ -115,6 +115,9 @@ struct OpenCaptionsApp: App {
                     // by the not-active check so an in-flight recording's file is
                     // never swept.
                     await SessionAudioOrphanSweep.run(container: sharedModelContainer)
+                    // Recompute the cached list-card fields for any session that
+                    // predates one of them (durationMs/previewText/speakerNamesSummary).
+                    await DerivedFieldsBackfill.run(container: sharedModelContainer)
                 }
                 // Mirror any session that has never been exported to markdown. On
                 // the first launch after the feature shipped that is the whole

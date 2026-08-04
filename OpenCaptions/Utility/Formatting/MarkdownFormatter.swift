@@ -129,13 +129,7 @@ enum MarkdownFormatter {
     /// Distinct diarized speaker names in first-appearance order (positive ids
     /// only). Empty when the session wasn't diarized.
     private static func distinctSpeakerNames(from lines: [TranscriptionLine]) -> [String] {
-        var seen = Set<Int>()
-        var names: [String] = []
-        for line in lines where line.speakerId > 0 && !seen.contains(line.speakerId) {
-            seen.insert(line.speakerId)
-            names.append(SpeakerLabel.display(line.speakerName, id: line.speakerId))
-        }
-        return names
+        SpeakerLabel.distinctSpeakers(from: lines).map(\.name)
     }
 
     /// Human-readable duration (`1h 5m 3s` / `5m 3s` / `3s`) — distinct from the

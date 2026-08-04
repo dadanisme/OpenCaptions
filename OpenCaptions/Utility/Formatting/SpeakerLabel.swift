@@ -37,4 +37,18 @@ enum SpeakerLabel {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return isDefault(trimmed, id: id) ? generic(id: id) : trimmed
     }
+
+    /// Distinct diarized speakers (positive ids only) in first-appearance order,
+    /// each paired with its current display name via `display(_:id:)`. The one
+    /// shared scan other call sites (list rows, markdown export, the Edit
+    /// Speakers sheet) should build on instead of re-scanning `lines`.
+    static func distinctSpeakers(from lines: [TranscriptionLine]) -> [(id: Int, name: String)] {
+        var seen = Set<Int>()
+        var result: [(id: Int, name: String)] = []
+        for line in lines where line.speakerId > 0 && !seen.contains(line.speakerId) {
+            seen.insert(line.speakerId)
+            result.append((line.speakerId, display(line.speakerName, id: line.speakerId)))
+        }
+        return result
+    }
 }

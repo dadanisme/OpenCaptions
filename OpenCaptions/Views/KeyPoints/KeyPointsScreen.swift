@@ -63,7 +63,7 @@ struct KeyPointsScreen: View {
                 // macOS pins to the top).
                 ForEach(sessionsWithKeyPoints) { session in
                     Section {
-                        sessionHeader(session)
+                        SessionHeaderRow(session: session, onOpen: { open(session) })
                         // Key points are plain strings with no stable identity, so
                         // key on the array offset (matches the detail-view summary).
                         ForEach(Array(session.summaryKeyPoints.enumerated()), id: \.offset) { _, point in
@@ -73,33 +73,6 @@ struct KeyPointsScreen: View {
                 }
             }
         }
-    }
-
-    /// Session grouping row — the first row of each section, tappable to open the
-    /// source session (mirroring a row tap). Rendered as a plain row rather than a
-    /// pinned `Section` header, styled to read like the Transcriptions list.
-    private func sessionHeader(_ session: TranscriptionSession) -> some View {
-        Button {
-            open(session)
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(session.sessionTitle)
-                        .appScaledFont(.headline)
-                        .lineLimit(1)
-                    Text(session.sessionDate, format: .dateTime.month().day().hour().minute())
-                        .appScaledFont(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .padding(.vertical, 4)
     }
 
     /// Opens exactly one session's detail. Assigns the path (rather than
