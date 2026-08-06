@@ -18,6 +18,7 @@ struct TranscriptionsScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(LiveSessionStore.self) private var store
     @Query private var sessions: [TranscriptionSession]
+    @Query private var workspaces: [Workspace]
 
     @State private var path: [ContentRoute] = []
     /// Presents the audio/video file picker (toolbar button + File-menu command).
@@ -30,6 +31,8 @@ struct TranscriptionsScreen: View {
     /// screen (a global-hotkey Start whose mic-permission fallback raised an
     /// already-open window) is consumed reactively, not only on first appear.
     @State private var menuBar = MenuBarState.shared
+    /// Narrows the list to one workspace, sessions with none, or everything.
+    @State private var workspaceFilter: WorkspaceFilter = .all
 
     /// Scopes the session list to the signed-in user. A `@Query`'s default
     /// initializer can't read a runtime value, so the predicate is built here
@@ -40,6 +43,10 @@ struct TranscriptionsScreen: View {
             filter: #Predicate<TranscriptionSession> { $0.userId == userId },
             sort: \.sessionDate,
             order: .reverse
+        )
+        _workspaces = Query(
+            filter: #Predicate<Workspace> { $0.userId == userId },
+            sort: \.name
         )
     }
 
@@ -109,6 +116,9 @@ struct TranscriptionsScreen: View {
                 .navigationTitle("Transcriptions")
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
+                        workspaceFilterMenu
+                    }
+                    ToolbarItem(placement: .primaryAction) {
                         Button { isImporterPresented = true } label: {
                             Label("Import", systemImage: "square.and.arrow.down")
                         }
@@ -174,9 +184,15 @@ struct TranscriptionsScreen: View {
                 systemImage: "waveform",
                 description: Text("Tap New Session to start your first transcription.")
             )
+        } else if filteredSessions.isEmpty {
+            ContentUnavailableView(
+                "No Matching Sessions",
+                systemImage: "line.3.horizontal.decrease.circle",
+                description: Text("No sessions match this workspace filter.")
+            )
         } else {
             List {
-                ForEach(sessions) { session in
+                ForEach(filteredSessions) { session in
                     // Single-click opens the session; right-click offers Delete.
                     // With no list selection, `open` assigns the path to a single
                     // detail, so a click can never stack N detail screens.
@@ -184,6 +200,8 @@ struct TranscriptionsScreen: View {
                         .contentShape(Rectangle())
                         .onTapGesture { open(session) }
                         .contextMenu {
+                            workspaceMenu(for: session)
+                            Divider()
                             Button("Delete", role: .destructive) { pendingDeletion = session }
                         }
                 }
@@ -199,6 +217,78 @@ struct TranscriptionsScreen: View {
             } message: { _ in
                 Text("This can't be undone.")
             }
+        }
+    }
+
+    // MARK: - Workspaces
+
+    /// The sessions currently shown, after `workspaceFilter` narrows `sessions`.
+    private var filteredSessions: [TranscriptionSession] {
+        switch workspaceFilter {
+        case .all:
+            return sessions
+        case .unassigned:
+            return sessions.filter { $0.workspace == nil }
+        case .workspace(let id):
+            return sessions.filter { $0.workspace?.persistentModelID == id }
+        }
+    }
+
+    private var workspaceFilterMenu: some View {
+        Menu {
+            Button {
+                workspaceFilter = .all
+            } label: {
+                filterLabel("All Workspaces", isSelected: workspaceFilter == .all)
+            }
+            Button {
+                workspaceFilter = .unassigned
+            } label: {
+                filterLabel("Unassigned", isSelected: workspaceFilter == .unassigned)
+            }
+            if !workspaces.isEmpty {
+                Divider()
+                ForEach(workspaces) { workspace in
+                    Button {
+                        workspaceFilter = .workspace(workspace.persistentModelID)
+                    } label: {
+                        filterLabel(workspace.name, isSelected: workspaceFilter == .workspace(workspace.persistentModelID))
+                    }
+                }
+            }
+        } label: {
+            Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+        }
+        .help("Filter by workspace")
+    }
+
+    /// The row's right-click "Workspace" submenu — assigns or clears which
+    /// workspace this session is filed under. `SessionExportCoordinator` is the
+    /// single write path, since reassigning also moves the exported folder.
+    @ViewBuilder
+    private func workspaceMenu(for session: TranscriptionSession) -> some View {
+        Menu("Workspace") {
+            Button {
+                SessionExportCoordinator.reassignWorkspace(session, to: nil, context: modelContext)
+            } label: {
+                filterLabel("None", isSelected: session.workspace == nil)
+            }
+            ForEach(workspaces) { workspace in
+                Button {
+                    SessionExportCoordinator.reassignWorkspace(session, to: workspace, context: modelContext)
+                } label: {
+                    filterLabel(workspace.name, isSelected: session.workspace?.persistentModelID == workspace.persistentModelID)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func filterLabel(_ title: String, isSelected: Bool) -> some View {
+        if isSelected {
+            Label(title, systemImage: "checkmark")
+        } else {
+            Text(title)
         }
     }
 
@@ -232,6 +322,7 @@ struct TranscriptionsScreen: View {
             HStack(spacing: 4) {
                 Text(session.sessionDate, format: .dateTime.month().day().hour().minute())
                     .appScaledFont(.caption)
+                SessionWorkspaceLabel(session: session)
                 SessionSpeakersLine(session: session)
             }
             .foregroundStyle(.tertiary)
@@ -289,4 +380,13 @@ struct TranscriptionsScreen: View {
 /// Destinations pushed onto the transcription screen's navigation stack.
 enum ContentRoute: Hashable {
     case session(TranscriptionSession)
+}
+
+/// How the Transcriptions list is narrowed by workspace. Identifies a workspace
+/// by `PersistentIdentifier` rather than holding the `Workspace` itself, since
+/// `Workspace` has no `Equatable` conformance to compare `@State` against.
+private enum WorkspaceFilter: Hashable {
+    case all
+    case unassigned
+    case workspace(PersistentIdentifier)
 }

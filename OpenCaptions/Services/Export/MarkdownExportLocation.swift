@@ -83,9 +83,7 @@ final class MarkdownExportLocation {
 
         // The bookmark must be minted while the Powerbox grant from the panel is
         // still live — do it before anything else touches the URL.
-        guard let bookmark = try? chosen.bookmarkData(
-            options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-        else {
+        guard let bookmark = SecurityScopedBookmark.mint(for: chosen) else {
             print("⚠️ Markdown export: could not bookmark \(chosen.path) — keeping the current folder")
             NSSound.beep()
             return
@@ -130,25 +128,12 @@ final class MarkdownExportLocation {
     private static func resolveStoredRoot() -> ExportRoot? {
         guard let data = UserDefaults.standard.data(forKey: bookmarkKey) else { return nil }
 
-        var isStale = false
-        guard let url = try? URL(
-            resolvingBookmarkData: data, options: .withSecurityScope,
-            relativeTo: nil, bookmarkDataIsStale: &isStale)
-        else {
+        guard let root = SecurityScopedBookmark.resolve(data, onRefresh: { refreshed in
+            UserDefaults.standard.set(refreshed, forKey: bookmarkKey)
+        }) else {
             print("⚠️ Markdown export: stored folder is unreachable — falling back to the app's own folder")
             UserDefaults.standard.removeObject(forKey: bookmarkKey)
             return nil
-        }
-
-        let root = ExportRoot(url: url, isSecurityScoped: true)
-        if isStale {
-            // Re-minting needs the scope held; `withAccess` provides it.
-            root.withAccess { scoped in
-                if let refreshed = try? scoped.bookmarkData(
-                    options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil) {
-                    UserDefaults.standard.set(refreshed, forKey: bookmarkKey)
-                }
-            }
         }
         return root
     }
