@@ -1,33 +1,36 @@
 //
-//  WorkspaceRenameSheet.swift
+//  WorkspaceNameSheet.swift
 //  OpenCaptions
 //
-//  Small modal for renaming a workspace. Same shape as `MacRenameSpeakerSheet`:
-//  the name is seeded from `currentName` at init so the field prefills
-//  deterministically on every presentation (the sheet is a fresh view instance
-//  each time via `.sheet(item:)`).
+//  Small modal for naming a workspace — used both to add a new one (from the
+//  Workspaces screen's toolbar) and to rename an existing one (from a
+//  workspace's context menu). Same shape as `MacRenameSpeakerSheet`: the name
+//  is seeded at init so the field prefills deterministically on every
+//  presentation (the sheet is a fresh view instance each time via `.sheet`).
 //
 
 import SwiftUI
 
-struct WorkspaceRenameSheet: View {
-    let currentName: String
-    /// Called with the trimmed new name when the user confirms.
+struct WorkspaceNameSheet: View {
+    let title: String
+    let confirmTitle: String
+    /// Called with the trimmed name when the user confirms.
     let onCommit: (String) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var name: String
     @FocusState private var fieldFocused: Bool
 
-    init(currentName: String, onCommit: @escaping (String) -> Void) {
-        self.currentName = currentName
+    init(title: String, confirmTitle: String, initialName: String = "", onCommit: @escaping (String) -> Void) {
+        self.title = title
+        self.confirmTitle = confirmTitle
         self.onCommit = onCommit
-        _name = State(initialValue: currentName)
+        _name = State(initialValue: initialName)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Rename Workspace")
+            Text(title)
                 .appScaledFont(.headline)
 
             TextField("Workspace name", text: $name)
@@ -39,7 +42,7 @@ struct WorkspaceRenameSheet: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Rename", action: commit)
+                Button(confirmTitle, action: commit)
                     .keyboardShortcut(.defaultAction)
                     .disabled(trimmedName.isEmpty)
             }

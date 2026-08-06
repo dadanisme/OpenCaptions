@@ -22,9 +22,8 @@ struct WorkspacesScreen: View {
     @Query private var workspaces: [Workspace]
 
     private let userId: String
-    /// The add field's text. Uncommitted — nothing is created until Add / Return.
-    @State private var draft = ""
-    @FocusState private var isDraftFocused: Bool
+    /// Presents the add-workspace sheet, opened from the toolbar's + button.
+    @State private var isAddingWorkspace = false
     /// Non-nil presents the rename sheet for exactly this workspace.
     @State private var renameTarget: Workspace?
     /// Non-nil presents the delete confirmation for exactly this workspace.
@@ -45,9 +44,24 @@ struct WorkspacesScreen: View {
         NavigationStack {
             listContent
                 .navigationTitle("Workspaces")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            isAddingWorkspace = true
+                        } label: {
+                            Label("Add Workspace", systemImage: "plus")
+                        }
+                        .help("Add a workspace")
+                    }
+                }
+        }
+        .sheet(isPresented: $isAddingWorkspace) {
+            WorkspaceNameSheet(title: "Add Workspace", confirmTitle: "Add") { name in
+                createWorkspace(named: name)
+            }
         }
         .sheet(item: $renameTarget) { workspace in
-            WorkspaceRenameSheet(currentName: workspace.name) { newName in
+            WorkspaceNameSheet(title: "Rename Workspace", confirmTitle: "Rename", initialName: workspace.name) { newName in
                 workspace.name = newName
                 try? modelContext.save()
             }
@@ -67,52 +81,26 @@ struct WorkspacesScreen: View {
 
     @ViewBuilder
     private var listContent: some View {
-        List {
-            Section {
-                addField
-            }
-            if !workspaces.isEmpty {
-                Section("Your Workspaces") {
-                    ForEach(workspaces) { workspace in
-                        workspaceRow(workspace)
-                            .contextMenu { contextMenu(for: workspace) }
-                    }
+        if workspaces.isEmpty {
+            ContentUnavailableView(
+                "No Workspaces",
+                systemImage: "briefcase",
+                description: Text("Tap + to create a workspace to file sessions under, and optionally route its exported files to their own folder.")
+            )
+        } else {
+            List {
+                ForEach(workspaces) { workspace in
+                    workspaceRow(workspace)
+                        .contextMenu { contextMenu(for: workspace) }
                 }
-            } else {
-                ContentUnavailableView(
-                    "No Workspaces",
-                    systemImage: "briefcase",
-                    description: Text("Create a workspace to file sessions under, and optionally route its exported files to their own folder.")
-                )
             }
         }
     }
 
-    @ViewBuilder
-    private var addField: some View {
-        HStack(spacing: 8) {
-            TextField("Workspace name", text: $draft)
-                .textFieldStyle(.roundedBorder)
-                .appScaledFont(.body)
-                .focused($isDraftFocused)
-                .onSubmit(commitDraft)
-
-            Button("Add", action: commitDraft)
-                .disabled(trimmedDraft.isEmpty)
-        }
-    }
-
-    private var trimmedDraft: String {
-        draft.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private func commitDraft() {
-        guard !trimmedDraft.isEmpty else { return }
-        let workspace = Workspace(name: trimmedDraft, userId: userId)
+    private func createWorkspace(named name: String) {
+        let workspace = Workspace(name: name, userId: userId)
         modelContext.insert(workspace)
         try? modelContext.save()
-        draft = ""
-        isDraftFocused = true
     }
 
     private func workspaceRow(_ workspace: Workspace) -> some View {
