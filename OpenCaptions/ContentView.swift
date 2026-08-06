@@ -48,6 +48,10 @@ struct ContentView: View {
                 // No user scope: the custom vocabulary is a device-local preference
                 // (see `VocabularyStore`), not per-owner data.
                 VocabularyScreen()
+            case .workspaces:
+                // Per-owner, like Transcriptions: a workspace is account data, not
+                // a device-local preference.
+                WorkspacesScreen(userId: auth.ownerId)
             }
         }
         // Claim any pre-auth (`userId == nil`) sessions for the signed-in user so
@@ -66,6 +70,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
     case actionItems
     case keyPoints
     case vocabulary
+    case workspaces
 
     var id: String { rawValue }
 
@@ -75,6 +80,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .actionItems: return "Action Items"
         case .keyPoints: return "Key Points"
         case .vocabulary: return "Vocabulary"
+        case .workspaces: return "Workspaces"
         }
     }
 
@@ -84,6 +90,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .actionItems: return "checklist"
         case .keyPoints: return "lightbulb"
         case .vocabulary: return "text.book.closed"
+        case .workspaces: return "briefcase"
         }
     }
 }
@@ -92,5 +99,5 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
     ContentView()
         .environment(MacAuthManager.shared)
         .environment(LiveSessionStore.shared)
-        .modelContainer(for: [TranscriptionSession.self, TranscriptionLine.self, ActionItem.self], inMemory: true)
+        .modelContainer(for: [TranscriptionSession.self, TranscriptionLine.self, ActionItem.self, Workspace.self], inMemory: true)
 }

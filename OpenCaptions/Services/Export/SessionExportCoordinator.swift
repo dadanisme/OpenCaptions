@@ -10,7 +10,13 @@
 //  way keeps the SwiftData write on the actor that owns the model while the I/O
 //  runs elsewhere. Nothing here is throwing or awaited by a save path: an export
 //  must never be able to fail a session save.
-//  See docs/2026-07-31-macos-markdown-export.md.
+//
+//  A session's export root is no longer always the one shared default: a session
+//  filed under a `Workspace` with its own folder resolves there instead (see
+//  `resolvedRoot`). Every root-keyed piece of bookkeeping below (`claimed`,
+//  `existingFolderNames`) is therefore keyed by the ROOT's canonical path, not
+//  assumed singular.
+//  See docs/2026-07-31-macos-markdown-export.md and docs/2026-08-06-macos-workspaces.md.
 //
 
 import Foundation
@@ -22,8 +28,11 @@ enum SessionExportCoordinator {
     /// Folder names handed out this run whose directories may not exist yet — the
     /// writer is asynchronous, so `fileExists` alone can't stop two sessions saved
     /// back-to-back with the same day and title from claiming one name. Only grows;
-    /// it is bounded by the number of sessions touched in a single app run.
-    private static var claimed: Set<String> = []
+    /// it is bounded by the number of sessions touched in a single app run. Keyed by
+    /// the destination root's canonical path, so the same name in two different
+    /// roots (a workspace folder vs. the default, or two workspace folders) is
+    /// never treated as a collision.
+    private static var claimed: [String: Set<String>] = [:]
 
     /// Sessions deleted during this run. A backfill iterates a snapshot fetched on
     /// its OWN context, so a row deleted on the main context afterwards is still in
@@ -40,6 +49,31 @@ enum SessionExportCoordinator {
     /// one of them a second time as `-2`.
     private static var backfillTask: Task<Void, Never>?
 
+    // MARK: - Root resolution
+
+    /// The root `session` should export to: its workspace's own folder when it has
+    /// one and that workspace has a custom folder configured, otherwise `fallback`
+    /// (the caller's already-resolved `MarkdownExportLocation.shared.root`).
+    ///
+    /// `nonisolated` and takes `fallback` explicitly (rather than reading
+    /// `MarkdownExportLocation.shared` itself) so it can be called from the
+    /// backfill's detached, off-main-actor closure — see `existingFolderNames`.
+    private nonisolated static func resolvedRoot(for session: TranscriptionSession, fallback: ExportRoot) -> ExportRoot {
+        session.workspace?.resolvedExportRoot() ?? fallback
+    }
+
+    private static func claimedNames(in root: ExportRoot) -> Set<String> {
+        claimed[root.canonicalPath] ?? []
+    }
+
+    private static func claim(_ name: String, in root: ExportRoot) {
+        claimed[root.canonicalPath, default: []].insert(name)
+    }
+
+    private static func unclaim(_ name: String, in root: ExportRoot) {
+        claimed[root.canonicalPath]?.remove(name)
+    }
+
     // MARK: - Export
 
     /// Mirrors `session` to disk, renaming its folder first if the title changed.
@@ -48,7 +82,7 @@ enum SessionExportCoordinator {
     /// delete arriving a moment later knows what to clean up) and the files are
     /// written on `SessionMarkdownWriter`.
     static func export(_ session: TranscriptionSession, context: ModelContext) {
-        let root = MarkdownExportLocation.shared.root
+        let root = resolvedRoot(for: session, fallback: MarkdownExportLocation.shared.root)
         let previous = session.exportFolderName
         let desired = ExportFolderName.make(date: session.sessionDate, title: session.sessionTitle)
 
@@ -59,8 +93,8 @@ enum SessionExportCoordinator {
         // silently swallows the retitles that SHORTEN a title ("Client call with
         // Acme" → "Client call"), which are exactly the ones that must rename.
         let resolved = ExportFolderName.resolveCollision(
-            desired, in: root, keeping: previous, claimed: claimed)
-        claimed.insert(resolved)
+            desired, in: root, keeping: previous, claimed: claimedNames(in: root))
+        claim(resolved, in: root)
 
         if previous != resolved {
             session.exportFolderName = resolved
@@ -76,18 +110,98 @@ enum SessionExportCoordinator {
 
     /// Records that `sessions` are being deleted and removes their exported folders.
     ///
-    /// Call this BEFORE `context.delete(_:)` — it needs to read `exportFolderName`
-    /// and the persistent id off rows that still exist. The folder removal itself is
-    /// asynchronous, so it lands after the SwiftData commit either way.
+    /// Call this BEFORE `context.delete(_:)` — it needs to read `exportFolderName`,
+    /// `workspace`, and the persistent id off rows that still exist. The folder
+    /// removal itself is asynchronous, so it lands after the SwiftData commit either
+    /// way. Sessions may resolve to different roots (different workspaces, or a mix
+    /// of workspace and default), so they're grouped by root before removal.
     static func remove(_ sessions: [TranscriptionSession]) {
         guard !sessions.isEmpty else { return }
         deletedIDs.formUnion(sessions.map(\.persistentModelID))
 
-        let names = sessions.compactMap(\.exportFolderName).filter { !$0.isEmpty }
-        guard !names.isEmpty else { return }
-        let root = MarkdownExportLocation.shared.root
-        names.forEach { claimed.remove($0) }
-        Task { await SessionMarkdownWriter.shared.remove(folderNames: names, from: root) }
+        let fallback = MarkdownExportLocation.shared.root
+        var rootsByPath: [String: ExportRoot] = [:]
+        var namesByPath: [String: [String]] = [:]
+        for session in sessions {
+            guard let name = session.exportFolderName, !name.isEmpty else { continue }
+            let root = resolvedRoot(for: session, fallback: fallback)
+            rootsByPath[root.canonicalPath] = root
+            namesByPath[root.canonicalPath, default: []].append(name)
+        }
+        for (path, names) in namesByPath {
+            guard let root = rootsByPath[path] else { continue }
+            names.forEach { unclaim($0, in: root) }
+            Task { await SessionMarkdownWriter.shared.remove(folderNames: names, from: root) }
+        }
+    }
+
+    // MARK: - Workspace assignment
+
+    /// Moves `session` to `workspace` (or back to the default location when nil),
+    /// relocating its already-exported folder to the new root if it has one. The
+    /// single write path a "assign this session to a workspace" UI action calls,
+    /// mirroring `SpeakerRenamer.apply` as the single write path for a rename.
+    static func reassignWorkspace(_ session: TranscriptionSession, to workspace: Workspace?, context: ModelContext) {
+        let fallback = MarkdownExportLocation.shared.root
+        let old = resolvedRoot(for: session, fallback: fallback)
+        session.workspace = workspace
+        try? context.save()
+        let new = resolvedRoot(for: session, fallback: fallback)
+
+        guard old.canonicalPath != new.canonicalPath, let name = session.exportFolderName else { return }
+        unclaim(name, in: old)
+        Task {
+            if await SessionMarkdownWriter.shared.relocateOne(folderName: name, from: old, to: new) {
+                claim(name, in: new)
+            } else {
+                // Couldn't move (a same-named folder not written by this app already
+                // sits at the destination) — clear the stamp so the next export
+                // writes a fresh, deduped name into the new root instead of leaving
+                // this session's transcript stranded in the old one.
+                session.exportFolderName = nil
+                try? context.save()
+                export(session, context: context)
+            }
+        }
+    }
+
+    /// Moves every session in `workspace` from `old` to `new`, one folder at a
+    /// time. Never bulk-moves the whole root (`SessionMarkdownWriter.relocateAll`)
+    /// — when a workspace has never had a custom folder, `old` IS the shared
+    /// default, which other sessions and other workspaces may also be using; a
+    /// bulk move would steal folders that aren't this workspace's to move.
+    static func changeWorkspaceFolder(_ workspace: Workspace, from old: ExportRoot, to new: ExportRoot) async {
+        guard old.canonicalPath != new.canonicalPath else { return }
+        for session in workspace.sessions {
+            guard let name = session.exportFolderName else { continue }
+            unclaim(name, in: old)
+            if await SessionMarkdownWriter.shared.relocateOne(folderName: name, from: old, to: new) {
+                claim(name, in: new)
+            } else if let context = session.modelContext {
+                session.exportFolderName = nil
+                try? context.save()
+                export(session, context: context)
+            }
+        }
+    }
+
+    /// Deletes `workspace`, first moving every session filed under it back to the
+    /// default export location. The `.nullify` delete rule clears each affected
+    /// session's `workspace` relationship automatically, but the FILES live outside
+    /// SwiftData and need this explicit move.
+    static func deleteWorkspace(_ workspace: Workspace, context: ModelContext) async {
+        let old = workspace.resolvedExportRoot() ?? MarkdownExportLocation.shared.root
+        let new = MarkdownExportLocation.shared.root
+        // Clear the bookmark BEFORE moving files, not after: if a session's move
+        // fails, `changeWorkspaceFolder`'s fallback re-exports it via `export`,
+        // which resolves the root through `session.workspace?.resolvedExportRoot()`
+        // — still this same workspace object until the row is actually deleted
+        // below. Leaving the bookmark set would resolve that fallback back to
+        // `old`, stranding the transcript in the very folder being abandoned.
+        workspace.exportBookmark = nil
+        await changeWorkspaceFolder(workspace, from: old, to: new)
+        context.delete(workspace)
+        try? context.save()
     }
 
     // MARK: - Backfill
@@ -121,17 +235,21 @@ enum SessionExportCoordinator {
     }
 
     private static func runBackfill(container: ModelContainer) async {
-        let root = MarkdownExportLocation.shared.root
+        let fallback = MarkdownExportLocation.shared.root
         let reserved = claimed
-        let exported = await Task.detached(priority: .utility) { () async -> [(id: PersistentIdentifier, name: String)] in
+        let exported = await Task.detached(priority: .utility) { () async -> [(id: PersistentIdentifier, name: String, root: ExportRoot)] in
             let context = ModelContext(container)
-            var taken = reserved.union(existingFolderNames(in: context))
+            // Seeded lazily per root the first time a session resolves to it —
+            // reserved (in-memory) names for that root, unioned with whatever
+            // SwiftData already has on record for it — then grown in place as
+            // more sessions in this same root are assigned names below.
+            var takenByPath: [String: Set<String>] = [:]
 
             let descriptor = FetchDescriptor<TranscriptionSession>(
                 predicate: #Predicate { $0.exportFolderName == nil })
             guard let sessions = try? context.fetch(descriptor), !sessions.isEmpty else { return [] }
 
-            var assigned: [(id: PersistentIdentifier, name: String)] = []
+            var assigned: [(id: PersistentIdentifier, name: String, root: ExportRoot)] = []
             for session in sessions {
                 // This array was fetched before the loop began; a row deleted on the
                 // main context since then is still in it, and writing its folder
@@ -139,12 +257,18 @@ enum SessionExportCoordinator {
                 let id = session.persistentModelID
                 if await isDeleted(id) { continue }
 
+                let root = resolvedRoot(for: session, fallback: fallback)
+                var taken = takenByPath[root.canonicalPath]
+                    ?? (reserved[root.canonicalPath] ?? []).union(
+                        existingFolderNames(in: context, root: root, fallback: fallback))
+
                 let desired = ExportFolderName.make(
                     date: session.sessionDate, title: session.sessionTitle)
                 let name = ExportFolderName.resolveCollision(
                     desired, in: root, keeping: nil, claimed: taken)
                 taken.insert(name)
-                assigned.append((id: id, name: name))
+                takenByPath[root.canonicalPath] = taken
+                assigned.append((id: id, name: name, root: root))
 
                 // Commit the name BEFORE the folder exists. Batching the saves to
                 // the end would mean a quit mid-backfill leaves folders on disk that
@@ -162,12 +286,21 @@ enum SessionExportCoordinator {
 
         // Second half of the same guard, for the opposite interleaving: the export
         // won the race and the delete read a still-nil `exportFolderName`, so it
-        // removed nothing. Now that the name is known, clean up.
-        let stranded = Set(exported.filter { deletedIDs.contains($0.id) }.map(\.name))
-        claimed.formUnion(exported.map(\.name).filter { !stranded.contains($0) })
-        if !stranded.isEmpty {
-            let root = MarkdownExportLocation.shared.root
-            Task { await SessionMarkdownWriter.shared.remove(folderNames: Array(stranded), from: root) }
+        // removed nothing. Now that the name is known, clean up — grouped by root,
+        // since `exported` may span several workspaces' folders.
+        var rootsByPath: [String: ExportRoot] = [:]
+        var strandedByPath: [String: [String]] = [:]
+        for entry in exported {
+            rootsByPath[entry.root.canonicalPath] = entry.root
+            if deletedIDs.contains(entry.id) {
+                strandedByPath[entry.root.canonicalPath, default: []].append(entry.name)
+            } else {
+                claim(entry.name, in: entry.root)
+            }
+        }
+        for (path, names) in strandedByPath {
+            guard let root = rootsByPath[path] else { continue }
+            Task { await SessionMarkdownWriter.shared.remove(folderNames: names, from: root) }
         }
     }
 
@@ -179,7 +312,10 @@ enum SessionExportCoordinator {
 
     // MARK: - Relocate
 
-    /// Moves every exported folder to a newly chosen root.
+    /// Moves every exported folder to a newly chosen root — the single shared
+    /// default location changing (Settings → Browse…). NOT used for a workspace's
+    /// own folder changing; see `changeWorkspaceFolder`, which never bulk-moves a
+    /// root other sessions/workspaces might also be using.
     ///
     /// Folder names are preserved, so every session's stored `exportFolderName`
     /// stays valid and the move itself needs no SwiftData write. The container is
@@ -216,12 +352,21 @@ enum SessionExportCoordinator {
         await backfillMissing(container: container)
     }
 
-    /// Folder names already spoken for, so a backfill can't hand one out twice.
-    /// `nonisolated` so the detached bulk paths can call it on their own context.
-    private nonisolated static func existingFolderNames(in context: ModelContext) -> Set<String> {
+    /// Folder names already spoken for **in `root`**, so a backfill can't hand one
+    /// out twice within that same root — a name already used in a different root
+    /// (a different workspace's folder, or the default) is no collision at all.
+    /// `nonisolated` so the detached bulk paths can call it on their own context;
+    /// takes `fallback` explicitly rather than reading `MarkdownExportLocation`
+    /// directly, which is MainActor-isolated and unreachable from here.
+    private nonisolated static func existingFolderNames(
+        in context: ModelContext, root: ExportRoot, fallback: ExportRoot
+    ) -> Set<String> {
         let descriptor = FetchDescriptor<TranscriptionSession>(
             predicate: #Predicate { $0.exportFolderName != nil })
         guard let sessions = try? context.fetch(descriptor) else { return [] }
-        return Set(sessions.compactMap(\.exportFolderName))
+        return Set(
+            sessions
+                .filter { resolvedRoot(for: $0, fallback: fallback).canonicalPath == root.canonicalPath }
+                .compactMap(\.exportFolderName))
     }
 }

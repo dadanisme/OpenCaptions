@@ -32,6 +32,7 @@ struct OpenCaptionsApp: App {
             TranscriptionSession.self,
             TranscriptionLine.self,
             ActionItem.self,
+            Workspace.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {

@@ -25,6 +25,10 @@ struct MacSessionDetailView: View {
     /// summarizer) and share-to-web. Existing summaries stay visible.
     @AppStorage(LiveSessionStore.offlineModeKey) private var isOffline = false
     let session: TranscriptionSession
+    /// Workspaces this session's owner can file it under. Scoped by `session.userId`
+    /// (not a separately-threaded owner id) since that's already this session's
+    /// own account scope.
+    @Query private var workspaces: [Workspace]
 
     @State private var summaryVM = SummaryViewModel()
     /// Audio playback + playhead for the synced transcript. Not `private`: the
@@ -53,6 +57,17 @@ struct MacSessionDetailView: View {
     @State var pendingRetranscribeKind: RetranscriptionEngineKind?
 
     enum Tab: Hashable { case summary, transcript }
+
+    /// `@Query`'s default initializer can't read a runtime value, so the
+    /// workspace predicate is built here from the session's own owner id.
+    init(session: TranscriptionSession) {
+        self.session = session
+        let ownerId = session.userId
+        _workspaces = Query(
+            filter: #Predicate<Workspace> { $0.userId == ownerId },
+            sort: \.name
+        )
+    }
 
     /// Whether there's any summary content to export.
     private var hasSummaryContent: Bool {
@@ -133,6 +148,11 @@ struct MacSessionDetailView: View {
                         Label("Edit Speakers…", systemImage: "person.2")
                     }
                     .disabled(editableSpeakers.isEmpty)
+
+                    // Assign/clear which workspace this session is filed under.
+                    // `SessionExportCoordinator` is the single write path, since
+                    // reassigning also moves the exported folder.
+                    workspaceMenu
 
                     // Share-to-web action. Shares (idempotent) then opens the
                     // dialog with link + password. Hidden while offline — it's a
@@ -246,6 +266,35 @@ struct MacSessionDetailView: View {
         modelContext.delete(session)
         try? modelContext.save()
         SessionAudioStore.delete(fileName: audioFileName)
+    }
+
+    // MARK: - Workspace
+
+    @ViewBuilder
+    private var workspaceMenu: some View {
+        Menu("Workspace") {
+            Button {
+                SessionExportCoordinator.reassignWorkspace(session, to: nil, context: modelContext)
+            } label: {
+                workspaceOptionLabel("None", isSelected: session.workspace == nil)
+            }
+            ForEach(workspaces) { workspace in
+                Button {
+                    SessionExportCoordinator.reassignWorkspace(session, to: workspace, context: modelContext)
+                } label: {
+                    workspaceOptionLabel(workspace.name, isSelected: session.workspace?.persistentModelID == workspace.persistentModelID)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func workspaceOptionLabel(_ title: String, isSelected: Bool) -> some View {
+        if isSelected {
+            Label(title, systemImage: "checkmark")
+        } else {
+            Text(title)
+        }
     }
 
     /// Copies the whole session — metadata, the AI summary when one exists, then

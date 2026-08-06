@@ -58,6 +58,12 @@ final class TranscriptionSession {
     /// cached here so list/detail show the lock state offline. Refreshed on
     /// detail-view appear and after set/remove.
     var hasPassword: Bool = false
+    /// The workspace this session is filed under, if any. Nil sessions use the
+    /// default export location (`MarkdownExportLocation`); assigning a workspace
+    /// routes export to that workspace's own folder instead (see
+    /// `SessionExportCoordinator.reassignWorkspace`).
+    @Relationship(inverse: \Workspace.sessions)
+    var workspace: Workspace?
     @Relationship(deleteRule: .cascade) var actionItems: [ActionItem] = []
 
     @Relationship(deleteRule: .cascade)

@@ -90,9 +90,13 @@ actor SessionMarkdownWriter {
     /// Deliberately reads the OLD ROOT rather than SwiftData: the Settings window
     /// can be opened without the main window ever existing, so no `ModelContainer`
     /// is guaranteed to be in hand — and the folders themselves are a complete
-    /// record of what needs moving. A subfolder counts as ours only if it contains
-    /// a `transcript.md`; the previous root may be a folder the user picked and
-    /// keeps other things in, and moving those would be theft.
+    /// record of what needs moving. Safe ONLY when `old` is a root nothing else
+    /// writes into (the single shared default, or a workspace folder already
+    /// exclusive to it) — moving every folder found under a root that other
+    /// sessions/workspaces might also be using would steal folders that aren't
+    /// this caller's to move. A workspace changing away from the shared default
+    /// for the first time must relocate session-by-session instead — see
+    /// `relocateOne`.
     ///
     /// Both roots are bracketed at once — the old one must still be security-scoped
     /// while its contents are read. Returns the names it could NOT move, so the
@@ -109,39 +113,68 @@ actor SessionMarkdownWriter {
                     at: oldRoot, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
                 var failed: [String] = []
                 for source in contents {
+                    guard (try? source.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+                    else { continue }
                     let name = source.lastPathComponent
-                    guard (try? source.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true,
-                          isExportFolder(source)
-                    else { continue }
-
-                    let destination = newRoot.appendingPathComponent(name, isDirectory: true)
-                    guard source.resolvingSymlinksInPath().standardizedFileURL
-                            != destination.resolvingSymlinksInPath().standardizedFileURL
-                    else { continue }
-
-                    // A folder already sitting at the destination would make
-                    // `moveItem` throw. Clear it ONLY when it is one of ours — the
-                    // chosen folder may be one the user keeps other things in, and
-                    // a same-named folder of theirs must never be destroyed. When it
-                    // isn't ours, give up on this one and let the caller re-export it
-                    // under a deduped name.
-                    if fileManager.fileExists(atPath: destination.path) {
-                        guard isExportFolder(destination) else {
-                            log("move \(name)", RelocateError.destinationOccupied)
-                            failed.append(name)
-                            continue
-                        }
-                        removeIfPresent(destination)
-                    }
-                    do {
-                        try fileManager.moveItem(at: source, to: destination)
-                    } catch {
-                        log("move \(name)", error)
+                    if !moveIfOurs(name, from: oldRoot, to: newRoot) {
                         failed.append(name)
                     }
                 }
                 return failed
             }
+        }
+    }
+
+    /// Moves a single session's folder between two roots — a workspace
+    /// reassignment or a workspace's own folder change, where bulk-moving
+    /// everything under the old root (`relocateAll`) would risk touching folders
+    /// that belong to a different session/workspace still using that root.
+    ///
+    /// Returns true when there was nothing to do (the session was never exported,
+    /// or the two roots are the same) as well as on a successful move — false only
+    /// when a real move was needed and didn't happen, so the caller can clear
+    /// `exportFolderName` and let the next export write a fresh, deduped name.
+    func relocateOne(folderName: String, from old: ExportRoot, to new: ExportRoot) -> Bool {
+        guard old.canonicalPath != new.canonicalPath else { return true }
+        return old.withAccess { oldRoot in
+            new.withAccess { newRoot in
+                moveIfOurs(folderName, from: oldRoot, to: newRoot)
+            }
+        }
+    }
+
+    /// Moves one named folder from `oldRoot` to `newRoot`, the shared guard both
+    /// `relocateAll` and `relocateOne` use. `transcript.md` inside is the ownership
+    /// marker: a folder without one wasn't written by this app (the chosen root may
+    /// be one the user keeps other things in) and is left alone, counted as
+    /// "nothing to do" rather than a failure.
+    private func moveIfOurs(_ name: String, from oldRoot: URL, to newRoot: URL) -> Bool {
+        let source = oldRoot.appendingPathComponent(name, isDirectory: true)
+        guard isExportFolder(source) else { return true }
+
+        let destination = newRoot.appendingPathComponent(name, isDirectory: true)
+        guard source.resolvingSymlinksInPath().standardizedFileURL
+                != destination.resolvingSymlinksInPath().standardizedFileURL
+        else { return true }
+
+        // A folder already sitting at the destination would make `moveItem`
+        // throw. Clear it ONLY when it is one of ours — the chosen folder may be
+        // one the user keeps other things in, and a same-named folder of theirs
+        // must never be destroyed. When it isn't ours, give up and let the caller
+        // re-export this session under a deduped name instead.
+        if fileManager.fileExists(atPath: destination.path) {
+            guard isExportFolder(destination) else {
+                log("move \(name)", RelocateError.destinationOccupied)
+                return false
+            }
+            removeIfPresent(destination)
+        }
+        do {
+            try fileManager.moveItem(at: source, to: destination)
+            return true
+        } catch {
+            log("move \(name)", error)
+            return false
         }
     }
 
