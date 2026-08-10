@@ -11,8 +11,6 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(MacAuthManager.self) private var auth
-    @Environment(\.modelContext) private var modelContext
     @State private var section: NavSection? = .transcriptions
 
     var body: some View {
@@ -28,37 +26,22 @@ struct ContentView: View {
             }
             .navigationTitle("Open Captions")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
-            .safeAreaInset(edge: .bottom) { SidebarProfileFooter() }
+            .safeAreaInset(edge: .bottom) { SidebarSettingsFooter() }
         } detail: {
             switch section ?? .transcriptions {
             case .transcriptions:
-                // Scope to the effective owner: the uid when signed in, or the
-                // "local" guest sentinel offline. Matches the id the save path
-                // stamps, so a guest sees their own recordings.
-                TranscriptionsScreen(userId: auth.ownerId)
+                TranscriptionsScreen()
             case .actionItems:
-                // Same per-user scope: a read-only rollup of action items across
-                // all of this owner's sessions.
-                ActionItemsScreen(userId: auth.ownerId)
+                ActionItemsScreen()
             case .keyPoints:
-                // Same per-user scope: a read-only rollup of key points across
-                // all of this owner's sessions.
-                KeyPointsScreen(userId: auth.ownerId)
+                KeyPointsScreen()
             case .vocabulary:
-                // No user scope: the custom vocabulary is a device-local preference
-                // (see `VocabularyStore`), not per-owner data.
+                // The custom vocabulary is a device-local preference (see
+                // `VocabularyStore`), not per-library data.
                 VocabularyScreen()
             case .workspaces:
-                // Per-owner, like Transcriptions: a workspace is account data, not
-                // a device-local preference.
-                WorkspacesScreen(userId: auth.ownerId)
+                WorkspacesScreen()
             }
-        }
-        // Claim any pre-auth (`userId == nil`) sessions for the signed-in user so
-        // they show up in the scoped list. Re-runs when the user changes.
-        .task(id: auth.userID) {
-            guard let uid = auth.userID else { return }
-            await SessionOwnerBackfill.run(container: modelContext.container, userId: uid)
         }
     }
 }
@@ -97,7 +80,6 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
 
 #Preview {
     ContentView()
-        .environment(MacAuthManager.shared)
         .environment(LiveSessionStore.shared)
         .modelContainer(for: [TranscriptionSession.self, TranscriptionLine.self, ActionItem.self, Workspace.self], inMemory: true)
 }

@@ -3,10 +3,10 @@
 //  OpenCaptions
 //
 //  The "Action Items" sidebar section: a READ-ONLY rollup of every action item
-//  across the signed-in user's sessions, grouped by source session. The only
-//  mutation is toggling completion; a row / header tap pushes the source session
-//  detail (reusing the same `ContentRoute` + `MacSessionDetailView` as the
-//  Transcriptions screen). Scoping mirrors `TranscriptionsScreen(userId:)`.
+//  across all sessions, grouped by source session. The only mutation is
+//  toggling completion; a row / header tap pushes the source session detail
+//  (reusing the same `ContentRoute` + `MacSessionDetailView` as the
+//  Transcriptions screen).
 //
 
 import SwiftData
@@ -14,20 +14,9 @@ import SwiftUI
 
 struct ActionItemsScreen: View {
     @Environment(\.modelContext) private var modelContext
-    /// User-scoped sessions, newest first. The `@Query` predicate is built from
-    /// the captured uid (a default initializer can't read a runtime value), so a
-    /// sign-out→sign-in rebuild re-captures the new uid — same pattern as the
-    /// Transcriptions list.
-    @Query private var sessions: [TranscriptionSession]
+    /// All sessions, newest first.
+    @Query(sort: \TranscriptionSession.sessionDate, order: .reverse) private var sessions: [TranscriptionSession]
     @State private var path: [ContentRoute] = []
-
-    init(userId: String) {
-        _sessions = Query(
-            filter: #Predicate<TranscriptionSession> { $0.userId == userId },
-            sort: \.sessionDate,
-            order: .reverse
-        )
-    }
 
     /// Only sessions that actually produced action items. Sessions stay in
     /// newest-first order; items within each are sorted by their summary order.

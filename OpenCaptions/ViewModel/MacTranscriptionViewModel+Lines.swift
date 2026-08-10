@@ -36,11 +36,10 @@ extension MacTranscriptionViewModel {
 
     // MARK: - Live partial
 
-    /// Publishes the engine's in-flight tokens as the live partial line, and mirrors
-    /// the same preview to Firestore. Unthrottled: finalized text no longer waits
-    /// behind this pipe, and the partial is now short (a few words at most), so the
-    /// old ~5 fps gate only added latency. The Firestore write stays throttled
-    /// inside `FirestoreSyncService`.
+    /// Publishes the engine's in-flight tokens as the live partial line.
+    /// Unthrottled: finalized text no longer waits behind this pipe, and the
+    /// partial is now short (a few words at most), so the old ~5 fps gate only
+    /// added latency.
     @MainActor
     func updatePartialLine(_ tokens: [TranscriptionToken]) {
         // Soniox prepends a leading space to word tokens; drop it so the live line
@@ -53,8 +52,6 @@ extension MacTranscriptionViewModel {
             startMs: tokens.first?.start_ms ?? 0, endMs: tokens.last?.end_ms ?? 0)
         partialStartMs = times.start
         partialEndMs = times.end
-
-        pushPartialToFirestore()
     }
 
     /// Separator to place between the open bubble's text and the in-flight partial.

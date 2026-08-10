@@ -107,12 +107,11 @@ final class FileImportManager {
         }
 
         // Create the session up front (empty, audio-less) so it appears in the list with
-        // a spinner and its detail shows the import banner for the whole run. Scoped to
-        // the signed-in user; titled from the file name.
+        // a spinner and its detail shows the import banner for the whole run. Titled
+        // from the file name.
         let session = TranscriptionSession(
             sessionDate: Date(),
-            sessionTitle: (displayName as NSString).deletingPathExtension,
-            userId: MacAuthManager.shared.ownerId
+            sessionTitle: (displayName as NSString).deletingPathExtension
         )
         context.insert(session)
         do {
@@ -149,7 +148,7 @@ final class FileImportManager {
                 session: session,
                 audioURL: SessionAudioStore.url(for: audioFileName),
                 context: context,
-                userName: MacAuthManager.shared.userName,
+                userName: LiveSessionStore.yourName,
                 progress: { [weak self] update in self?.update(jobID, update) }
             )
         } catch is CancellationError {

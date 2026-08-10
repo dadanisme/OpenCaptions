@@ -52,19 +52,6 @@ final class SummaryViewModel {
             // Rewrite the markdown export: `summary.md` appears (or is refreshed),
             // and the retitle above renames the session's folder to match.
             SessionExportCoordinator.export(session, context: context)
-
-            // If this session is shared, mirror the fresh summary to the web view
-            // so it matches the app (no-op when sharing is off / session unshared).
-            FirestoreSyncService.shared.writeSummary(
-                cloudSessionId: session.cloudSessionId,
-                paragraphs: session.summaryParagraphs,
-                keyPoints: session.summaryKeyPoints,
-                actionItems: session.actionItems
-                    .sorted { $0.sortOrder < $1.sortOrder }
-                    .map(\.text),
-                title: session.sessionTitle,
-                shortDescription: session.shortDescription ?? ""
-            )
         } catch {
             if let e = error as? LocalizedError, let desc = e.errorDescription {
                 errorMessage = desc

@@ -4,25 +4,9 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<!-- Sign in with Apple. The Apple button is currently hidden in SignInView
-	     (Firebase rejects its token audience for the committed custom bundle id);
-	     the capability is kept so it can be re-enabled. -->
-	<key>com.apple.developer.applesignin</key>
-	<array>
-		<string>Default</string>
-	</array>
-	<!-- REQUIRED for Firebase Auth under App Sandbox: without a keychain-access
-	     group, FirebaseAuth's keychain persistence fails with
-	     errSecMissingEntitlement (-34018) and sign-in state won't survive relaunch.
-	     $(AppIdentifierPrefix) resolves to the signing team's prefix. -->
-	<key>keychain-access-groups</key>
-	<array>
-		<string>$(AppIdentifierPrefix)com.muhammadramdan.OpenCaptions</string>
-	</array>
 	<key>com.apple.security.device.audio-input</key>
 	<true/>
-	<!-- Network access covers the Soniox/summary sockets and Google Sign-In's
-	     ASWebAuthenticationSession. -->
+	<!-- Network access covers the Soniox and OpenRouter sockets/requests. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<!-- Lets the sandboxed app write the exported PDF to a user-chosen location

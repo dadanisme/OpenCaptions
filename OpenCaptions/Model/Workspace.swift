@@ -16,9 +16,6 @@ import SwiftData
 final class Workspace {
     var name: String
     var createdAt: Date
-    /// Firebase UID of the owner, same convention as `TranscriptionSession.userId`.
-    /// A workspace is per-account data, not a device-local preference.
-    var userId: String?
     /// App-scoped security-scoped bookmark for this workspace's own export root.
     /// Nil means "use the default export location" (`MarkdownExportLocation`).
     var exportBookmark: Data?
@@ -29,9 +26,8 @@ final class Workspace {
     @Relationship(deleteRule: .nullify)
     var sessions: [TranscriptionSession] = []
 
-    init(name: String, userId: String? = nil, createdAt: Date = Date()) {
+    init(name: String, createdAt: Date = Date()) {
         self.name = name
-        self.userId = userId
         self.createdAt = createdAt
     }
 }

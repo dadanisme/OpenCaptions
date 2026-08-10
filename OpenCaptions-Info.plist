@@ -18,7 +18,7 @@
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<!-- Export-compliance declaration. Open Captions only uses standard TLS/HTTPS (Soniox WSS,
-	     Firebase, Google Sign-In) — no proprietary/non-exempt encryption — so this is
+	     OpenRouter) — no proprietary/non-exempt encryption — so this is
 	     false, which suppresses the per-upload encryption question in App Store Connect. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
@@ -38,17 +38,5 @@
 	     git-ignored Config.xcconfig. -->
 	<key>SUPPORT_EMAIL</key>
 	<string>$(SUPPORT_EMAIL)</string>
-	<!-- Google Sign-In OAuth callback. The value is the Firebase app's
-	     REVERSED_CLIENT_ID; kept generic here and supplied per-developer via the
-	     git-ignored Config.xcconfig (REVERSED_CLIENT_ID = com.googleusercontent.apps.…). -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>$(REVERSED_CLIENT_ID)</string>
-			</array>
-		</dict>
-	</array>
 </dict>
 </plist>

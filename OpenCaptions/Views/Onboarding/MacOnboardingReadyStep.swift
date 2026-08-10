@@ -9,13 +9,12 @@
 import SwiftUI
 
 struct MacOnboardingReadyStep: View {
-    @Environment(MacAuthManager.self) private var auth
     let mode: OnboardingMode
     let source: AudioSource
 
     private var modeValue: String {
         switch mode {
-        case .cloud: return auth.userEmail ?? auth.userName ?? "Signed in"
+        case .cloud: return "Cloud · Soniox"
         case .offline: return "On-device · free"
         }
     }
@@ -32,7 +31,7 @@ struct MacOnboardingReadyStep: View {
             )
 
             VStack(spacing: 10) {
-                recapRow(symbol: modeSymbol, key: mode == .offline ? "Mode" : "Signed in as", value: modeValue)
+                recapRow(symbol: modeSymbol, key: "Mode", value: modeValue)
                 recapRow(symbol: source.systemImage, key: "Capturing", value: source.label)
             }
             .frame(maxWidth: 360)

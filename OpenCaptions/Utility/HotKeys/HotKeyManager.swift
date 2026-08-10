@@ -10,9 +10,9 @@
 //  independently of any window), the hotkeys work while Open Captions is in the
 //  background or its window is closed.
 //
-//  `@Observable @MainActor` singleton (the `MacAuthManager`/`MenuBarState`
-//  pattern) so the Settings pane reflects edits live. Carbon delivers hotkey
-//  events on the main thread, so all handling stays on the main actor.
+//  `@Observable @MainActor` singleton (the same pattern as `MenuBarState`) so
+//  the Settings pane reflects edits live. Carbon delivers hotkey events on the
+//  main thread, so all handling stays on the main actor.
 //
 
 import AppKit
@@ -142,14 +142,9 @@ final class HotKeyManager {
         }
     }
 
-    /// Starts a headless recording, or — when it can't proceed headlessly (signed
-    /// out, or a denied mic that needs the window's permission UI) — raises the app.
+    /// Starts a headless recording, or — when it can't proceed headlessly (a
+    /// denied mic that needs the window's permission UI) — raises the app.
     private func startRecording(_ store: LiveSessionStore) {
-        // Recording needs an account OR a completed offline guest — a not-yet-
-        // onboarded user is sent to the window (onboarding) instead.
-        guard MacAuthManager.shared.isSignedIn || MacAuthManager.shared.isGuest else {
-            hud.show(.signInRequired); raiseApp(); return
-        }
         Task {
             if await store.startHeadlessRecording() {
                 hud.show(.recordingStarted)

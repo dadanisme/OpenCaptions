@@ -17,8 +17,8 @@ import UniformTypeIdentifiers
 struct TranscriptionsScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(LiveSessionStore.self) private var store
-    @Query private var sessions: [TranscriptionSession]
-    @Query private var workspaces: [Workspace]
+    @Query(sort: \TranscriptionSession.sessionDate, order: .reverse) private var sessions: [TranscriptionSession]
+    @Query(sort: \Workspace.name) private var workspaces: [Workspace]
 
     @State private var path: [ContentRoute] = []
     /// Presents the audio/video file picker (toolbar button + File-menu command).
@@ -33,22 +33,6 @@ struct TranscriptionsScreen: View {
     @State private var menuBar = MenuBarState.shared
     /// Narrows the list to one workspace, sessions with none, or everything.
     @State private var workspaceFilter: WorkspaceFilter = .all
-
-    /// Scopes the session list to the signed-in user. A `@Query`'s default
-    /// initializer can't read a runtime value, so the predicate is built here
-    /// from the captured uid — rebuilding this view on sign-out→sign-in
-    /// re-captures the new uid.
-    init(userId: String) {
-        _sessions = Query(
-            filter: #Predicate<TranscriptionSession> { $0.userId == userId },
-            sort: \.sessionDate,
-            order: .reverse
-        )
-        _workspaces = Query(
-            filter: #Predicate<Workspace> { $0.userId == userId },
-            sort: \.name
-        )
-    }
 
     var body: some View {
         NavigationStack(path: $path) {

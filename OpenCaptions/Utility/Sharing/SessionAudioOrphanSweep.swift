@@ -4,7 +4,6 @@
 //
 //  Launch-time cleanup of recorded-audio files no saved session references —
 //  clears partial/unplayable files left by a crash or a never-saved recording.
-//  Mirrors `SessionOwnerBackfill`'s detached-context launch pattern.
 //
 
 import Foundation

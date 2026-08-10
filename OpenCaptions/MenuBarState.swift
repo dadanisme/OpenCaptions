@@ -8,7 +8,7 @@
 //  which read `@FocusedValue` from the focused window (see `OpenCaptionsCommands`) —
 //  it can't rely on focused values. The recording screens push their status +
 //  action closures here; `MenuBarContent` reads them. Mirrors the shared
-//  `@Observable @MainActor` singleton pattern of `MacAuthManager`.
+//  `@Observable @MainActor` singleton pattern of `HotKeyManager`.
 //
 
 import Foundation

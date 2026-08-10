@@ -18,7 +18,7 @@ enum HotKeyOutcome {
     case recordingStarted, recordingStopped, recordingPaused, recordingResumed
     case captionsShown, captionsHidden
     case notRecording, noSession, resumeFailed
-    case permissionNeeded, signInRequired
+    case permissionNeeded
 
     var symbol: String {
         switch self {
@@ -32,7 +32,6 @@ enum HotKeyOutcome {
         case .noSession: return "waveform.slash"
         case .resumeFailed: return "exclamationmark.triangle.fill"
         case .permissionNeeded: return "exclamationmark.triangle.fill"
-        case .signInRequired: return "person.crop.circle.badge.exclamationmark"
         }
     }
 
@@ -48,7 +47,6 @@ enum HotKeyOutcome {
         case .noSession: return "No active session"
         case .resumeFailed: return "Couldn't resume"
         case .permissionNeeded: return "Microphone access needed"
-        case .signInRequired: return "Sign in to start a session"
         }
     }
 
@@ -59,7 +57,7 @@ enum HotKeyOutcome {
              .recordingResumed, .captionsShown, .captionsHidden:
             return false
         case .notRecording, .noSession, .resumeFailed,
-             .permissionNeeded, .signInRequired:
+             .permissionNeeded:
             return true
         }
     }

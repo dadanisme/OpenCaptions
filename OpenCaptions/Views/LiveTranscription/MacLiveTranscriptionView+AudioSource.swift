@@ -45,9 +45,7 @@ extension MacLiveTranscriptionView {
             }
         }
         access = .ok
-        await viewModel.start(
-            modelContainer: modelContext.container, userId: auth.ownerId, source: source
-        )
+        await viewModel.start(modelContainer: modelContext.container, source: source)
     }
 
     /// Handles a transport-pill source change. Requests the mic first if the new

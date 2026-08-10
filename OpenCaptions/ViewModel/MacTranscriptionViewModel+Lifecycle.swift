@@ -48,8 +48,6 @@ extension MacTranscriptionViewModel {
         transcriptionService?.stopZombieCheck()
         transcriptionService?.startKeepalive()
 
-        // Reflect the paused state on the shared session (no-op if unshared).
-        FirestoreSyncService.shared.pauseSession()
         return true
     }
 
@@ -80,9 +78,6 @@ extension MacTranscriptionViewModel {
         }
         // Resume source-app sampling on the same clock anchor.
         appMonitor?.resume()
-
-        // Reflect the resumed state on the shared session (no-op if unshared).
-        FirestoreSyncService.shared.resumeSession()
 
         sendData()
     }

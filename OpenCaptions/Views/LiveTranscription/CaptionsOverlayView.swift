@@ -32,11 +32,11 @@ struct CaptionsOverlayView: View {
     /// on when they return to the bottom.
     @State private var shouldAutoScroll = true
 
-    /// The signed-in user's name for the `@Name` mention highlight. Read from the
-    /// shared auth manager rather than `@Environment`: this view is hosted in an
+    /// The user's own name for the `@Name` mention highlight. Read from
+    /// `LiveSessionStore` rather than `@Environment`: this view is hosted in an
     /// `NSHostingView` that injects no environment (same reason the font/opacity
     /// keys above are read via `@AppStorage`). Observation still tracks the change.
-    private var userName: String? { MacAuthManager.shared.userName }
+    private var userName: String? { LiveSessionStore.yourName }
 
     var body: some View {
         ScrollViewReader { proxy in
