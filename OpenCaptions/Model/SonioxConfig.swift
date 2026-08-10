@@ -50,10 +50,12 @@ struct SonioxConfig {
     // MARK: - Serialization
 
     /// Converts to the JSON dictionary expected by the Soniox WebSocket API.
-    /// Injects `api_key` from `SonioxSecrets` at serialization time.
+    /// Injects `api_key` from `SonioxSecrets` at serialization time. Falls back to
+    /// `""` on a missing key only as a type convenience — `MacTranscriptionViewModel.start`
+    /// already guards on a non-nil key before a live Soniox session ever reaches this.
     func toDictionary() -> [String: Any] {
         var dict: [String: Any] = [
-            "api_key": SonioxSecrets.sonioxAPIKey,
+            "api_key": SonioxSecrets.sonioxAPIKey ?? "",
             "model": model,
             "audio_format": audioFormat,
             "sample_rate": sampleRate,

@@ -45,7 +45,9 @@ final class SonioxAsyncPostSessionEngine: PostSessionTranscriptionEngine {
         audioURL: URL,
         progress: @escaping @MainActor (PostSessionProgress) -> Void
     ) async throws -> [PostSessionToken] {
-        let key = SonioxSecrets.sonioxAPIKey
+        guard let key = SonioxSecrets.sonioxAPIKey else {
+            throw PostSessionEngineError.missingAPIKey
+        }
         let base = baseURL  // capture a Sendable local (avoids capturing `self` in the defer Task)
 
         await progress(PostSessionProgress(stage: .uploading))

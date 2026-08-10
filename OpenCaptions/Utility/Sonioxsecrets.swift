@@ -10,15 +10,23 @@
 import Foundation
 
 enum SonioxSecrets {
-    /// Soniox Speech-to-Text API Key, read from Info.plist (set via .xcconfig).
-    static var sonioxAPIKey: String {
-        guard
-            let apiKey = Bundle.main.infoDictionary?["SONIOX_API_KEY"] as? String
-        else {
-            fatalError(
-                "SONIOX_API_KEY not found in Info.plist. Make sure it is set in the .xcconfig file."
-            )
+    /// Soniox Speech-to-Text API Key. Prefers the runtime value entered in
+    /// Settings → API Keys (Keychain-backed, `APIKeyStore`) over the
+    /// Config.xcconfig-supplied Info.plist value, so a prebuilt .app can be
+    /// handed real credentials without a rebuild. `nil` when neither is
+    /// set — a missing key is a normal, recoverable runtime state now, not a
+    /// launch-time crash; see `MacTranscriptionViewModel.start` and
+    /// `SonioxAsyncPostSessionEngine.transcribe`, the two callers.
+    static var sonioxAPIKey: String? {
+        if let runtime = APIKeyStore.read(.soniox) {
+            return runtime
         }
-        return apiKey
+        guard
+            let buildTime = Bundle.main.infoDictionary?["SONIOX_API_KEY"] as? String,
+            !buildTime.isEmpty
+        else {
+            return nil
+        }
+        return buildTime
     }
 }

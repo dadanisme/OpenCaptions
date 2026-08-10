@@ -77,6 +77,8 @@ enum PostSessionEngineError: LocalizedError {
     case audioUnavailable
     /// The on-device model isn't downloaded yet.
     case modelNotDownloaded
+    /// No Soniox API key is configured (Settings → API Keys or Config.xcconfig).
+    case missingAPIKey
     /// The engine produced no speech.
     case emptyResult
     /// A networking / transport failure (cloud engines).
@@ -90,6 +92,8 @@ enum PostSessionEngineError: LocalizedError {
             return "This session has no saved audio to re-transcribe."
         case .modelNotDownloaded:
             return "The offline model isn't downloaded yet. Download it from Settings → General → Offline Mode, then try again."
+        case .missingAPIKey:
+            return "Add a Soniox API key in Settings → API Keys, then try again."
         case .emptyResult:
             return "No speech was found in the audio."
         case .network(let message):

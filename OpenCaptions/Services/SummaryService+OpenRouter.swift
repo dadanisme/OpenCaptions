@@ -80,7 +80,13 @@ extension SummaryService {
 
     // MARK: - Config
 
+    /// Prefers the runtime value entered in Settings → API Keys (Keychain-backed,
+    /// `APIKeyStore`) over the Config.xcconfig-supplied Info.plist value, so a
+    /// prebuilt .app can be handed real credentials without a rebuild.
     private static func apiKey() throws -> String {
+        if let runtime = APIKeyStore.read(.openRouter) {
+            return runtime
+        }
         guard
             let key = Bundle.main.infoDictionary?["OPENROUTER_API_KEY"] as? String,
             !key.isEmpty
