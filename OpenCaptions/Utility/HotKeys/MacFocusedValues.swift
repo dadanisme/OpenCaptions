@@ -55,6 +55,10 @@ private struct OpenSettingsKey: FocusedValueKey {
     typealias Value = () -> Void
 }
 
+private struct FindInTranscriptKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
 // MARK: - FocusedValues accessors
 
 extension FocusedValues {
@@ -94,5 +98,13 @@ extension FocusedValues {
     var openSettings: (() -> Void)? {
         get { self[OpenSettingsKey.self] }
         set { self[OpenSettingsKey.self] = newValue }
+    }
+
+    /// Reveals the transcript find bar and focuses its field. Published only
+    /// while `MacSessionDetailView`'s Transcript tab is frontmost — nil
+    /// (menu item disabled) on the Summary tab.
+    var findInTranscript: (() -> Void)? {
+        get { self[FindInTranscriptKey.self] }
+        set { self[FindInTranscriptKey.self] = newValue }
     }
 }
