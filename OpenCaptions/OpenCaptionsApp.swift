@@ -113,16 +113,12 @@ struct OpenCaptionsApp: App {
         // or restore SHORTER than the content min and clip the onboarding's fixed
         // top/bottom chrome. `.contentMinSize` sets only the floor — the
         // window still resizes larger freely (`.contentSize` would also cap the max
-        // and lock the resizable main app). Per-scene: the Settings and MenuBarExtra
-        // scenes below are untouched.
+        // and lock the resizable main app). Per-scene: the MenuBarExtra scene below
+        // is untouched. There is no `Settings { }` scene any more — Settings is a
+        // `NavSection` destination inside this window (see `ContentView`), reached
+        // via the sidebar's `SidebarSettingsFooter` or Cmd+, (wired in
+        // `OpenCaptionsCommands` off the `openSettings` focused value).
         .windowResizability(.contentMinSize)
-
-        Settings {
-            MacSettingsView()
-                // Scale the Settings window too, so its own General slider previews
-                // the change live as it moves.
-                .appTextScaling()
-        }
 
         // System menu-bar item (top-right status area): recording status + full
         // transport, usable while the main window is in the background. Its icon

@@ -49,11 +49,7 @@ struct MacHotKeysSettingsView: View {
                     )
                 }
             } header: {
-                Text("Global Shortcuts")
-            } footer: {
-                Text("These work system-wide, even when Open Captions is in the background or its window is closed. Click a shortcut, then press the keys you want (include at least one of ⌃ ⌥ ⌘). A brief badge on screen confirms every press.")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.secondary)
+                SettingsInfoTip.label("Global Shortcuts", tip: "These work system-wide, even when Open Captions is in the background or its window is closed. Click a shortcut, then press the keys you want (include at least one of ⌃ ⌥ ⌘). A brief badge on screen confirms every press.")
             }
             Section {
                 Button("Reset to Defaults") {

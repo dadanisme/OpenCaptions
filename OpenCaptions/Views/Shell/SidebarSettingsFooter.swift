@@ -2,23 +2,41 @@
 //  SidebarSettingsFooter.swift
 //  OpenCaptions
 //
-//  A slim row pinned to the bottom of the sidebar that opens the Settings
-//  window. There's no account identity to show anymore, so this is pure
-//  chrome — styled like the sidebar's own NavSection rows so it reads as one
-//  more row in the same family, just outside the List's selection model.
+//  A slim row pinned to the bottom of the sidebar: the app name + version on
+//  the leading side (pure chrome — there's no account identity to show
+//  anymore), and a trailing icon-only button that selects the `.settings`
+//  `NavSection` (kept outside `List` so it stays pinned below the scrolling
+//  content sections).
 //
 
 import SwiftUI
 
 struct SidebarSettingsFooter: View {
+    @Binding var section: NavSection?
+
+    /// "Open Captions, v1.0" — the marketing version only, not the build
+    /// number (`MacSupportSettingsView`'s diagnostics row wants both; this is
+    /// just a footer label).
+    private var appNameAndVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        return "Open Captions, v\(version)"
+    }
+
     var body: some View {
-        SettingsLink {
-            Label("Settings", systemImage: "gearshape")
+        HStack {
+            Text(appNameAndVersion)
                 .appScaledFont(.body)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button {
+                section = .settings
+            } label: {
+                Image(systemName: section == .settings ? "gearshape.fill" : "gearshape")
+                    .foregroundStyle(section == .settings ? Color.accentColor : Color.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Settings")
         }
-        .buttonStyle(.plain)
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(.bar)

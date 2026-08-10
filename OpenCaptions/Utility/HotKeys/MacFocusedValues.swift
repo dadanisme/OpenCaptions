@@ -51,6 +51,10 @@ private struct CaptionsOverlayKey: FocusedValueKey {
     typealias Value = CaptionsOverlayActions
 }
 
+private struct OpenSettingsKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
 // MARK: - FocusedValues accessors
 
 extension FocusedValues {
@@ -83,5 +87,12 @@ extension FocusedValues {
     var captionsOverlay: CaptionsOverlayActions? {
         get { self[CaptionsOverlayKey.self] }
         set { self[CaptionsOverlayKey.self] = newValue }
+    }
+
+    /// Navigate to the Settings `NavSection`. Published by `ContentView` itself
+    /// (not a screen), since Settings replaced what used to be its own scene.
+    var openSettings: (() -> Void)? {
+        get { self[OpenSettingsKey.self] }
+        set { self[OpenSettingsKey.self] = newValue }
     }
 }

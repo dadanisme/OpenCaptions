@@ -43,10 +43,8 @@ struct MacSupportSettingsView: View {
             Section {
                 LabeledContent("Version", value: appVersionString)
                 LabeledContent("macOS", value: osVersionString)
-            } footer: {
-                Text("Include the details above when reporting a problem — they help us reproduce it faster.")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.secondary)
+            } header: {
+                SettingsInfoTip.label("Diagnostics", tip: "Include the details above when reporting a problem — they help us reproduce it faster.")
             }
         }
         .formStyle(.grouped)
