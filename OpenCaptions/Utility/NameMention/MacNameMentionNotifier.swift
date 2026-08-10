@@ -86,7 +86,7 @@ final class MacNameMentionNotifier {
             }
         }
 
-        guard let name = MacAuthManager.shared.userName,
+        guard let name = LiveSessionStore.yourName,
               mentionsName(name, in: window) else { return }
 
         // Consume the match either way: alerting again for the same words after the

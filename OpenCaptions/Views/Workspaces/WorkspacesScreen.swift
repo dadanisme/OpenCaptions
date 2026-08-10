@@ -19,26 +19,14 @@ import SwiftUI
 
 struct WorkspacesScreen: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var workspaces: [Workspace]
+    @Query(sort: \Workspace.name) private var workspaces: [Workspace]
 
-    private let userId: String
     /// Presents the add-workspace sheet, opened from the toolbar's + button.
     @State private var isAddingWorkspace = false
     /// Non-nil presents the rename sheet for exactly this workspace.
     @State private var renameTarget: Workspace?
     /// Non-nil presents the delete confirmation for exactly this workspace.
     @State private var pendingDeletion: Workspace?
-
-    /// Scopes the workspace list to the signed-in user, the same
-    /// custom-`init`-plus-`#Predicate` pattern `TranscriptionsScreen` uses (a
-    /// `@Query`'s default initializer can't read a runtime value).
-    init(userId: String) {
-        self.userId = userId
-        _workspaces = Query(
-            filter: #Predicate<Workspace> { $0.userId == userId },
-            sort: \.name
-        )
-    }
 
     var body: some View {
         NavigationStack {
@@ -98,7 +86,7 @@ struct WorkspacesScreen: View {
     }
 
     private func createWorkspace(named name: String) {
-        let workspace = Workspace(name: name, userId: userId)
+        let workspace = Workspace(name: name)
         modelContext.insert(workspace)
         try? modelContext.save()
     }

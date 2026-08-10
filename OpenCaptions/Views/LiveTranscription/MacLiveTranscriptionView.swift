@@ -16,7 +16,6 @@ struct MacLiveTranscriptionView: View {
     // Not `private`: the source/permission logic lives in a same-type extension
     // (MacLiveTranscriptionView+AudioSource) to keep this file under the limit.
     @Environment(\.modelContext) var modelContext
-    @Environment(MacAuthManager.self) var auth
     @Environment(LiveSessionStore.self) var store
 
     /// The active session's view model, owned by `LiveSessionStore` so it (and its
@@ -43,9 +42,6 @@ struct MacLiveTranscriptionView: View {
     @State var renameTarget: RenameTarget?
     /// Stable bubble ID under the pointer, for the click-to-rename hover cue.
     @State private var hoveredBubbleID: Int?
-    /// Non-nil presents the share dialog for the minted cloud session.
-    // Not `private`: the share logic lives in MacLiveTranscriptionView+Sharing.
-    @State var shareTarget: ShareTarget?
 
     /// Called with the saved session's ID on Stop & Save (parent opens detail).
     /// Leaving the recording screen otherwise is driven by clearing the store's
@@ -88,10 +84,6 @@ struct MacLiveTranscriptionView: View {
                 .help("Back")
                 .accessibilityLabel("Back")
             }
-            shareToolbarItem
-        }
-        .sheet(item: $shareTarget) { target in
-            MacShareSessionSheet(sessionId: target.id)
         }
         .alert("End session?", isPresented: $showBackConfirm) {
             Button("End") { Task { await stopAndExit() } }
@@ -312,7 +304,7 @@ struct MacLiveTranscriptionView: View {
     /// ephemeral tail is uncached.
     private func bubbleText(at index: Int) -> Text {
         let committed = HighlightedMessageText(
-            viewModel.finalLines.textLines[index], userName: auth.userName).asText
+            viewModel.finalLines.textLines[index], userName: LiveSessionStore.yourName).asText
         guard index == viewModel.finalLines.ids.count - 1,
               let partial = viewModel.trailingPartial else { return committed }
         return committed + Text(partial).foregroundStyle(.secondary)
@@ -323,7 +315,7 @@ struct MacLiveTranscriptionView: View {
     private func partialBubble(_ partial: String) -> some View {
         // `cached: false` — the partial streams a new string each token; keep it out
         // of the shared segment cache so it can't evict committed-line entries.
-        HighlightedMessageText(partial, userName: auth.userName, cached: false)
+        HighlightedMessageText(partial, userName: LiveSessionStore.yourName, cached: false)
             .font(.transcript(.body, multiplier: textSizeMultiplier))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)

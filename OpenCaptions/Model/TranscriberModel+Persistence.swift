@@ -107,18 +107,9 @@ extension TranscriberModel {
             if !title.isEmpty {
                 existing.sessionTitle = title
             }
-            // Mid-session row may have been created before sync started; backfill if needed.
-            if existing.cloudSessionId == nil {
-                existing.cloudSessionId = cloudSessionId
-            }
             session = existing
         } else {
-            session = TranscriptionSession(
-                sessionDate: Date(),
-                sessionTitle: title,
-                cloudSessionId: cloudSessionId,
-                userId: ownerUserId // scope to the signed-in user (set at start())
-            )
+            session = TranscriptionSession(sessionDate: Date(), sessionTitle: title)
             modelContext.insert(session)
         }
 

@@ -2,22 +2,21 @@
 //  MacOnboardingStep.swift
 //  OpenCaptions
 //
-//  The onboarding state machine's step + account-mode types, shared by the
+//  The onboarding state machine's step + mode types, shared by the
 //  coordinator (`MacOnboardingView`) and its step subviews.
 //
-//  Flow: Welcome → Mode → { Sign in | Download } → Capture → Permissions → Ready.
-//  The Mode step forks step 3: the cloud path signs in; the offline path downloads
-//  the on-device model. Both rejoin at Capture. See docs/2026-07-11-macos-onboarding.md.
+//  Flow: Welcome → Mode → Download (offline only) → Capture → Permissions →
+//  Ready. `.download` is visited only on the offline path — the coordinator
+//  skips it entirely for cloud, which needs no extra setup step.
 //
 
 import Foundation
 
-/// A single onboarding step, ordered. `setup` is the fork: its content is the
-/// sign-in form (cloud) or the model download (offline), chosen at `mode`.
+/// A single onboarding step, ordered.
 enum OnboardingStep: Int, CaseIterable, Comparable {
     case welcome
     case mode
-    case setup
+    case download
     case capture
     case permissions
     case ready
@@ -30,10 +29,10 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }
 }
 
-/// How the user chose to use Open Captions. `nil` until they pick on the Mode step.
+/// How the user chose to transcribe. `nil` until they pick on the Mode step.
 enum OnboardingMode: Equatable {
-    /// Signed-in cloud transcription (Soniox): synced, diarized.
+    /// Cloud transcription (Soniox): most accurate, speaker labels, needs network.
     case cloud
-    /// Local guest, on-device engine (Nemotron): free, private, no account.
+    /// On-device transcription (Nemotron): private, free, no network, English only.
     case offline
 }

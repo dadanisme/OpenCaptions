@@ -11,6 +11,3 @@ OPENROUTER_API_KEY = YOUR_OPENROUTER_API_KEY
 
 // Support inbox surfaced in Settings → Support (mailto: subjects distinguish the action).
 SUPPORT_EMAIL = support@YOUR-DOMAIN
-
-// Google Sign-In OAuth callback = REVERSED_CLIENT_ID from GoogleService-Info.plist
-REVERSED_CLIENT_ID = com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID

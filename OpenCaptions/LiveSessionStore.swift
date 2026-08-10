@@ -16,7 +16,7 @@
 //  loop so the menu-bar label stays correct without an on-screen view.
 //
 //  Mirrors the shared `@Observable @MainActor` singleton pattern of
-//  `MacAuthManager` / `MenuBarState`.
+//  `MenuBarState`.
 //
 
 import Foundation
@@ -107,18 +107,25 @@ final class LiveSessionStore {
     /// cleared. Owned by `VocabularyStore`.
     static let vocabularyBackgroundTextKey = "opencaptions.vocabulary.backgroundText"
 
-    /// UserDefaults key (Bool) for the global "finished onboarding" gate flag. The
-    /// app gate (`OpenCaptionsApp`) shows the main UI only when this is set AND the user
-    /// is either signed in or a local guest. Written by `completeOnboarding` and
-    /// mirrored from the per-owner key on sign-in (see `MacAuthManager+Onboarding`).
-    static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    /// UserDefaults key (String) for the user's own name, set in Settings →
+    /// General. Device-local, never synced. Feeds three features: Soniox's
+    /// live-transcription context payload, the vocabulary screen's
+    /// "always-included" own-name term, and the `@Name` mention-highlight/
+    /// notify feature. Empty string (the `@AppStorage` default) means "not set".
+    static let yourNameKey = "opencaptions.yourName"
 
-    /// UserDefaults key (Bool) marking a "use without an account" local guest: a
-    /// user who finished onboarding via the offline path. Distinguishes a deliberate
-    /// offline guest (enter the app) from a signed-out/expired cloud user (must
-    /// re-authenticate). Cleared on any real sign-in. Guests are force-locked to the
-    /// on-device engine. See `docs/2026-07-11-macos-onboarding.md`.
-    static let guestModeKey = "opencaptions.guestMode"
+    /// The user's own name preference, or `nil` if unset/blank, for consumers
+    /// that want `String?` rather than dealing with the empty-string default
+    /// themselves (Soniox context, vocabulary, mention-highlight/notify).
+    static var yourName: String? {
+        let value = UserDefaults.standard.string(forKey: yourNameKey) ?? ""
+        return value.isEmpty ? nil : value
+    }
+
+    /// UserDefaults key (Bool) for the global "finished onboarding" gate flag —
+    /// the sole gate `OpenCaptionsApp` reads to decide between `ContentView` and
+    /// `MacOnboardingView`. Written once by `MacOnboardingView.complete()`.
+    static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     /// The active session's view model, or nil when idle. Non-nil is the single
     /// source of truth for "a session is live" (running, paused, or failed with a
@@ -207,7 +214,7 @@ final class LiveSessionStore {
         // headless gate here.
 
         let vm = makeSession()
-        await vm.start(modelContainer: container, userId: MacAuthManager.shared.ownerId, source: source)
+        await vm.start(modelContainer: container, source: source)
         // start() can early-return without recording — an on-device engine whose model isn't
         // downloaded, or a connection failure — leaving isRunning=false + errorMessage set. Don't
         // claim a headless success: drop the dead session so the caller falls back to opening the

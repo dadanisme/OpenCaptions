@@ -5,7 +5,7 @@
 //  Exports a session summary as a PDF and saves it via NSSavePanel.
 //  Renders the PDF via macOS `WKWebView.createPDF`. Headings are
 //  hardcoded English (this target has no LanguageManager) and there is no
-//  analytics logging (no Firebase on macOS).
+//  analytics logging.
 //
 
 import AppKit

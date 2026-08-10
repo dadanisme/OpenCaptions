@@ -16,9 +16,10 @@ All transcription is **free and unmetered** — there is no billing, minute
 balance, or paywall in any code path.
 
 > This macOS app began as an extract from a larger multi-platform codebase and is
-> now a fully standalone, self-contained Xcode project with its own independent
-> backend. No credentials are committed — API keys and Firebase config live in two
-> git-ignored files.
+> now a fully standalone, self-contained Xcode project with **no backend at all**
+> — no accounts, no cloud database. Cloud transcription (Soniox) and AI summaries
+> (OpenRouter) are called straight from the app with your own API keys. No
+> credentials are committed — API keys live in a git-ignored file.
 
 ## Highlights
 
@@ -42,14 +43,11 @@ balance, or paywall in any code path.
   it would otherwise mangle, plus a freeform background note (Soniox paths only).
 - **Post-session re-transcription** of a saved session, and **audio import** of an
   existing file.
-- **Auth & sync** — Firebase Auth: Google is the primary path and email/password
-  works (a Sign in with Apple button is present, but Firebase rejects its token
-  audience for the committed custom bundle id). Or skip sign-in entirely as a local
-  guest — note a guest is locked to Offline Mode, so no diarization, summaries, or
-  sharing. Firestore share-to-web, optionally password-protected — though the share
-  **link** currently renders as the relative path `/<sessionId>`, because
-  `SESSION_SHARE_BASE_URL` is read from the Info.plist but mapped in neither
-  `Config.xcconfig.example` nor `OpenCaptions-Info.plist`.
+- **No accounts, fully local** — there is no sign-in, no cloud database, and no
+  web sharing. Every launch goes straight into the local library, and cloud
+  Soniox transcription (diarization, custom vocabulary, AI summaries) is
+  available to everyone by default. Local markdown/audio export is the only way
+  to get a session out of the app.
 - **Captions overlay** ("open captions"), a menu-bar item, global hotkeys,
   name-mention notifications, session playback, and independent transcript / UI
   font sizing.
@@ -59,27 +57,18 @@ balance, or paywall in any code path.
 1. Open **`OpenCaptions.xcodeproj`** in Xcode (macOS 14.4+ SDK).
 2. Set your own **signing team** on the `OpenCaptions` target (currently
    `C4SQMCY5WT`) and, if desired, your own bundle id.
-3. Supply credentials (both git-ignored; copy `Config.xcconfig.example` →
-   `Config.xcconfig` and provide `OpenCaptions/GoogleService-Info.plist`):
+3. Supply credentials (git-ignored; copy `Config.xcconfig.example` →
+   `Config.xcconfig`):
    - **`Config.xcconfig`** (repo root) — `SONIOX_API_KEY`, `OPENROUTER_API_KEY`,
-     `SUPPORT_EMAIL`, `REVERSED_CLIENT_ID`.
-   - **`OpenCaptions/GoogleService-Info.plist`** — Firebase config.
-4. Swift Package Manager resolves the dependencies automatically:
-   `FluidAudio` (pinned 0.15.5), `firebase-ios-sdk`, and `GoogleSignIn-iOS`.
-   The target links FluidAudio, GoogleSignIn, FirebaseAuth, FirebaseFirestore,
-   and FirebaseFunctions.
+     `SUPPORT_EMAIL`.
+4. Swift Package Manager resolves the one dependency automatically:
+   `FluidAudio` (pinned 0.15.5).
 5. Build & run the **`OpenCaptions`** scheme.
 
-Get the keys from [Soniox](https://soniox.com) and
-[Google AI Studio](https://aistudio.google.com/apikey). Each key reaches the app
-through an `$(...)` substitution in `OpenCaptions-Info.plist` — the first three as
-top-level readable keys, `REVERSED_CLIENT_ID` as the OAuth callback URL scheme — so
-adding a key to `Config.xcconfig` without a matching plist entry does nothing.
-
-> Firebase and Google Sign-In are registered to the bundle id
-> `com.muhammadramdan.OpenCaptions`, which must also match the keychain-access
-> group in `OpenCaptions.entitlements`. If you change the bundle id, re-register
-> both services or auth will fail at runtime.
+Get the Soniox key from [Soniox](https://soniox.com) and the OpenRouter key from
+[OpenRouter](https://openrouter.ai/keys). Each key reaches the app through an
+`$(...)` substitution as a top-level readable key in `OpenCaptions-Info.plist` —
+so adding a key to `Config.xcconfig` without a matching plist entry does nothing.
 
 ## Layout
 
@@ -87,11 +76,10 @@ adding a key to `Config.xcconfig` without a matching plist entry does nothing.
 OpenCaptions.xcodeproj    # single macOS target ("OpenCaptions")
 OpenCaptions/             # app source: Model, Services, ViewModel, Views, Utility, AEC, ThirdParty
 OpenCaptions-Info.plist   # Info.plist template (maps the Config.xcconfig keys)
-OpenCaptions.entitlements # app sandbox, audio input, network client, user-selected files,
-                          #   Sign in with Apple, keychain group
+OpenCaptions.entitlements # app sandbox, audio input, network client, user-selected files
 Config.xcconfig.example   # template for the git-ignored Config.xcconfig
 CLAUDE.md                 # architecture & conventions guide
-docs/                     # 37 dated design & decision notes
+docs/                     # 42 dated design & decision notes
 ```
 
 ## Naming note
@@ -101,14 +89,13 @@ Renamed to **Open Captions** — the project, scheme, target, product
 names** now read Open Captions / OpenCaptions, as do the code symbols
 `OpenCaptionsApp`, `OpenCaptionsCommands`, and `OpenCaptionsAEC`.
 
-This app was extracted from a larger multi-platform project and now runs on its
-own independent infrastructure under the bundle id
-`com.muhammadramdan.OpenCaptions`. The external surface is: Soniox (the real-time
-WebSocket plus `api.soniox.com/v1` for post-session re-transcription), Firebase
-Auth and Firestore, two Firebase callables for share passwords, Google Sign-In, a
-direct client-side call to OpenRouter for summaries, and FluidAudio's one-time model
-download. Firebase and Google Sign-In are keyed to that bundle id, so a fork
-changing it must re-register both.
+This app was extracted from a larger multi-platform project and now has **no
+backend at all** under the bundle id `com.muhammadramdan.OpenCaptions`. The
+external surface is: Soniox (the real-time WebSocket plus `api.soniox.com/v1`
+for post-session re-transcription), a direct client-side call to OpenRouter for
+summaries, and FluidAudio's one-time on-device model download. Both Soniox and
+OpenRouter are gated by a single app-wide API key each, not by any account —
+there's nothing to re-register if a fork changes the bundle id.
 
 ## Third-party
 

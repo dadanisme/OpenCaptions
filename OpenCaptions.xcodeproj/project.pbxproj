@@ -8,10 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		2F17500A2FD1750100B4302D /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 2F17500B2FD1750100B4302D /* FluidAudio */; };
-		60061E51640000000000000C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 60061E51640000000000000B /* GoogleSignIn */; };
-		FBA000010000000000000002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000001 /* FirebaseAuth */; };
-		FBA000010000000000000004 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000003 /* FirebaseFirestore */; };
-		FBA000010000000000000006 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = FBA000010000000000000005 /* FirebaseFunctions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,10 +28,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FBA000010000000000000002 /* FirebaseAuth in Frameworks */,
-				FBA000010000000000000004 /* FirebaseFirestore in Frameworks */,
-				FBA000010000000000000006 /* FirebaseFunctions in Frameworks */,
-				60061E51640000000000000C /* GoogleSignIn in Frameworks */,
 				2F17500A2FD1750100B4302D /* FluidAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -88,10 +80,6 @@
 			);
 			name = OpenCaptions;
 			packageProductDependencies = (
-				FBA000010000000000000001 /* FirebaseAuth */,
-				FBA000010000000000000003 /* FirebaseFirestore */,
-				FBA000010000000000000005 /* FirebaseFunctions */,
-				60061E51640000000000000B /* GoogleSignIn */,
 				2F17500B2FD1750100B4302D /* FluidAudio */,
 			);
 			productName = OpenCaptions;
@@ -127,8 +115,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */,
-				370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 378297102E8E1D2100C30EA9 /* Products */;
@@ -408,22 +394,6 @@
 				version = 0.15.5;
 			};
 		};
-		370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.12.0;
-			};
-		};
-		60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -431,26 +401,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2F0801B12F77D996008FE979 /* XCRemoteSwiftPackageReference "FluidAudio" */;
 			productName = FluidAudio;
-		};
-		60061E51640000000000000B /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 60061E51640000000000000A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		FBA000010000000000000001 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		FBA000010000000000000003 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		FBA000010000000000000005 /* FirebaseFunctions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 370A3CEB2F88EEC600B94B4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

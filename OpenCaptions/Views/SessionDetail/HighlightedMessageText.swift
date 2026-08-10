@@ -20,11 +20,11 @@ import SwiftUI
 
 struct HighlightedMessageText: View {
     let message: String
-    /// The signed-in user's display name, whose whole-word mentions render as a
-    /// bold `@Name`. Nil/blank (e.g. an offline guest, who has no account) simply
-    /// disables name highlighting — questions still highlight. Passed explicitly:
-    /// macOS has no global `UserSettings.userName`, so the source is
-    /// `MacAuthManager.shared.userName` at each call site.
+    /// The user's own name (Settings → General → Your Name), whose whole-word
+    /// mentions render as a bold `@Name`. Nil/blank simply disables name
+    /// highlighting — questions still highlight. Passed explicitly: macOS has
+    /// no global `UserSettings.userName`, so the source is
+    /// `LiveSessionStore.yourName` at each call site.
     let userName: String?
     /// Whether this line reads/writes the shared `segmentCache`. The live partial
     /// line streams a fresh string on every token, so it is rendered with

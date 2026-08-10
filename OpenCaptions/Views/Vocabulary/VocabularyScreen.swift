@@ -13,9 +13,10 @@
 //  repeated the same placeholder down the screen; a single field shows it once, and
 //  pasting a comma- or newline-separated list adds many at a time.
 //
-//  The always-included terms (the app's built-ins and the display name) are chips in
-//  the SAME list as the user's, just read-only — so the section reads as everything
-//  being sent, rather than splitting into an editable group and an informational one.
+//  The always-included terms (the app's built-ins and Settings' "Your Name") are
+//  chips in the SAME list as the user's, just read-only — so the section reads
+//  as everything being sent, rather than splitting into an editable group and
+//  an informational one.
 //
 //  Adds and removes commit to `VocabularyStore` immediately (no Save button, matching
 //  how the Settings toggles behave) but are only READ at session start, so the copy
@@ -26,7 +27,6 @@
 import SwiftUI
 
 struct VocabularyScreen: View {
-    @Environment(MacAuthManager.self) private var auth
     @State private var store = VocabularyStore.shared
     /// The add field's text. Uncommitted — nothing reaches the store until Add /
     /// Return, so a half-typed term is never persisted or sent.
@@ -57,7 +57,7 @@ struct VocabularyScreen: View {
             // being sent". They lead because that's also their clamp priority, and
             // they're read-only — dimmed, no remove button.
             FlowLayout {
-                ForEach(store.alwaysIncludedTerms(userName: auth.userName), id: \.self) { term in
+                ForEach(store.alwaysIncludedTerms(userName: LiveSessionStore.yourName), id: \.self) { term in
                     VocabularyTermChip(text: term, onRemove: nil)
                 }
                 ForEach(store.terms) { term in
@@ -98,13 +98,13 @@ struct VocabularyScreen: View {
         }
     }
 
-    /// Explains the dimmed chips (so the built-ins aren't invisible magic — the
-    /// display name is among them on purpose, since it's what the name-mention
+    /// Explains the dimmed chips (so the built-ins aren't invisible magic — Your
+    /// Name is among them on purpose, since it's what the name-mention
     /// highlight and notification match against) and how to add several at once.
     @ViewBuilder
     private var footnotes: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Dimmed terms are always included: the app's own names, plus your display name — that's what name mentions match.")
+            Text("Dimmed terms are always included: the app's own names, plus Your Name from Settings — that's what name mentions match.")
             Text("Separate several terms with commas, or paste a list, to add them at once.")
         }
         .appScaledFont(.caption)
@@ -116,11 +116,11 @@ struct VocabularyScreen: View {
     /// What the current draft would actually add — drives both the Add button's
     /// enabled state and the "already in your list" notice.
     private var pendingTerms: [String] {
-        store.newTerms(in: draft, userName: auth.userName)
+        store.newTerms(in: draft, userName: LiveSessionStore.yourName)
     }
 
     private func commitDraft() {
-        guard store.addTerms(from: draft, userName: auth.userName) > 0 else { return }
+        guard store.addTerms(from: draft, userName: LiveSessionStore.yourName) > 0 else { return }
         draft = ""
         // Keep focus so several terms can be typed in a row.
         isDraftFocused = true
@@ -180,7 +180,7 @@ struct VocabularyScreen: View {
     }
 
     private var characterCount: Int {
-        store.contextCharacterCount(userName: auth.userName)
+        store.contextCharacterCount(userName: LiveSessionStore.yourName)
     }
 
     private var isOverLimit: Bool {
@@ -202,6 +202,5 @@ struct VocabularyScreen: View {
 
 #Preview {
     VocabularyScreen()
-        .environment(MacAuthManager.shared)
         .frame(width: 520, height: 560)
 }

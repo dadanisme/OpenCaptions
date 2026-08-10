@@ -35,11 +35,6 @@ enum PostSessionRetranscriber {
         guard !lines.isEmpty else { throw PostSessionEngineError.emptyResult }
         replaceTranscript(with: lines, in: session, context: context)
 
-        // If this session is shared to the web, re-push the new transcript to the SAME
-        // link so the web copy doesn't go stale (no-op when unshared / sharing off).
-        // Summary is re-mirrored below by regeneration, or left cleared offline.
-        SessionLinkSharer.resyncShared(session: session)
-
         // Regenerate the summary from the fresh transcript. It's a cloud call, so skip
         // it in Offline Mode — the (now-cleared) summary can be generated later.
         if !UserDefaults.standard.bool(forKey: LiveSessionStore.offlineModeKey) {

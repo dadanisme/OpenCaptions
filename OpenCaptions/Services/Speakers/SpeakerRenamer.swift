@@ -3,8 +3,7 @@
 //  OpenCaptions
 //
 //  The single write path for speaker renames on a SAVED session: applies each new
-//  name to every line of that speaker, commits SwiftData, and mirrors the change to
-//  the shared Firestore doc when the session was shared.
+//  name to every line of that speaker and commits SwiftData.
 //
 //  Lifted out of `MacSessionDetailView+SpeakerEditing` so the summary pass's
 //  automatic naming can reuse it without routing through a view. Its callers are the
@@ -57,12 +56,6 @@ enum SpeakerRenamer {
         // `**Speakers:**` header, so a rename has to rewrite the file too.
         SessionExportCoordinator.export(session, context: context)
 
-        // Mirror to the shared web transcript's `speakers` map when this session was
-        // shared. A nil id just means it was never shared — not a failure — and the
-        // guard stays here so no caller has to know that.
-        if let cloudId = session.cloudSessionId {
-            FirestoreSyncService.shared.updateSpeakerNames(cloudSessionId: cloudId, names: changed)
-        }
         return changed
     }
 

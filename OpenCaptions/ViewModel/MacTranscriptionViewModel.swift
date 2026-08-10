@@ -6,9 +6,8 @@
 //  MacAudioService and commits every finalized token straight into an in-memory
 //  TranscriberModel (see `+Lines`), then persists on stop.
 //
-//  A focused state machine that omits Firestore sync, Live
-//  Activity, reconnection, periodic connection
-//  reset, pause/resume, and the multi-engine factory (Soniox only here).
+//  A focused state machine that omits Live Activity, reconnection, periodic
+//  connection reset, and the multi-engine factory (Soniox only here).
 //
 
 import AVFoundation
@@ -114,18 +113,14 @@ final class MacTranscriptionViewModel {
     /// Connects the Soniox engine and begins capture + streaming from the chosen
     /// source. The caller must have obtained the source's permission first (mic
     /// access, or Screen Recording for system audio).
-    /// - Parameters:
-    ///   - userId: the signed-in user's UID, stamped onto the saved session so
-    ///     history is scoped per user.
-    ///   - source: the capture source (microphone by default).
+    /// - Parameter source: the capture source (microphone by default).
     @MainActor
-    func start(modelContainer: ModelContainer, userId: String?, source: AudioSource = .microphone) async {
+    func start(modelContainer: ModelContainer, source: AudioSource = .microphone) async {
         self.modelContainer = modelContainer
         isRunning = true
         isPaused = false
         errorMessage = nil
         finalLines.clear()
-        finalLines.ownerUserId = userId
         resetLineState()
         speakerMapping.removeAll()
         sessionStart = CFAbsoluteTimeGetCurrent()
@@ -152,7 +147,7 @@ final class MacTranscriptionViewModel {
         }
 
         let service = MacTranscriptionEngineFactory.make(
-            kind, sonioxConfig: Self.makeSonioxConfig(userName: MacAuthManager.shared.userName))
+            kind, sonioxConfig: Self.makeSonioxConfig(userName: LiveSessionStore.yourName))
         transcriptionService = service
         // Build the chosen source (mic or system audio). `makeAudioSource` wires
         // the interruption hook to failSession with source-appropriate copy: a
@@ -208,9 +203,6 @@ final class MacTranscriptionViewModel {
         // only the engine's in-flight tail is still uncommitted.
         commitPartialTail()
 
-        // Seal the shared Firestore doc (no-op if this session was never shared).
-        FirestoreSyncService.shared.endSession()
-
         transcriptionService?.stopZombieCheck()
         // Kill any keepalive timer left running from a pause before this stop.
         transcriptionService?.stopKeepalive()
@@ -262,8 +254,6 @@ final class MacTranscriptionViewModel {
         pushTask = nil
         transcriptionService?.finalize()
         transcriptionService?.close()
-        // Seal the shared Firestore doc so a discarded share doesn't stay `live`.
-        FirestoreSyncService.shared.endSession()
         // Discard the recording — nothing will reference it.
         finishAudioRecording(keepFile: false)
         finalLines.clear()
@@ -297,9 +287,6 @@ final class MacTranscriptionViewModel {
         // the task returns before its own teardown would ever run.
         transcriptionService?.finalize()
         transcriptionService?.close()
-        // Seal the shared Firestore doc so a failed share doesn't stay `live`.
-        // The transcript is kept locally, so Stop & Save can still persist it.
-        FirestoreSyncService.shared.endSession()
         // Close the recording but KEEP the file: a subsequent Stop & Save reuses
         // the kept transcript and stamps this filename onto the session.
         finishAudioRecording(keepFile: true)
@@ -311,8 +298,6 @@ final class MacTranscriptionViewModel {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         speakerMapping[id] = name
         finalLines.updateName(name: name, id: id)
-        // Mirror the rename to the shared session's speakers map (no-op if unshared).
-        FirestoreSyncService.shared.updateSpeakerName(speakerId: id, name: name)
     }
 
     // MARK: - Audio streaming

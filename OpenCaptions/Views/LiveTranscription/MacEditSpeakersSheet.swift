@@ -103,7 +103,7 @@ struct MacEditSpeakersSheet: View {
     }
 
     /// Nothing to persist when every field still matches its original — keeps a
-    /// no-op Save from writing to SwiftData / Firestore.
+    /// no-op Save from writing to SwiftData.
     private var hasChanges: Bool {
         speakers.contains { trimmed($0.id) != $0.originalName }
     }

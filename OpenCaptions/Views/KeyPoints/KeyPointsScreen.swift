@@ -3,31 +3,19 @@
 //  OpenCaptions
 //
 //  The "Key Points" sidebar section: a READ-ONLY rollup of every key point across
-//  the signed-in user's sessions, grouped by source session. Key points are plain
-//  `[String]` with no completion state, so — unlike Action Items — there is no
-//  mutation here; a row / header tap pushes the source session detail (reusing the
-//  same `ContentRoute` + `MacSessionDetailView`). Scoping mirrors
-//  `TranscriptionsScreen(userId:)` / `ActionItemsScreen(userId:)`.
+//  all sessions, grouped by source session. Key points are plain `[String]`
+//  with no completion state, so — unlike Action Items — there is no mutation
+//  here; a row / header tap pushes the source session detail (reusing the
+//  same `ContentRoute` + `MacSessionDetailView`).
 //
 
 import SwiftData
 import SwiftUI
 
 struct KeyPointsScreen: View {
-    /// User-scoped sessions, newest first. The `@Query` predicate is built from
-    /// the captured uid (a default initializer can't read a runtime value), so a
-    /// sign-out→sign-in rebuild re-captures the new uid — same pattern as the
-    /// Transcriptions / Action Items lists.
-    @Query private var sessions: [TranscriptionSession]
+    /// All sessions, newest first.
+    @Query(sort: \TranscriptionSession.sessionDate, order: .reverse) private var sessions: [TranscriptionSession]
     @State private var path: [ContentRoute] = []
-
-    init(userId: String) {
-        _sessions = Query(
-            filter: #Predicate<TranscriptionSession> { $0.userId == userId },
-            sort: \.sessionDate,
-            order: .reverse
-        )
-    }
 
     /// Only sessions that actually produced key points. Sessions stay in
     /// newest-first order; key points within each keep their summary order.

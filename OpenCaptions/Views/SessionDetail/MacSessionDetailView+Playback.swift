@@ -68,7 +68,7 @@ extension MacSessionDetailView {
             // Name-mention highlight reads the signed-in user's name straight from
             // the shared auth manager: the base MacSessionDetailView is at the file
             // line limit, so avoid threading a stored/@Environment name through it.
-            HighlightedMessageText(line.text, userName: MacAuthManager.shared.userName)
+            HighlightedMessageText(line.text, userName: LiveSessionStore.yourName)
                 .appScaledFont(.body)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -89,7 +89,7 @@ extension MacSessionDetailView {
         .help(seekable ? "Jump to this moment" : "")
         // Right-click to rename this bubble's speaker (diarized speakers only) —
         // left-click stays reserved for tap-to-seek above. Commits through the
-        // same persist + Firestore-sync path as the toolbar batch editor.
+        // same persist path as the toolbar batch editor.
         .contextMenu {
             if line.speakerId > 0 {
                 Button {

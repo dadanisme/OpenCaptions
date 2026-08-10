@@ -55,16 +55,6 @@ class TranscriberModel {
     /// Stored as an ID rather than the object so it can be fetched from any ModelContext.
     var activeSessionID: PersistentIdentifier?
 
-    /// Stable Firestore session UUID for the current recording, minted at `start()`.
-    /// Used by `FirestoreSyncService` and copied onto the SwiftData session row
-    /// when it's created at first flush. Nil if Share Session was off at session start.
-    var cloudSessionId: String?
-
-    /// The signed-in user's Firebase UID, set at `start()` and stamped onto the
-    /// SwiftData session at save time so history is scoped per user. Nil only when
-    /// somehow unauthenticated (the app gate normally prevents recording then).
-    var ownerUserId: String?
-
     /// Earliest valid start time (ms) seen this session, across hot and flushed lines.
     private var minValidStartMs: Int?
 
@@ -155,8 +145,6 @@ class TranscriberModel {
         revision = 0
         flushedLineCount = 0
         activeSessionID = nil
-        cloudSessionId = nil
-        ownerUserId = nil
         minValidStartMs = nil
         maxValidEndMs = nil
     }

@@ -3,8 +3,8 @@
 //  OpenCaptions
 //
 //  The single funnel every committed line goes through: in-memory model →
-//  Firestore mirror → debounced SwiftData flush (creating the session row on the
-//  first flush so mid-session lines have a home).
+//  debounced SwiftData flush (creating the session row on the first flush so
+//  mid-session lines have a home).
 //
 //  Relocated here when the token accumulator was removed; the grouping decisions that
 //  used to sit above it now live in `MacTranscriptionViewModel+Lines` / `LiveLineCursor`,
@@ -24,19 +24,14 @@ extension MacTranscriptionViewModel {
         text: String, speaker: Int, forceNewLine: Bool, start: Int, end: Int, sourceApp: String?
     ) {
         let sliceTime = TimeRange(start_ms: start, end_ms: end)
-        let prevBubbleCount = finalLines.ids.count
         finalLines.appendOrAdd(
             text: text, speaker: speaker, forceNewLine: forceNewLine,
             time: sliceTime, sourceApp: sourceApp
         )
-        let isNewBubble = finalLines.ids.count > prevBubbleCount
 
         if let mappedName = speakerMapping[speaker] {
             finalLines.updateName(name: mappedName, id: speaker)
         }
-
-        // Mirror the committed bubble to Firestore (no-op until shared).
-        mirrorCommittedLine(isNewBubble: isNewBubble)
 
         guard finalLines.textLines.count > TranscriptionConstants.flushThreshold,
               flushTask == nil,
@@ -44,12 +39,7 @@ extension MacTranscriptionViewModel {
 
         // Create the session on first flush so mid-session lines have a home.
         if finalLines.activeSessionID == nil {
-            let session = TranscriptionSession(
-                sessionDate: Date(),
-                sessionTitle: "",
-                cloudSessionId: finalLines.cloudSessionId,
-                userId: finalLines.ownerUserId // scope to the signed-in user (set at start())
-            )
+            let session = TranscriptionSession(sessionDate: Date(), sessionTitle: "")
             let mainContext = ModelContext(container)
             mainContext.insert(session)
             try? mainContext.save()

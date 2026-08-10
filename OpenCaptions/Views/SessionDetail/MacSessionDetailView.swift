@@ -11,10 +11,7 @@ import SwiftData
 import SwiftUI
 
 struct MacSessionDetailView: View {
-    // Not `private`: the share/password logic lives in a same-type extension
-    // (MacSessionDetailView+Sharing) to keep this file under the line limit.
     @Environment(\.modelContext) var modelContext
-    @Environment(MacAuthManager.self) private var auth
     @Environment(\.dismiss) private var dismiss
     /// App-wide UI text scale, forwarded to `SourceAppIcon` in the transcript rows
     /// so the source-app glyph scales with the timestamp / speaker beside it. Not
@@ -22,13 +19,11 @@ struct MacSessionDetailView: View {
     /// extension (a separate file).
     @Environment(\.appTextScale) var appTextScale
     /// Offline Mode disables cloud AI summary GENERATION (there's no on-device
-    /// summarizer) and share-to-web. Existing summaries stay visible.
+    /// summarizer). Existing summaries stay visible.
     @AppStorage(LiveSessionStore.offlineModeKey) private var isOffline = false
     let session: TranscriptionSession
-    /// Workspaces this session's owner can file it under. Scoped by `session.userId`
-    /// (not a separately-threaded owner id) since that's already this session's
-    /// own account scope.
-    @Query private var workspaces: [Workspace]
+    /// Workspaces this session can be filed under.
+    @Query(sort: \Workspace.name) private var workspaces: [Workspace]
 
     @State private var summaryVM = SummaryViewModel()
     /// Audio playback + playhead for the synced transcript. Not `private`: the
@@ -40,8 +35,6 @@ struct MacSessionDetailView: View {
     @State var tab: Tab = .summary
     /// Guards the on-appear auto-summary so a failed attempt doesn't loop.
     @State private var didAutoSummarize = false
-    /// Non-nil presents the share dialog (link + password) for this session.
-    @State private var shareTarget: ShareTarget?
     /// Presents the delete confirmation before removing this session.
     @State private var showDeleteConfirmation = false
     /// Presents the batch speaker-rename sheet (diarized sessions only).
@@ -58,17 +51,6 @@ struct MacSessionDetailView: View {
 
     enum Tab: Hashable { case summary, transcript }
 
-    /// `@Query`'s default initializer can't read a runtime value, so the
-    /// workspace predicate is built here from the session's own owner id.
-    init(session: TranscriptionSession) {
-        self.session = session
-        let ownerId = session.userId
-        _workspaces = Query(
-            filter: #Predicate<Workspace> { $0.userId == ownerId },
-            sort: \.name
-        )
-    }
-
     /// Whether there's any summary content to export.
     private var hasSummaryContent: Bool {
         !session.summaryParagraphs.isEmpty
@@ -77,20 +59,7 @@ struct MacSessionDetailView: View {
     }
 
     var body: some View {
-        // Defense-in-depth: the scoped list never hands us a foreign session, but
-        // guard anyway so a future code path can't leak one across accounts.
-        // Compared against the effective owner (uid, or the "local" guest sentinel)
-        // so a guest's own sessions open. Legacy `nil`-owner sessions are allowed
-        // through (the backfill claims them).
-        if session.userId != nil && session.userId != auth.ownerId {
-            ContentUnavailableView(
-                "Not Available",
-                systemImage: "lock",
-                description: Text("This transcription belongs to another account.")
-            )
-        } else {
-            mainContent
-        }
+        mainContent
     }
 
     private var mainContent: some View {
@@ -154,21 +123,6 @@ struct MacSessionDetailView: View {
                     // reassigning also moves the exported folder.
                     workspaceMenu
 
-                    // Share-to-web action. Shares (idempotent) then opens the
-                    // dialog with link + password. Hidden while offline — it's a
-                    // network write.
-                    if !isOffline {
-                        Divider()
-                        Button {
-                            if let id = SessionLinkSharer.share(session: session, context: modelContext) {
-                                shareTarget = ShareTarget(id: id)
-                            }
-                        } label: {
-                            Label("Share…", systemImage: "square.and.arrow.up")
-                        }
-                        .disabled(session.lines.isEmpty)
-                    }
-
                     Divider()
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
@@ -181,16 +135,13 @@ struct MacSessionDetailView: View {
                 .help("Actions")
             }
         }
-        .sheet(item: $shareTarget) { target in
-            MacShareSessionSheet(sessionId: target.id)
-        }
         .sheet(isPresented: $showSpeakerEditor) {
             MacEditSpeakersSheet(speakers: editableSpeakers) { edits in
                 SpeakerRenamer.apply(edits, to: session, context: modelContext)
             }
         }
         // Single-speaker rename from a transcript bubble's right-click menu;
-        // routes through the same persist + Firestore-sync path as the batch editor.
+        // routes through the same persist path as the batch editor.
         .sheet(item: $renameTarget) { target in
             MacRenameSpeakerSheet(currentName: target.currentName) { newName in
                 SpeakerRenamer.apply([target.speakerID: newName], to: session, context: modelContext)

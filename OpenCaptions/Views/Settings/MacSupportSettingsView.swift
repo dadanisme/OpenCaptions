@@ -5,16 +5,13 @@
 //  The Settings → Support pane. Gives users an in-app way to reach us —
 //  Send Feedback, Report a Problem, and Contact Support — each opening the default
 //  mail client via a prefilled `mailto:`. "Report a Problem" seeds the body with
-//  app/OS/account diagnostics for triage. A version footer rounds it out.
-//  See docs/2026-07-15-macos-email-capture-and-support.md.
+//  app/OS diagnostics for triage. A version footer rounds it out.
 //
 
 import AppKit
 import SwiftUI
 
 struct MacSupportSettingsView: View {
-    @Environment(MacAuthManager.self) private var auth
-
     /// Single support inbox for all three actions (distinguished by subject line).
     /// Supplied per-deployment via the git-ignored Config.xcconfig (SUPPORT_EMAIL).
     private var supportEmail: String {
@@ -109,7 +106,6 @@ struct MacSupportSettingsView: View {
         The details below help us investigate — please keep them.
         App: Open Captions for Mac \(appVersionString)
         macOS: \(osVersionString)
-        Account: \(auth.userEmail ?? "not signed in") · \(auth.userID ?? "—")
         """
     }
 
@@ -131,6 +127,5 @@ struct MacSupportSettingsView: View {
 
 #Preview {
     MacSupportSettingsView()
-        .environment(MacAuthManager.shared)
         .frame(width: 480, height: 460)
 }

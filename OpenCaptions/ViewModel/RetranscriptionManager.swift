@@ -106,7 +106,7 @@ final class RetranscriptionManager {
                     session: session,
                     audioURL: audioURL,
                     context: context,
-                    userName: MacAuthManager.shared.userName,
+                    userName: LiveSessionStore.yourName,
                     progress: { [weak self] update in
                         guard let self, self.tasks[sessionID] != nil else { return }
                         self.progressBySession[sessionID] = update

@@ -2,18 +2,19 @@
 //  MacSettingsView.swift
 //  OpenCaptions
 //
-//  The macOS Settings window (Cmd+,). Home for advanced account actions. The
-//  General tab gathers all preferences (appearance, recording, captions); the
-//  Account tab holds identity + Sign Out + Delete Account and Shortcuts holds hot
-//  keys. It is a TabView so further panes slot in without restructuring.
-//  See docs/2026-07-05-macos-auth-and-scoping.md.
+//  The macOS Settings window (Cmd+,). The General tab gathers all preferences
+//  (your name, appearance, recording, captions); Shortcuts holds hot keys and
+//  Support holds diagnostics/contact. It is a TabView so further panes slot in
+//  without restructuring. See docs/2026-08-10-remove-accounts-and-firestore.md.
 //
 
 import AppKit
 import SwiftUI
 
 struct MacSettingsView: View {
-    @Environment(MacAuthManager.self) private var auth
+    /// The user's own name — device-local, used for mention-highlighting and
+    /// transcription personalization. See `LiveSessionStore.yourNameKey`.
+    @AppStorage(LiveSessionStore.yourNameKey) private var yourName = ""
     /// "Show captions overlay when a session starts" — read by `LiveSessionStore`
     /// at session start via the same UserDefaults key.
     @AppStorage(LiveSessionStore.captionsAutoShowKey) private var captionsAutoShow = true
@@ -43,8 +44,6 @@ struct MacSettingsView: View {
 
     var body: some View {
         TabView {
-            MacAccountSettingsView()
-                .tabItem { Label("Account", systemImage: "person.crop.circle") }
             generalPane
                 .tabItem { Label("General", systemImage: "gearshape") }
             MacHotKeysSettingsView()
@@ -71,6 +70,18 @@ struct MacSettingsView: View {
 
     private var generalPane: some View {
         Form {
+            Section("Your Name") {
+                LabeledContent("Name") {
+                    TextField("e.g. Alex", text: $yourName)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 200)
+                        .labelsHidden()
+                }
+                Text("Use the name people actually call you. Open Captions highlights and alerts you when it's spoken during a session, and includes it in Vocabulary to help transcription recognize it correctly.")
+                    .appScaledFont(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Appearance") {
                 LabeledContent("App text size") {
                     HStack(spacing: 12) {
@@ -118,14 +129,8 @@ struct MacSettingsView: View {
     private var recordingSections: some View {
         Section("Offline Mode") {
             if offlineFilesReady {
-                // Files are on disk — plain on/off toggle. Locked ON for an offline
-                // guest: the cloud path is unavailable without an account.
+                // Files are on disk — plain on/off toggle.
                 Toggle("Enable Offline Mode", isOn: $offlineModeEnabled)
-                    .disabled(auth.isGuest)
-                    .onChange(of: offlineModeEnabled) { _, newValue in
-                        // Mirror to Firestore when signed in (no-op otherwise).
-                        FirestoreSyncService.shared.syncOfflineMode(newValue)
-                    }
             } else {
                 // Not downloaded yet — the row's action is Download (or progress),
                 // not a toggle. It flips to the toggle above once the files land.
@@ -177,9 +182,6 @@ struct MacSettingsView: View {
 
     /// Explanatory note under the Offline Mode toggle.
     private var offlineModeFootnote: String {
-        if auth.isGuest {
-            return "You're using Open Captions offline — transcription runs entirely on this Mac (English only). Sign in from the Account tab to enable cloud transcription with speaker labels."
-        }
         if !offlineFilesReady {
             return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."
         }
@@ -220,5 +222,4 @@ struct MacSettingsView: View {
 
 #Preview {
     MacSettingsView()
-        .environment(MacAuthManager.shared)
 }

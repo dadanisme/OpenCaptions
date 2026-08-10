@@ -7,15 +7,13 @@
 //  bias list was a literal hardcoded in two places (the live Soniox config and the
 //  async re-transcription request), so a user could not add a single name.
 //
-//  Device-local by design. It is NOT mirrored to Firestore: `mergeUserDoc` replaces
-//  array fields wholesale, there is no snapshot listener and no launch-time
-//  hydration, so a second device would silently overwrite the first device's list.
-//  Syncing it safely needs read-before-write plumbing this app doesn't have yet.
+//  Device-local by design — there is no backend to sync it to, and syncing it
+//  safely would need read-before-write plumbing this app doesn't have.
 //
-//  `@Observable @MainActor` singleton (the `HotKeyManager` / `MacAuthManager`
-//  pattern) so the Vocabulary screen re-renders as the list is edited. The context
-//  it hands the engines is built in `VocabularyStore+SonioxContext`; persistence
-//  lives in `VocabularyStore+Persistence`.
+//  `@Observable @MainActor` singleton (the `HotKeyManager` pattern) so the
+//  Vocabulary screen re-renders as the list is edited. The context it hands
+//  the engines is built in `VocabularyStore+SonioxContext`; persistence lives
+//  in `VocabularyStore+Persistence`.
 //
 
 import Foundation
