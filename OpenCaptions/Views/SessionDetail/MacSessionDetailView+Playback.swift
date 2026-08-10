@@ -13,10 +13,15 @@ import SwiftUI
 extension MacSessionDetailView {
     // MARK: - Transcript (synced to playback)
 
+    /// All of `session.lines`, oldest first. No caching — recomputed on every
+    /// access, same as before this was hoisted out of `transcriptTab`. Shared
+    /// with `+Find.swift`'s match computation, so both use identical ordering.
+    var sortedLines: [TranscriptionLine] {
+        session.lines.sorted { ($0.startMs, $0.timestamp) < ($1.startMs, $1.timestamp) }
+    }
+
     var transcriptTab: some View {
-        let sortedLines = session.lines.sorted {
-            ($0.startMs, $0.timestamp) < ($1.startMs, $1.timestamp)
-        }
+        let sortedLines = sortedLines
         // Playback affordances (highlight + tap-to-seek) are live only when a
         // recording is loaded — mirrors the player bar's gate.
         let playbackEnabled = playback.isAvailable
@@ -24,6 +29,12 @@ extension MacSessionDetailView {
         let activeID: PersistentIdentifier? = playbackEnabled
             ? sortedLines.last(where: { $0.startMs <= playback.currentMs })?.persistentModelID
             : nil
+        // Computed once per body evaluation, not per row — a per-row
+        // `matchingLineIDs.contains(...)` would re-filter every line for
+        // every row (O(n²)).
+        let matchIDs = matchingLineIDs
+        let matchSet = Set(matchIDs)
+        let currentMatchID = currentMatchLineID
 
         return ScrollViewReader { proxy in
             ScrollView {
@@ -37,6 +48,8 @@ extension MacSessionDetailView {
                         transcriptRow(
                             line,
                             isActive: line.persistentModelID == activeID || line.persistentModelID == scrollToLineID,
+                            isFindMatch: matchSet.contains(line.persistentModelID),
+                            isCurrentFindMatch: line.persistentModelID == currentMatchID,
                             seekable: playbackEnabled
                         )
                         .id(line.persistentModelID)
@@ -49,6 +62,11 @@ extension MacSessionDetailView {
             // (or scrubbing) isn't yanked back.
             .onChange(of: activeID) { _, id in
                 guard playback.isPlaying, let id else { return }
+                withAnimation { proxy.scrollTo(id, anchor: .center) }
+            }
+            // Follow the find bar's current match as it steps.
+            .onChange(of: currentMatchID) { _, id in
+                guard let id else { return }
                 withAnimation { proxy.scrollTo(id, anchor: .center) }
             }
             // Deep link from a Transcriptions search hit: center on the
@@ -67,9 +85,31 @@ extension MacSessionDetailView {
                 withAnimation { proxy.scrollTo(targetID, anchor: .center) }
             }
         }
+        // The SAME native search field `TranscriptionsScreen` uses for its
+        // cross-session search — not a custom bar — so it costs no extra
+        // vertical space in the transcript and looks like every other search
+        // field in the app. Attached here (not on `mainContent`) so it only
+        // exists in the toolbar while this tab is actually showing: leaving
+        // the Transcript tab tears down this whole view, and with it the
+        // field, with no separate visibility flag to manage. `isPresented`
+        // is a two-way binding — the system flips it back to `false` when the
+        // user dismisses the field (e.g. Escape), same as `isFindBarVisible`
+        // being set `true` opens and focuses it from Cmd+F/the toolbar button.
+        .searchable(text: $findQuery, isPresented: $isFindBarVisible, prompt: "Find in Transcript")
+        // Return advances to the next match. `.onSubmit` (unlike a plain
+        // TextField's `.onKeyPress`) can't see whether Shift was held, so
+        // Shift+Return-to-go-back isn't available here — the chevron buttons
+        // in `findNavControls` (`+Find.swift`) cover backward navigation.
+        .onSubmit(of: .search) { stepMatch(by: 1) }
     }
 
-    private func transcriptRow(_ line: TranscriptionLine, isActive: Bool, seekable: Bool) -> some View {
+    private func transcriptRow(
+        _ line: TranscriptionLine,
+        isActive: Bool,
+        isFindMatch: Bool,
+        isCurrentFindMatch: Bool,
+        seekable: Bool
+    ) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 4) {
                 // App glyph for system-audio lines; nothing for mic lines. Pass the
@@ -100,7 +140,9 @@ extension MacSessionDetailView {
         .padding(.horizontal, 6)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isActive ? Color.accentColor.opacity(0.12) : .clear)
+                .fill(Color.accentColor.opacity(
+                    rowFillOpacity(isActive: isActive, isCurrentFindMatch: isCurrentFindMatch, isFindMatch: isFindMatch)
+                ))
         )
         // Tap anywhere on the bubble to snap playback to this line and play.
         // Only active once a recording is loaded.
@@ -124,6 +166,17 @@ extension MacSessionDetailView {
                 }
             }
         }
+    }
+
+    /// A row's single background-fill opacity, in priority order — current
+    /// find match > playback-active/deep-link > other find match > none —
+    /// combined into one value rather than stacking translucent layers, so
+    /// the tints never compound into a different color.
+    private func rowFillOpacity(isActive: Bool, isCurrentFindMatch: Bool, isFindMatch: Bool) -> Double {
+        if isCurrentFindMatch { return 0.18 }
+        if isActive { return 0.12 }
+        if isFindMatch { return 0.05 }
+        return 0
     }
 
     // MARK: - Tab switcher

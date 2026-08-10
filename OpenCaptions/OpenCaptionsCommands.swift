@@ -25,6 +25,7 @@ struct OpenCaptionsCommands: Commands {
     @FocusedValue(\.captionsOverlay) private var captionsOverlay
     @FocusedValue(\.importMedia) private var importMedia
     @FocusedValue(\.openSettings) private var openSettings
+    @FocusedValue(\.findInTranscript) private var findInTranscript
 
     var body: some Commands {
         // Drop the default WindowGroup "New Window" command so its Cmd+N doesn't
@@ -55,6 +56,15 @@ struct OpenCaptionsCommands: Commands {
             Button("Import Audio or Video…") { importMedia?() }
                 .keyboardShortcut("i", modifiers: .command)
                 .disabled(importMedia == nil)
+        }
+
+        // Edit ▸ Find in Transcript (Cmd+F) — published by `MacSessionDetailView`
+        // only while its Transcript tab is frontmost; nil (item disabled) on the
+        // Summary tab or anywhere else.
+        CommandGroup(after: .textEditing) {
+            Button("Find in Transcript") { findInTranscript?() }
+                .keyboardShortcut("f", modifiers: .command)
+                .disabled(findInTranscript == nil)
         }
 
         CommandMenu("Session") {

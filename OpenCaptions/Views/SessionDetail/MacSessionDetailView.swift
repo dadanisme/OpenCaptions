@@ -58,6 +58,19 @@ struct MacSessionDetailView: View {
     /// Not `private`: the menu (sets `pendingRetranscribeKind`) + overlays
     /// live in the `MacSessionDetailView+Retranscription` extension.
     @State var pendingRetranscribeKind: RetranscriptionEngineKind?
+    /// Live text of the transcript find — the same `.searchable` field
+    /// `TranscriptionsScreen` uses, wired in `MacSessionDetailView+Playback`.
+    /// Not `private`: read/written by `MacSessionDetailView+Find`. Persists
+    /// across tab switches so reopening the field restores the prior search.
+    @State var findQuery: String = ""
+    /// Whether the find field is presented — the `isPresented` binding
+    /// `.searchable` reads. Not `private`: toggled from
+    /// `MacSessionDetailView+Find` and the Cmd+F menu action; flipped back to
+    /// `false` by the system itself when the user dismisses the field.
+    @State var isFindBarVisible: Bool = false
+    /// Index into `matchingLineIDs` the find is centered on. Not `private`:
+    /// stepped by `MacSessionDetailView+Find`'s `stepMatch(by:)`.
+    @State var currentMatchIndex: Int = 0
 
     enum Tab: Hashable { case summary, transcript }
 
@@ -99,6 +112,14 @@ struct MacSessionDetailView: View {
             // first "wins" and the other inherits it on the next navigation.
             ToolbarItem(id: "sessionTabSwitcher", placement: .principal) {
                 tabSwitcher
+            }
+            // The find field itself is `.searchable` (wired on `transcriptTab`
+            // in `+Playback.swift`) — the system supplies its own toolbar
+            // search icon, so there's no separate open/close button to add
+            // here. This item is just the "X of Y" count + prev/next
+            // chevrons that ride alongside it once a search is in progress.
+            ToolbarItem(id: "sessionFindNav") {
+                findNavControls
             }
             ToolbarItem(id: "sessionActionsMenu") {
                 Menu {
@@ -198,6 +219,17 @@ struct MacSessionDetailView: View {
         // Expose "Export PDF…" to the menu bar; nil (menu item disabled) when
         // there's no summary content to export.
         .focusedSceneValue(\.exportSummary, exportAction)
+        // Expose "Find in Transcript" to the menu bar; nil (menu item disabled)
+        // unless the Transcript tab is frontmost.
+        .focusedSceneValue(\.findInTranscript, findInTranscriptAction)
+        // Leaving the Transcript tab hides the find field (but keeps its
+        // query/position, so reopening it on return restores the prior
+        // search) — `transcriptTab`'s own `.searchable` already disappears
+        // structurally on leaving that tab; this just resets the flag so it
+        // doesn't silently reopen already-presented on the next visit.
+        .onChange(of: tab) { _, newTab in
+            if newTab != .transcript { isFindBarVisible = false }
+        }
         // Single shared progress banner for whichever background batch pass is running
         // over this session — a file import or a re-transcription. The two
         // are mutually exclusive (import blocks re-transcribe), so one slot renders both.
