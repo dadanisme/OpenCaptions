@@ -31,6 +31,8 @@ struct KeyPointsScreen: View {
                     switch route {
                     case .session(let session):
                         MacSessionDetailView(session: session)
+                    case .sessionLine(let session, let lineID):
+                        MacSessionDetailView(session: session, scrollToLineID: lineID)
                     }
                 }
         }
