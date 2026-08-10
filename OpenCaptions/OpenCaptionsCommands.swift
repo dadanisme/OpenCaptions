@@ -5,8 +5,12 @@
 //  The app's menu-bar commands. A single "Session" menu carries
 //  every transcription action; each item reads a `@FocusedValue` published by
 //  the relevant screen and disables itself when that context isn't frontmost.
-//  Settings (Cmd+,) and the standard App/Edit/View/Window/Help menus come from
-//  SwiftUI for free, so they're not re-declared here.
+//  The standard App/Edit/View/Window/Help menus come from SwiftUI for free, so
+//  they're not re-declared here — except Settings (Cmd+,): SwiftUI only
+//  generates that item automatically for a `Settings { }` scene, which this
+//  app no longer has (Settings is a `NavSection` destination instead), so its
+//  `.appSettings` placement is filled in below off the `openSettings` focused
+//  value `ContentView` publishes.
 //
 //  Strings are hardcoded English — macOS UI localization is deferred (see
 //  CLAUDE.md); there is no `LanguageManager` in this target yet.
@@ -20,11 +24,30 @@ struct OpenCaptionsCommands: Commands {
     @FocusedValue(\.exportSummary) private var exportSummary
     @FocusedValue(\.captionsOverlay) private var captionsOverlay
     @FocusedValue(\.importMedia) private var importMedia
+    @FocusedValue(\.openSettings) private var openSettings
 
     var body: some Commands {
         // Drop the default WindowGroup "New Window" command so its Cmd+N doesn't
         // collide with "New Session" below.
         CommandGroup(replacing: .newItem) {}
+
+        // App ▸ Settings… (Cmd+,) — normally free from a `Settings { }` scene;
+        // this app fills the placement itself since it has none. `openSettings`
+        // is nil while the main window is closed (there's no `ContentView` to
+        // publish it) — a state this app explicitly supports via `MenuBarExtra`
+        // — so the fallback reopens the window and stashes `.settings` for
+        // `ContentView` to pick up once it appears, rather than disabling.
+        CommandGroup(replacing: .appSettings) {
+            Button("Settings…") {
+                if let openSettings {
+                    openSettings()
+                } else {
+                    LiveSessionStore.shared.pendingSection = .settings
+                    LiveSessionStore.shared.openMainWindow?()
+                }
+            }
+            .keyboardShortcut(",", modifiers: .command)
+        }
 
         // File ▸ Import Audio or Video… (published by the session list; nil while a
         // recording is active, so the item disables then).

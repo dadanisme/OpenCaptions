@@ -15,8 +15,11 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
+            // Settings is a `NavSection` case too, but it's excluded here and
+            // rendered instead by `SidebarSettingsFooter`, pinned below the list —
+            // it isn't one of the app's content sections.
             List(selection: $section) {
-                ForEach(NavSection.allCases) { item in
+                ForEach(NavSection.allCases.filter { $0 != .settings }) { item in
                     // Explicit scaling: the sidebar `List` is AppKit-backed and can
                     // ignore the inherited default font, so opt the row in directly.
                     Label(item.title, systemImage: item.symbol)
@@ -26,7 +29,7 @@ struct ContentView: View {
             }
             .navigationTitle("Open Captions")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
-            .safeAreaInset(edge: .bottom) { SidebarSettingsFooter() }
+            .safeAreaInset(edge: .bottom) { SidebarSettingsFooter(section: $section) }
         } detail: {
             switch section ?? .transcriptions {
             case .transcriptions:
@@ -41,19 +44,36 @@ struct ContentView: View {
                 VocabularyScreen()
             case .workspaces:
                 WorkspacesScreen()
+            case .settings:
+                MacSettingsView()
+            }
+        }
+        // Published regardless of which section is showing, so Cmd+, (the
+        // `.appSettings` command in `OpenCaptionsCommands`) can always reach it.
+        .focusedSceneValue(\.openSettings) { section = .settings }
+        // Cmd+, while the main window was closed stashes `.settings` here
+        // (there being no `openSettings` focused value yet to call directly)
+        // instead of reopening straight to it — this picks that up the moment
+        // the window (and this view) reappears.
+        .onAppear {
+            if let pending = LiveSessionStore.shared.pendingSection {
+                section = pending
+                LiveSessionStore.shared.pendingSection = nil
             }
         }
     }
 }
 
-/// Top-level navigation sections shown in the sidebar. The enum makes adding
-/// future destinations (settings, etc.) a one-line change.
+/// Top-level navigation sections shown in the sidebar. `.settings` is a
+/// destination like any other — it just renders as a pinned footer row
+/// instead of a `List` entry (see the `ForEach` filter above).
 enum NavSection: String, CaseIterable, Identifiable, Hashable {
     case transcriptions
     case actionItems
     case keyPoints
     case vocabulary
     case workspaces
+    case settings
 
     var id: String { rawValue }
 
@@ -64,6 +84,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .keyPoints: return "Key Points"
         case .vocabulary: return "Vocabulary"
         case .workspaces: return "Workspaces"
+        case .settings: return "Settings"
         }
     }
 
@@ -74,6 +95,7 @@ enum NavSection: String, CaseIterable, Identifiable, Hashable {
         case .keyPoints: return "lightbulb"
         case .vocabulary: return "text.book.closed"
         case .workspaces: return "briefcase"
+        case .settings: return "gearshape"
         }
     }
 }

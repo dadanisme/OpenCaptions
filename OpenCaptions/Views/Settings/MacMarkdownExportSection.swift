@@ -18,7 +18,7 @@ struct MacMarkdownExportSection: View {
     @State private var location = MarkdownExportLocation.shared
 
     var body: some View {
-        Section("Markdown Export") {
+        Section {
             LabeledContent("Folder") {
                 HStack(spacing: 8) {
                     Text(location.root.displayPath)
@@ -48,9 +48,8 @@ struct MacMarkdownExportSection: View {
                 }
                 .foregroundStyle(.secondary)
             }
-            Text(footnote)
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
+        } header: {
+            SettingsInfoTip.label("Markdown Export", tip: footnote)
         }
     }
 

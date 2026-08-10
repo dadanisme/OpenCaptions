@@ -155,6 +155,12 @@ final class LiveSessionStore {
     /// closed. See `OpenCaptionsApp`.
     @ObservationIgnored var openMainWindow: (() -> Void)?
 
+    /// A `NavSection` to jump to the next time `ContentView` appears. Set by
+    /// `OpenCaptionsCommands`'s Cmd+, handler when the main window is closed (so
+    /// there's no live `openSettings` focused value to call directly) alongside
+    /// `openMainWindow?()` — `ContentView.onAppear` consumes and clears it.
+    var pendingSection: NavSection?
+
     /// Process-activity assertion held for the duration of a live session
     /// (recording OR paused) so recording keeps running when the Mac would
     /// otherwise idle. `.userInitiated` does two things: (1) keeps the app out of

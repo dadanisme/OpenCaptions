@@ -2,10 +2,19 @@
 //  MacSettingsView.swift
 //  OpenCaptions
 //
-//  The macOS Settings window (Cmd+,). The General tab gathers all preferences
-//  (your name, appearance, recording, captions); Shortcuts holds hot keys and
-//  Support holds diagnostics/contact. It is a TabView so further panes slot in
-//  without restructuring. See docs/2026-08-10-remove-accounts-and-firestore.md.
+//  The `.settings` `NavSection` destination — rendered in the main window's
+//  detail column rather than a separate window/scene. The General tab gathers
+//  all preferences (your name, appearance, recording, captions); Shortcuts
+//  holds hot keys and Support holds diagnostics/contact. Each row's
+//  explanation lives behind a `SettingsInfoTip` "i" icon instead of an
+//  always-visible paragraph underneath — see
+//  docs/2026-08-10-macos-settings-navsection.md.
+//
+//  The tab switcher is a native segmented `Picker` in the toolbar, matching
+//  `MacSessionDetailView`'s Summary/Transcript switcher (see its own doc
+//  comment for why: native so its Liquid Glass matches neighboring toolbar
+//  chrome exactly) rather than a plain `TabView`, whose own tab bar reads as
+//  an OS-chrome band inside what's otherwise a plain sidebar destination.
 //
 
 import AppKit
@@ -42,16 +51,42 @@ struct MacSettingsView: View {
     /// also names the diarized speakers it recognises. Read by `SummaryViewModel`.
     @AppStorage(LiveSessionStore.speakerNamingAutoKey) private var autoNameSpeakers = true
 
+    @State private var tab: Tab = .general
+
+    private enum Tab: Hashable {
+        case general, shortcuts, support
+    }
+
     var body: some View {
-        TabView {
-            generalPane
-                .tabItem { Label("General", systemImage: "gearshape") }
-            MacHotKeysSettingsView()
-                .tabItem { Label("Shortcuts", systemImage: "keyboard") }
-            MacSupportSettingsView()
-                .tabItem { Label("Support", systemImage: "questionmark.circle") }
+        NavigationStack {
+            tabContent
+                .navigationTitle("Settings")
+                .toolbar {
+                    ToolbarItem {
+                        tabSwitcher
+                    }
+                }
         }
-        .frame(width: 480, height: 460)
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch tab {
+        case .general: generalPane
+        case .shortcuts: MacHotKeysSettingsView()
+        case .support: MacSupportSettingsView()
+        }
+    }
+
+    private var tabSwitcher: some View {
+        Picker("View", selection: $tab) {
+            Text("General").tag(Tab.general)
+            Text("Shortcuts").tag(Tab.shortcuts)
+            Text("Support").tag(Tab.support)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
     }
 
     /// Whether the app size is at its 100% default (tolerant of float step drift).
@@ -71,19 +106,18 @@ struct MacSettingsView: View {
     private var generalPane: some View {
         Form {
             Section("Your Name") {
-                LabeledContent("Name") {
+                LabeledContent {
                     TextField("e.g. Alex", text: $yourName)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 200)
                         .labelsHidden()
+                } label: {
+                    SettingsInfoTip.label("Name", tip: "Use the name people actually call you. Open Captions highlights and alerts you when it's spoken during a session, and includes it in Vocabulary to help transcription recognize it correctly.")
                 }
-                Text("Use the name people actually call you. Open Captions highlights and alerts you when it's spoken during a session, and includes it in Vocabulary to help transcription recognize it correctly.")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section("Appearance") {
-                LabeledContent("App text size") {
+                LabeledContent {
                     HStack(spacing: 12) {
                         // Tick-marked slider over the discrete stops (80%–300%).
                         Slider(value: appTextSizeIndex,
@@ -105,10 +139,9 @@ struct MacSettingsView: View {
                         }
                         .disabled(isAppTextSizeDefault)
                     }
+                } label: {
+                    SettingsInfoTip.label("App text size", tip: "Scales the app's general interface — sidebar, session list, summaries, and settings. Independent of the transcript & captions size below.")
                 }
-                Text("Scales the app's general interface — sidebar, session list, summaries, and settings. Independent of the transcript & captions size below.")
-                    .appScaledFont(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             captionsSections
@@ -129,48 +162,63 @@ struct MacSettingsView: View {
     private var recordingSections: some View {
         Section("Offline Mode") {
             if offlineFilesReady {
-                // Files are on disk — plain on/off toggle.
-                Toggle("Enable Offline Mode", isOn: $offlineModeEnabled)
+                // Files are on disk — plain on/off toggle. `Toggle`'s label is
+                // itself a tap target on macOS, which would fight the info tip's
+                // own tap; putting the switch in a `LabeledContent` value slot
+                // instead (same shape as the download-control branch below)
+                // keeps the tip and the switch as two separate, unambiguous
+                // controls.
+                LabeledContent {
+                    Toggle("", isOn: $offlineModeEnabled).labelsHidden()
+                } label: { offlineModeLabel }
             } else {
                 // Not downloaded yet — the row's action is Download (or progress),
                 // not a toggle. It flips to the toggle above once the files land.
-                LabeledContent("Enable Offline Mode") { MacOfflineDownloadControl() }
+                LabeledContent { MacOfflineDownloadControl() } label: { offlineModeLabel }
             }
-            Text(offlineModeFootnote)
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
         }
         Section("Session Audio") {
-            Toggle("Save session audio for playback", isOn: $saveSessionAudio)
-            Text("Keeps a copy of each session's audio so you can play it back and tap a line to jump to that moment. Audio is stored on this Mac and removed when you delete the session.")
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
+            LabeledContent {
+                Toggle("", isOn: $saveSessionAudio).labelsHidden()
+            } label: {
+                SettingsInfoTip.label("Save session audio for playback", tip: "Keeps a copy of each session's audio so you can play it back and tap a line to jump to that moment. Audio is stored on this Mac and removed when you delete the session.")
+            }
         }
         Section("Re-transcription") {
-            // Disabled without saved session audio: with no `.m4a` there's nothing to
-            // re-process, and the automatic pass is silent (no error surfaces), so an
-            // enabled-but-inert toggle would look like a broken feature.
-            Toggle("Automatically re-transcribe after each session", isOn: $autoRetranscribe)
-                .disabled(!saveSessionAudio)
-            Text("After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
+            LabeledContent {
+                // Disabled without saved session audio: with no `.m4a` there's
+                // nothing to re-process, and the automatic pass is silent (no
+                // error surfaces), so an enabled-but-inert toggle would look
+                // like a broken feature.
+                Toggle("", isOn: $autoRetranscribe).labelsHidden()
+                    .disabled(!saveSessionAudio)
+            } label: {
+                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+            }
         }
         Section("Speaker Names") {
-            // Disabled in Offline Mode: on-device transcription produces no speaker
-            // labels and skips summary generation, so there is nothing to name — an
-            // enabled-but-inert toggle would read as a broken feature (same reasoning
-            // as the re-transcription toggle above).
-            Toggle("Name speakers automatically from the summary", isOn: $autoNameSpeakers)
-                .disabled(offlineModeEnabled)
-            Text(speakerNamingFootnote)
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
+            LabeledContent {
+                // Disabled in Offline Mode: on-device transcription produces no
+                // speaker labels and skips summary generation, so there is
+                // nothing to name — an enabled-but-inert toggle would read as a
+                // broken feature (same reasoning as the re-transcription toggle
+                // above).
+                Toggle("", isOn: $autoNameSpeakers).labelsHidden()
+                    .disabled(offlineModeEnabled)
+            } label: {
+                SettingsInfoTip.label("Name speakers automatically from the summary", tip: speakerNamingFootnote)
+            }
         }
         MacMarkdownExportSection()
     }
 
-    /// Explanatory note under the automatic speaker-naming toggle.
+    /// Label + info tip shared by the Offline Mode row's two states (toggle vs.
+    /// download control).
+    private var offlineModeLabel: some View {
+        SettingsInfoTip.label("Enable Offline Mode", tip: offlineModeFootnote)
+    }
+
+    /// Explanatory text shown in the automatic speaker-naming row's info tip.
     private var speakerNamingFootnote: String {
         if offlineModeEnabled {
             return "Unavailable in Offline Mode — on-device transcription doesn't separate speakers, and AI summaries don't run offline."
@@ -180,7 +228,7 @@ struct MacSettingsView: View {
             : "Speakers keep their generic \"Speaker 1\" labels. You can name them yourself any time from a session's Edit Speakers."
     }
 
-    /// Explanatory note under the Offline Mode toggle.
+    /// Explanatory text shown in the Offline Mode row's info tip.
     private var offlineModeFootnote: String {
         if !offlineFilesReady {
             return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."
@@ -192,29 +240,24 @@ struct MacSettingsView: View {
 
     @ViewBuilder
     private var captionsSections: some View {
-        Section("Captions") {
+        Section {
             Toggle("Show captions overlay when a session starts", isOn: $captionsAutoShow)
-            LabeledContent("Transcript text size") {
+            LabeledContent {
                 Slider(value: $textSizeMultiplier,
                        in: TranscriptTextSize.range,
                        step: TranscriptTextSize.step)
                     .frame(width: 180)
+            } label: {
+                SettingsInfoTip.label("Transcript text size", tip: "Scales both the live transcript and the floating captions. Also adjustable during a session from the transport bar or the menu-bar item.")
             }
-            Text("Scales both the live transcript and the floating captions. Also adjustable during a session from the transport bar or the menu-bar item.")
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
-            LabeledContent("Background opacity") {
+            LabeledContent {
                 Slider(value: $captionsOpacity, in: 0.2...1.0)
                     .frame(width: 180)
+            } label: {
+                SettingsInfoTip.label("Background opacity", tip: "Controls the overlay's translucency on macOS 15 and earlier. On macOS 26+ the overlay uses Liquid Glass and manages its own translucency.")
             }
-            Text("Controls the overlay's translucency on macOS 15 and earlier. On macOS 26+ the overlay uses Liquid Glass and manages its own translucency.")
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
-        }
-        Section {
-            Text("The overlay floats above other apps so you can read live captions while watching a meeting, video, or slides. Drag it to move, drag an edge to resize, and toggle it any time from the Session menu (⇧⌘C) or the menu-bar item.")
-                .appScaledFont(.caption)
-                .foregroundStyle(.secondary)
+        } header: {
+            SettingsInfoTip.label("Captions", tip: "The overlay floats above other apps so you can read live captions while watching a meeting, video, or slides. Drag it to move, drag an edge to resize, and toggle it any time from the Session menu (⇧⌘C) or the menu-bar item.")
         }
     }
 
