@@ -63,7 +63,15 @@ struct MacSettingsView: View {
             tabContent
                 .navigationTitle("Settings")
                 .toolbar {
-                    ToolbarItem {
+                    // Explicit `id` — without one, this and MacSessionDetailView's
+                    // structurally-identical centered switcher can collide on
+                    // AppKit's auto-generated toolbar item identity (both live on
+                    // the same NSWindow/NSToolbar, just swapped as the sidebar
+                    // destination changes), so whichever renders its overflow
+                    // representation first "wins" and the other inherits it —
+                    // e.g. Settings' 4-segment overflow rendering icon-only after
+                    // Summary/Transcript's 2-segment one collapsed first.
+                    ToolbarItem(id: "settingsTabSwitcher", placement: .principal) {
                         tabSwitcher
                     }
                 }
@@ -82,10 +90,10 @@ struct MacSettingsView: View {
 
     private var tabSwitcher: some View {
         Picker("View", selection: $tab) {
-            Text("General").tag(Tab.general)
-            Text("Shortcuts").tag(Tab.shortcuts)
-            Text("Support").tag(Tab.support)
-            Text("API Keys").tag(Tab.apiKeys)
+            Label("General", systemImage: "gearshape").tag(Tab.general)
+            Label("Shortcuts", systemImage: "keyboard").tag(Tab.shortcuts)
+            Label("Support", systemImage: "questionmark.circle").tag(Tab.support)
+            Label("API Keys", systemImage: "key.fill").tag(Tab.apiKeys)
         }
         .pickerStyle(.segmented)
         .labelsHidden()
@@ -163,6 +171,35 @@ struct MacSettingsView: View {
 
     @ViewBuilder
     private var recordingSections: some View {
+        Section("Sessions") {
+            LabeledContent {
+                Toggle("", isOn: $saveSessionAudio).labelsHidden()
+            } label: {
+                SettingsInfoTip.label("Save session audio for playback", tip: "Keeps a copy of each session's audio so you can play it back and tap a line to jump to that moment. Audio is stored on this Mac and removed when you delete the session.")
+            }
+            LabeledContent {
+                // Disabled without saved session audio: with no `.m4a` there's
+                // nothing to re-process, and the automatic pass is silent (no
+                // error surfaces), so an enabled-but-inert toggle would look
+                // like a broken feature.
+                Toggle("", isOn: $autoRetranscribe).labelsHidden()
+                    .disabled(!saveSessionAudio)
+            } label: {
+                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+            }
+            LabeledContent {
+                // Disabled in Offline Mode: on-device transcription produces no
+                // speaker labels and skips summary generation, so there is
+                // nothing to name — an enabled-but-inert toggle would read as a
+                // broken feature (same reasoning as the re-transcription toggle
+                // above).
+                Toggle("", isOn: $autoNameSpeakers).labelsHidden()
+                    .disabled(offlineModeEnabled)
+            } label: {
+                SettingsInfoTip.label("Name speakers automatically from the summary", tip: speakerNamingFootnote)
+            }
+            MacMarkdownExportRow()
+        }
         Section("Offline Mode") {
             if offlineFilesReady {
                 // Files are on disk — plain on/off toggle. `Toggle`'s label is
@@ -180,39 +217,6 @@ struct MacSettingsView: View {
                 LabeledContent { MacOfflineDownloadControl() } label: { offlineModeLabel }
             }
         }
-        Section("Session Audio") {
-            LabeledContent {
-                Toggle("", isOn: $saveSessionAudio).labelsHidden()
-            } label: {
-                SettingsInfoTip.label("Save session audio for playback", tip: "Keeps a copy of each session's audio so you can play it back and tap a line to jump to that moment. Audio is stored on this Mac and removed when you delete the session.")
-            }
-        }
-        Section("Re-transcription") {
-            LabeledContent {
-                // Disabled without saved session audio: with no `.m4a` there's
-                // nothing to re-process, and the automatic pass is silent (no
-                // error surfaces), so an enabled-but-inert toggle would look
-                // like a broken feature.
-                Toggle("", isOn: $autoRetranscribe).labelsHidden()
-                    .disabled(!saveSessionAudio)
-            } label: {
-                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
-            }
-        }
-        Section("Speaker Names") {
-            LabeledContent {
-                // Disabled in Offline Mode: on-device transcription produces no
-                // speaker labels and skips summary generation, so there is
-                // nothing to name — an enabled-but-inert toggle would read as a
-                // broken feature (same reasoning as the re-transcription toggle
-                // above).
-                Toggle("", isOn: $autoNameSpeakers).labelsHidden()
-                    .disabled(offlineModeEnabled)
-            } label: {
-                SettingsInfoTip.label("Name speakers automatically from the summary", tip: speakerNamingFootnote)
-            }
-        }
-        MacMarkdownExportSection()
     }
 
     /// Label + info tip shared by the Offline Mode row's two states (toggle vs.

@@ -90,13 +90,17 @@ struct MacSessionDetailView: View {
         .navigationTitle(session.sessionTitle)
         .navigationSubtitle(session.sessionDate.formatted(date: .abbreviated, time: .shortened))
         .toolbar {
-            // Summary/Transcript switcher — trailing, next to the actions menu, so
-            // the navigation title keeps its full width (a centered `.principal`
-            // item would squeeze it and adds a heavier platter shadow).
-            ToolbarItem {
+            // Summary/Transcript switcher — centered, matching `MacSettingsView`'s
+            // tab switcher. Explicit `id`: this and Settings' switcher are
+            // structurally identical `ToolbarItem`s on the same NSWindow/NSToolbar
+            // (swapped as the sidebar destination changes), so without a stable
+            // unique id they can collide on AppKit's auto-generated toolbar item
+            // identity — whichever collapses to its overflow representation
+            // first "wins" and the other inherits it on the next navigation.
+            ToolbarItem(id: "sessionTabSwitcher", placement: .principal) {
                 tabSwitcher
             }
-            ToolbarItem {
+            ToolbarItem(id: "sessionActionsMenu") {
                 Menu {
                     Button {
                         copySessionMarkdown()
@@ -149,6 +153,12 @@ struct MacSessionDetailView: View {
                     Image(systemName: "ellipsis.circle")
                 }
                 .help("Actions")
+                // Without this, the menu's own icon-only toolbar-button style
+                // leaks into its Label items when shown inline from the toolbar
+                // button — dropping their icons (though not when the same items
+                // render inside the automatic "»" overflow menu, which is
+                // unaffected). Force title+icon explicitly so both paths match.
+                .labelStyle(.titleAndIcon)
             }
         }
         .sheet(isPresented: $showSpeakerEditor) {

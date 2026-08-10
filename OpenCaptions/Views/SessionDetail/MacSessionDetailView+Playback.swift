@@ -130,16 +130,18 @@ extension MacSessionDetailView {
 
     /// Summary/Transcript switcher: a native segmented `Picker` — the same control
     /// Apple Calendar uses for its Day/Week/Month/Year "tab view". Native so its
-    /// Liquid Glass + shadow match the neighbouring toolbar menu button exactly (a
-    /// hand-rolled `glassEffect` capsule renders a heavier, mismatched shadow), and
-    /// it shows text labels instead of the toolbar's default icon-only `Label`.
-    /// Hosted in the toolbar by `MacSessionDetailView`; the segment highlight
-    /// animates while `mainContent` swaps instantly (a `Picker` selection change
-    /// isn't wrapped in `withAnimation`, so it never crossfades the content).
+    /// Liquid Glass + shadow render correctly (a hand-rolled `glassEffect` capsule
+    /// renders a heavier, mismatched shadow). Each segment is a `Label` (icon +
+    /// title, not just text) for accessibility — VoiceOver and Switch Control
+    /// users get more than a bare icon-only toolbar button would give them.
+    /// Hosted centered (`.principal`) in the toolbar by `MacSessionDetailView`,
+    /// matching `MacSettingsView`'s tab switcher; the segment highlight animates
+    /// while `mainContent` swaps instantly (a `Picker` selection change isn't
+    /// wrapped in `withAnimation`, so it never crossfades the content).
     var tabSwitcher: some View {
         Picker("View", selection: $tab) {
-            Text("Summary").tag(Tab.summary)
-            Text("Transcript").tag(Tab.transcript)
+            Label("Summary", systemImage: "sparkles").tag(Tab.summary)
+            Label("Transcript", systemImage: "text.alignleft").tag(Tab.transcript)
         }
         .pickerStyle(.segmented)
         .labelsHidden()
