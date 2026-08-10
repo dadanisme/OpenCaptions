@@ -28,9 +28,9 @@ enum SessionSummaryError: LocalizedError {
         case .emptyConversation:
             return "There are no valid subtitle records for this conversation, so a summary cannot be generated."
         case .unauthorized:
-            return "Unauthorized — check that OPENROUTER_API_KEY is set correctly in Config.xcconfig."
+            return "Unauthorized — add or check your OpenRouter API key in Settings → API Keys."
         case .insufficientCredits:
-            return "Out of OpenRouter credits — top up the account that owns OPENROUTER_API_KEY."
+            return "Out of OpenRouter credits — top up the account for the key set in Settings → API Keys (or OPENROUTER_API_KEY)."
         case .overloaded(let detail):
             let suffix = detail.map { " (\($0))" } ?? ""
             return "Every summary provider is busy right now\(suffix). Try Re-summarize in a moment."

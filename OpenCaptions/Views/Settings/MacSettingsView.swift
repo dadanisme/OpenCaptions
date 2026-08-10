@@ -5,10 +5,11 @@
 //  The `.settings` `NavSection` destination — rendered in the main window's
 //  detail column rather than a separate window/scene. The General tab gathers
 //  all preferences (your name, appearance, recording, captions); Shortcuts
-//  holds hot keys and Support holds diagnostics/contact. Each row's
-//  explanation lives behind a `SettingsInfoTip` "i" icon instead of an
-//  always-visible paragraph underneath — see
-//  docs/2026-08-10-macos-settings-navsection.md.
+//  holds hot keys, Support holds diagnostics/contact, and API Keys holds the
+//  runtime-entered Soniox/OpenRouter keys (see
+//  docs/2026-08-10-macos-runtime-api-keys.md). Each row's explanation lives
+//  behind a `SettingsInfoTip` "i" icon instead of an always-visible paragraph
+//  underneath — see docs/2026-08-10-macos-settings-navsection.md.
 //
 //  The tab switcher is a native segmented `Picker` in the toolbar, matching
 //  `MacSessionDetailView`'s Summary/Transcript switcher (see its own doc
@@ -54,7 +55,7 @@ struct MacSettingsView: View {
     @State private var tab: Tab = .general
 
     private enum Tab: Hashable {
-        case general, shortcuts, support
+        case general, shortcuts, support, apiKeys
     }
 
     var body: some View {
@@ -75,6 +76,7 @@ struct MacSettingsView: View {
         case .general: generalPane
         case .shortcuts: MacHotKeysSettingsView()
         case .support: MacSupportSettingsView()
+        case .apiKeys: MacAPIKeysSettingsView()
         }
     }
 
@@ -83,6 +85,7 @@ struct MacSettingsView: View {
             Text("General").tag(Tab.general)
             Text("Shortcuts").tag(Tab.shortcuts)
             Text("Support").tag(Tab.support)
+            Text("API Keys").tag(Tab.apiKeys)
         }
         .pickerStyle(.segmented)
         .labelsHidden()

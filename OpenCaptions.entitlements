@@ -4,6 +4,15 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- REQUIRED under App Sandbox for Keychain Services (SecItemAdd/SecItemCopyMatching)
+	     to work at all for the app's own items — without a keychain-access group, calls
+	     fail with errSecMissingEntitlement (-34018). $(AppIdentifierPrefix) resolves to
+	     the signing team's prefix. Backs the runtime-entered Soniox/OpenRouter API keys
+	     (Settings -> API Keys, APIKeyStore). -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.muhammadramdan.OpenCaptions</string>
+	</array>
 	<key>com.apple.security.device.audio-input</key>
 	<true/>
 	<!-- Network access covers the Soniox and OpenRouter sockets/requests. -->

@@ -146,6 +146,16 @@ final class MacTranscriptionViewModel {
             }
         }
 
+        // Cloud Soniox needs a key before there's anything to connect to. Same
+        // "nothing open yet, so nothing to tear down" reasoning as the model-not-ready
+        // guard above — checked here rather than left to fail server-side after the
+        // socket opens.
+        if kind == .soniox, SonioxSecrets.sonioxAPIKey == nil {
+            isRunning = false
+            errorMessage = "Add a Soniox API key in Settings → API Keys to start a session."
+            return
+        }
+
         let service = MacTranscriptionEngineFactory.make(
             kind, sonioxConfig: Self.makeSonioxConfig(userName: LiveSessionStore.yourName))
         transcriptionService = service
