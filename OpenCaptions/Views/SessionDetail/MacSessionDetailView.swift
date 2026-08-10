@@ -22,6 +22,14 @@ struct MacSessionDetailView: View {
     /// summarizer). Existing summaries stay visible.
     @AppStorage(LiveSessionStore.offlineModeKey) private var isOffline = false
     let session: TranscriptionSession
+    /// Set only when opened via a Transcriptions search hit that matched
+    /// transcript text rather than title/description/summary (see
+    /// `ContentRoute.sessionLine`) — seeds `tab` to `.transcript` in `init`
+    /// and drives the one-time seek + scroll-to-line below and in
+    /// `transcriptTab`. Not `private`: `transcriptTab` (which owns the
+    /// `ScrollViewReader` this needs) lives in the `MacSessionDetailView+Playback`
+    /// extension (a separate file).
+    let scrollToLineID: PersistentIdentifier?
     /// Workspaces this session can be filed under.
     @Query(sort: \Workspace.name) private var workspaces: [Workspace]
 
@@ -30,9 +38,11 @@ struct MacSessionDetailView: View {
     /// player UI + synced transcript live in the `MacSessionDetailView+Playback`
     /// extension (a separate file).
     @State var playback = PlaybackViewModel()
-    /// Selected tab (Summary / Transcript). Not `private`: the top `tabSwitcher`
-    /// pill lives in the `MacSessionDetailView+Playback` extension (a separate file).
-    @State var tab: Tab = .summary
+    /// Selected tab (Summary / Transcript) — defaults to `.transcript` when
+    /// opened via `scrollToLineID` (set in `init`). Not `private`: the top
+    /// `tabSwitcher` pill lives in the `MacSessionDetailView+Playback`
+    /// extension (a separate file).
+    @State var tab: Tab
     /// Guards the on-appear auto-summary so a failed attempt doesn't loop.
     @State private var didAutoSummarize = false
     /// Presents the delete confirmation before removing this session.
@@ -50,6 +60,12 @@ struct MacSessionDetailView: View {
     @State var pendingRetranscribeKind: RetranscriptionEngineKind?
 
     enum Tab: Hashable { case summary, transcript }
+
+    init(session: TranscriptionSession, scrollToLineID: PersistentIdentifier? = nil) {
+        self.session = session
+        self.scrollToLineID = scrollToLineID
+        _tab = State(initialValue: scrollToLineID == nil ? .summary : .transcript)
+    }
 
     /// Whether there's any summary content to export.
     private var hasSummaryContent: Bool {
@@ -159,7 +175,12 @@ struct MacSessionDetailView: View {
         }
         .task { await autoSummarizeIfNeeded() }
         // Load this session's recording (nil/missing → player stays hidden).
-        .task(id: session.persistentModelID) { playback.load(fileName: session.audioFileName) }
+        // `load` is synchronous, so `seekToSearchTargetIfNeeded` right after it
+        // never races `isAvailable` becoming true.
+        .task(id: session.persistentModelID) {
+            playback.load(fileName: session.audioFileName)
+            seekToSearchTargetIfNeeded()
+        }
         .onDisappear { playback.stop() }
         // Floating player pill docked at the bottom (only when a recording is
         // loaded). The Summary/Transcript switcher is the top toolbar pill.
@@ -199,6 +220,19 @@ struct MacSessionDetailView: View {
               session.summaryKeyPoints.isEmpty else { return }
         didAutoSummarize = true
         await summaryVM.generateSummary(session: session, context: modelContext)
+    }
+
+    /// Seeks playback to `scrollToLineID`'s line, if any. Called right after
+    /// `playback.load` above — since `load` is synchronous, `isAvailable` is
+    /// already resolved by the time this runs, so there's no async race to
+    /// wait out. Scrolling the transcript list itself happens separately in
+    /// `transcriptTab`, which owns the `ScrollViewReader` proxy this method
+    /// has no access to.
+    private func seekToSearchTargetIfNeeded() {
+        guard let targetID = scrollToLineID, playback.isAvailable,
+              let line = session.lines.first(where: { $0.persistentModelID == targetID })
+        else { return }
+        playback.seek(toMs: line.startMs)
     }
 
     /// Deletes this session (audio file + cascade of lines/action items) and pops

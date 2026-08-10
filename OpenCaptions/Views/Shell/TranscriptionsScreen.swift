@@ -33,6 +33,26 @@ struct TranscriptionsScreen: View {
     @State private var menuBar = MenuBarState.shared
     /// Narrows the list to one workspace, sessions with none, or everything.
     @State private var workspaceFilter: WorkspaceFilter = .all
+    /// Search bar text. Title/description/summary matches apply instantly
+    /// (see `matches`); transcript-line matches come from `searchController`
+    /// once its debounced background scan catches up.
+    @State private var searchText = ""
+    @State private var searchController = TranscriptSearchController()
+    /// Below this length a transcript-line scan is skipped: a 1-character
+    /// match returns close to every line in the store, which is neither
+    /// useful nor cheap. Shorter queries still match title/description/
+    /// summary instantly via `matches`.
+    private let minLineSearchQueryLength = 2
+    /// What `listContent` actually renders — mirrors `filteredSessions`, but
+    /// deliberately does NOT recompute on every keystroke. While a line
+    /// search is debouncing/in flight, re-deriving from `filteredSessions`
+    /// live would drop any line-only match for the OLD query (it can't yet
+    /// be confirmed for the new one) and briefly show the empty state before
+    /// the fresh results arrive — a list → empty → list flash. Instead this
+    /// only updates at well-defined settle points (`refreshDisplayedSessions`),
+    /// so the list stays exactly as it was until there's something better to
+    /// show it.
+    @State private var displayedSessions: [TranscriptionSession] = []
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -41,6 +61,8 @@ struct TranscriptionsScreen: View {
                     switch route {
                     case .session(let session):
                         MacSessionDetailView(session: session)
+                    case .sessionLine(let session, let lineID):
+                        MacSessionDetailView(session: session, scrollToLineID: lineID)
                     }
                 }
         }
@@ -69,6 +91,23 @@ struct TranscriptionsScreen: View {
             menuBar.startRecording = startRecordingAction
         }
         .onDisappear { menuBar.startRecording = nil }
+        // Seeds `displayedSessions` on first appear and keeps it in step with
+        // anything that isn't the (deliberately debounced) line search:
+        // session data changing and the workspace filter changing are both
+        // instant/synchronous, so there's no flicker risk in recomputing
+        // immediately for them.
+        .onChange(of: sessions, initial: true) { _, _ in refreshDisplayedSessions() }
+        .onChange(of: workspaceFilter) { _, _ in refreshDisplayedSessions() }
+        // Safety net for the same root cause as `workspaceMenu`'s explicit
+        // refresh: `MacSessionDetailView` has its own workspace-reassignment
+        // menu, and that in-place mutation is just as invisible to
+        // `.onChange(of: sessions)`. Refreshing whenever the stack returns to
+        // the list root covers that path (and any other detail-view mutation
+        // that could affect filtering) without threading a callback through
+        // the push.
+        .onChange(of: path) { _, newPath in
+            if newPath.isEmpty { refreshDisplayedSessions() }
+        }
     }
 
     /// The menu-bar "New Session" action, or nil while a session is active so
@@ -98,9 +137,14 @@ struct TranscriptionsScreen: View {
         } else {
             listContent
                 .navigationTitle("Transcriptions")
+                .searchable(text: $searchText, prompt: "Search transcripts")
+                .task(id: searchText) { await runLineSearch(for: searchText) }
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        workspaceFilterMenu
+                        Button(action: startNewRecording) {
+                            Label("New Session", systemImage: "mic")
+                        }
+                        .help("Start a new session")
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button { isImporterPresented = true } label: {
@@ -109,10 +153,7 @@ struct TranscriptionsScreen: View {
                         .help("Import an audio or video file")
                     }
                     ToolbarItem(placement: .primaryAction) {
-                        Button(action: startNewRecording) {
-                            Label("New Session", systemImage: "mic")
-                        }
-                        .help("Start a new session")
+                        workspaceFilterMenu
                     }
                 }
                 // Audio covers m4a/mp3/wav/aiff/caf; movie covers mp4/mov/etc. — the
@@ -168,15 +209,25 @@ struct TranscriptionsScreen: View {
                 systemImage: "waveform",
                 description: Text("Tap New Session to start your first transcription.")
             )
-        } else if filteredSessions.isEmpty {
-            ContentUnavailableView(
-                "No Matching Sessions",
-                systemImage: "line.3.horizontal.decrease.circle",
-                description: Text("No sessions match this workspace filter.")
-            )
+        } else if displayedSessions.isEmpty {
+            // Attribute the empty state to whichever filter actually caused it:
+            // if the workspace filter alone already leaves nothing, blaming a
+            // leftover search query (from before the filter was changed) would
+            // point at the wrong cause. `displayedSessions`, not the live
+            // `filteredSessions`, is what decides whether we're empty at all —
+            // see its doc comment for why.
+            if workspaceFilteredSessions.isEmpty {
+                ContentUnavailableView(
+                    "No Matching Sessions",
+                    systemImage: "line.3.horizontal.decrease.circle",
+                    description: Text("No sessions match this workspace filter.")
+                )
+            } else {
+                ContentUnavailableView.search(text: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
         } else {
             List {
-                ForEach(filteredSessions) { session in
+                ForEach(displayedSessions) { session in
                     // Single-click opens the session; right-click offers Delete.
                     // With no list selection, `open` assigns the path to a single
                     // detail, so a click can never stack N detail screens.
@@ -206,8 +257,10 @@ struct TranscriptionsScreen: View {
 
     // MARK: - Workspaces
 
-    /// The sessions currently shown, after `workspaceFilter` narrows `sessions`.
-    private var filteredSessions: [TranscriptionSession] {
+    /// `sessions` narrowed by `workspaceFilter` alone, before `searchText` is
+    /// applied — used by `filteredSessions` and (to attribute the empty state
+    /// correctly) by `listContent`.
+    private var workspaceFilteredSessions: [TranscriptionSession] {
         switch workspaceFilter {
         case .all:
             return sessions
@@ -216,6 +269,120 @@ struct TranscriptionsScreen: View {
         case .workspace(let id):
             return sessions.filter { $0.workspace?.persistentModelID == id }
         }
+    }
+
+    /// The sessions currently shown, after `workspaceFilter` and `searchText`
+    /// narrow `sessions`. Not read directly by `listContent` — see
+    /// `displayedSessions`/`refreshDisplayedSessions`.
+    private var filteredSessions: [TranscriptionSession] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return workspaceFilteredSessions }
+        return workspaceFilteredSessions.filter { matches($0, query: query) }
+    }
+
+    /// Snapshots `filteredSessions` into `displayedSessions`. Called only at
+    /// well-defined settle points (data/filter changes, and a line search
+    /// finishing or being skipped) — never on every keystroke — so the list
+    /// never briefly collapses to empty mid-debounce.
+    private func refreshDisplayedSessions() {
+        displayedSessions = filteredSessions
+    }
+
+    // MARK: - Search
+
+    /// Whether `session` matches `query` by title, description, or summary
+    /// (checked here, in-memory — `sessions` is already fully fetched for the
+    /// list either way, so this costs nothing extra), or by transcript text,
+    /// once `searchController`'s background scan has caught up to this exact
+    /// query. See `TranscriptSearchController`.
+    private func matches(_ session: TranscriptionSession, query: String) -> Bool {
+        if session.sessionTitle.localizedStandardContains(query) { return true }
+        if let description = session.shortDescription, description.localizedStandardContains(query) {
+            return true
+        }
+        if session.summaryParagraphs.contains(where: { $0.localizedStandardContains(query) }) { return true }
+        if session.summaryKeyPoints.contains(where: { $0.localizedStandardContains(query) }) { return true }
+        return lineMatch(for: session, query: query) != nil
+    }
+
+    /// `searchController`'s line match for `session` under `query`, if any
+    /// and if the background scan has caught up to this exact query — nil
+    /// otherwise (including while a scan for a newer query is still
+    /// in-flight, per `TranscriptSearchController.query`'s doc comment).
+    private func lineMatch(for session: TranscriptionSession, query: String) -> TranscriptSearchController.LineMatch? {
+        guard searchController.query == query else { return nil }
+        return searchController.matchingLinesBySessionID[session.persistentModelID]
+    }
+
+    /// The line that matched `session` for the current search text, if the
+    /// match came from transcript text (rather than title/description/
+    /// summary — those have no specific line to jump to). Drives the
+    /// `.sessionLine` deep link in `open`.
+    private func matchingLineID(for session: TranscriptionSession) -> PersistentIdentifier? {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return nil }
+        return lineMatch(for: session, query: query)?.firstLineID
+    }
+
+    /// What to show in a matching row's subtitle in place of the plain
+    /// description/preview: an excerpt around wherever `session` actually
+    /// matched, plus how many OTHER matches exist beyond the one shown.
+    /// Prefers a transcript-line excerpt — most specific — falling back to
+    /// summary, then description; nil when `session` matched only by title
+    /// (already visible in the row, so there's nothing more useful to show)
+    /// or the background scan hasn't caught up yet.
+    private func searchResultExcerpt(for session: TranscriptionSession, query: String) -> SearchResultExcerpt? {
+        // Summary before description, matching the documented priority
+        // (line > summary > description) — `matchingFields.first` below is
+        // what actually enforces the order, so this list's order matters.
+        var fields: [String] = []
+        fields.append(contentsOf: session.summaryParagraphs)
+        fields.append(contentsOf: session.summaryKeyPoints)
+        if let description = session.shortDescription, !description.isEmpty {
+            fields.append(description)
+        }
+        let matchingFields = fields.filter { $0.localizedStandardContains(query) }
+        let line = lineMatch(for: session, query: query)
+
+        if let line, let snippet = SearchSnippet(source: line.firstLineText, query: query) {
+            return SearchResultExcerpt(snippet: snippet, extraMatchCount: (line.totalCount - 1) + matchingFields.count)
+        }
+        if let firstField = matchingFields.first, let snippet = SearchSnippet(source: firstField, query: query) {
+            return SearchResultExcerpt(snippet: snippet, extraMatchCount: (matchingFields.count - 1) + (line?.totalCount ?? 0))
+        }
+        return nil
+    }
+
+    /// Renders `excerpt` as one `Text`: the highlighted snippet, plus a
+    /// dimmer "+N more matches" suffix when there's more than what's shown.
+    /// One concatenated `Text` (not an `HStack` of two) so `.lineLimit(1)`
+    /// on the caller truncates the whole thing as a unit instead of leaving
+    /// the count badge to wrap onto its own line.
+    private func searchExcerptText(_ excerpt: SearchResultExcerpt) -> Text {
+        guard excerpt.extraMatchCount > 0 else { return excerpt.snippet.highlighted }
+        let suffix = excerpt.extraMatchCount == 1 ? "1 more match" : "\(excerpt.extraMatchCount) more matches"
+        return excerpt.snippet.highlighted + Text("  •  +\(suffix)").foregroundStyle(.tertiary)
+    }
+
+    /// Debounces `searchText` edits before running the expensive transcript-
+    /// line scan — cancelled automatically by `.task(id:)` re-firing on every
+    /// keystroke, so only the query the user settles on actually reaches
+    /// `searchController`. Refreshes `displayedSessions` at both settle
+    /// points (below the length floor needs no scan; at the end of one) —
+    /// never mid-debounce, which is what keeps the list from flashing empty
+    /// while `searchController` hasn't caught up to `query` yet.
+    private func runLineSearch(for text: String) async {
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard query.count >= minLineSearchQueryLength else {
+            searchController.reset()
+            refreshDisplayedSessions()
+            return
+        }
+        try? await Task.sleep(for: .milliseconds(250))
+        guard !Task.isCancelled else { return }
+        await searchController.search(query, container: modelContext.container)
+        guard !Task.isCancelled else { return }
+        refreshDisplayedSessions()
     }
 
     private var workspaceFilterMenu: some View {
@@ -249,17 +416,26 @@ struct TranscriptionsScreen: View {
     /// The row's right-click "Workspace" submenu — assigns or clears which
     /// workspace this session is filed under. `SessionExportCoordinator` is the
     /// single write path, since reassigning also moves the exported folder.
+    /// Explicitly refreshes `displayedSessions` after: this mutates
+    /// `session.workspace` in place on an object `sessions` already holds,
+    /// which changes neither that array's count/order nor (SwiftData's
+    /// `@Model` equality being identity-based) its `==` result — so
+    /// `.onChange(of: sessions)` never fires on its own, and under an active
+    /// workspace filter the row would otherwise linger long after it no
+    /// longer belongs.
     @ViewBuilder
     private func workspaceMenu(for session: TranscriptionSession) -> some View {
         Menu("Workspace") {
             Button {
                 SessionExportCoordinator.reassignWorkspace(session, to: nil, context: modelContext)
+                refreshDisplayedSessions()
             } label: {
                 filterLabel("None", isSelected: session.workspace == nil)
             }
             ForEach(workspaces) { workspace in
                 Button {
                     SessionExportCoordinator.reassignWorkspace(session, to: workspace, context: modelContext)
+                    refreshDisplayedSessions()
                 } label: {
                     filterLabel(workspace.name, isSelected: session.workspace?.persistentModelID == workspace.persistentModelID)
                 }
@@ -283,6 +459,12 @@ struct TranscriptionsScreen: View {
             if let desc = session.shortDescription, !desc.isEmpty { return desc }
             return session.resolvedPreviewText
         }()
+        // While a search is active, show an excerpt of wherever this session
+        // actually matched instead of the plain subtitle above — nil (and
+        // the plain subtitle stays) for a title-only match, or while
+        // `searchController`'s scan hasn't caught up yet.
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let excerpt = query.isEmpty ? nil : searchResultExcerpt(for: session, query: query)
         // Live indicator while this session is being re-transcribed OR is the
         // freshly-created target of a running file import. Observes the shared
         // managers' progress, so the row updates when a run starts/finishes.
@@ -297,7 +479,12 @@ struct TranscriptionsScreen: View {
                     ProgressView().controlSize(.small)
                 }
             }
-            if !subtitle.isEmpty {
+            if let excerpt {
+                searchExcerptText(excerpt)
+                    .appScaledFont(.body)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            } else if !subtitle.isEmpty {
                 Text(subtitle)
                     .appScaledFont(.body)
                     .foregroundStyle(.secondary)
@@ -315,9 +502,15 @@ struct TranscriptionsScreen: View {
     }
 
     /// Opens exactly one session's detail. Assigns the path (rather than
-    /// appending) so the stack can only ever hold a single detail.
+    /// appending) so the stack can only ever hold a single detail. Deep-links
+    /// to the matching line when the current search hit came from transcript
+    /// text; otherwise opens on the Summary tab as usual.
     private func open(_ session: TranscriptionSession) {
-        path = [.session(session)]
+        if let lineID = matchingLineID(for: session) {
+            path = [.sessionLine(session, lineID)]
+        } else {
+            path = [.session(session)]
+        }
     }
 
     /// Stop & Save: the live view has already stopped the session and cleared the
@@ -364,6 +557,11 @@ struct TranscriptionsScreen: View {
 /// Destinations pushed onto the transcription screen's navigation stack.
 enum ContentRoute: Hashable {
     case session(TranscriptionSession)
+    /// Same destination as `.session`, but additionally seeks playback to,
+    /// scrolls to, and highlights one specific line — used when a
+    /// Transcriptions search hit matched transcript text rather than title,
+    /// description, or summary. See `MacSessionDetailView.scrollToLineID`.
+    case sessionLine(TranscriptionSession, PersistentIdentifier)
 }
 
 /// How the Transcriptions list is narrowed by workspace. Identifies a workspace
@@ -373,4 +571,11 @@ private enum WorkspaceFilter: Hashable {
     case all
     case unassigned
     case workspace(PersistentIdentifier)
+}
+
+/// A matching row's subtitle content — see
+/// `TranscriptionsScreen.searchResultExcerpt(for:query:)`.
+private struct SearchResultExcerpt {
+    let snippet: SearchSnippet
+    let extraMatchCount: Int
 }
