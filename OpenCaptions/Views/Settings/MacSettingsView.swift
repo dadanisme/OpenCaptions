@@ -225,7 +225,7 @@ struct MacSettingsView: View {
                 LabeledContent {
                     MacOfflineDownloadControl(manager: manager)
                 } label: {
-                    Text(manager.engine.modelTitle)
+                    Text(manager.modelTitle)
                 }
             }
         }
@@ -247,7 +247,7 @@ struct MacSettingsView: View {
             return "Transcribe in the cloud with speaker labels. Requires an internet connection."
         }
         guard selectedEngineReady else {
-            let modelTitle = selectedEngine.modelManager?.engine.modelTitle ?? selectedEngine.displayName
+            let modelTitle = selectedEngine.modelManager?.modelTitle ?? selectedEngine.displayName
             return "Download the \(modelTitle) to enable it. It's a one-time download kept on this Mac."
         }
         return "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. AI summaries aren't available. Applies to your next session."

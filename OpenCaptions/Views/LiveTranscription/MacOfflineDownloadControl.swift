@@ -6,15 +6,18 @@
 //  SELECTED on-device model isn't downloaded yet: a prominent Download button, or
 //  a compact progress read-out while downloading. Once the model is `.ready` the
 //  Settings view drops this control entirely — it never needs a "downloaded"
-//  state itself. Per-model: the three-way selector only ever needs the ONE model
-//  the current selection points at, unlike the old binary Offline Mode row, which
-//  downloaded both on-device models together as a single unit.
+//  state itself. Per-model: the selector only ever needs the ONE model the
+//  current selection points at, unlike the old binary Offline Mode row, which
+//  downloaded both on-device models together as a single unit. `manager` is the
+//  shared `OnDeviceEngineModelManaging` existential so this one view works for
+//  every on-device engine's download mechanism (FluidAudio or Apple's
+//  `AssetInventory`) without knowing which backs the current selection.
 //
 
 import SwiftUI
 
 struct MacOfflineDownloadControl: View {
-    let manager: FluidAudioModelManager
+    let manager: any OnDeviceEngineModelManaging
 
     private var isDownloading: Bool {
         if case .downloading = manager.status { return true }
