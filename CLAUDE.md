@@ -19,13 +19,43 @@ The app was extracted from a larger multi-platform codebase and has since been *
 - **Misc identifiers:** Carbon four-char hotkey code `'OpCp'` (`0x4F704370`); window autosave name `"OpenCaptionsCaptionsOverlay"`; UserDefaults keys are *mostly* `opencaptions.*` — the one exception is `hasCompletedOnboarding` (the sole launch-gate flag, read by `@AppStorage` in `OpenCaptionsApp`); the SpeexDSP include guard `OPENCAPTIONS_SPEEXDSP_CONFIG_H`.
 - **Backend / services:** there is **no backend** — the app depends only on Soniox and OpenRouter, each a plain per-deployment API key supplied via the git-ignored `Config.xcconfig` **or** entered at runtime in Settings → API Keys (Keychain-backed, `APIKeyStore` — see **Credentials** below); **no credentials are hardcoded in committed source.** Non-secret infra *is* literal, though, and a fork must change it by hand: the bundle id and the Soniox / OpenRouter endpoints. The support email is config-driven (`SUPPORT_EMAIL`) and stays build-time only — it isn't a secret. The former summarization endpoint (`SUMMARIZE_URL`) is gone for good: summaries call OpenRouter directly from the app (see **AI summaries** below). A developer moving to their own deployment only needs their own bundle id and the git-ignored `Config.xcconfig` filled in — there's no account system or Cloud project to re-register.
 
+## Tooling
+
+- **Xcode MCP** (`xcrun mcpbridge`) — the **preferred** tool for building, running, editing/reading Xcode-tracked source, and diagnosing this project. See **Build & Run → Xcode MCP (preferred)** for the full tool table and setup steps.
+
 ## Build & Run
 
-Open `OpenCaptions.xcodeproj` in Xcode (macOS 14.4+ SDK), select the **`OpenCaptions`** scheme, build & run. There are **no unit tests**. Build in Xcode — do not rely on a `xcodebuild` CLI flow.
+Open `OpenCaptions.xcodeproj` in Xcode (macOS 14.4+ SDK), select the **`OpenCaptions`** scheme, build & run. There are **no unit tests**. Build in Xcode, or via the Xcode MCP's `BuildProject` when connected — never shell out to the `xcodebuild` CLI directly (see **Xcode MCP (preferred)** below).
 
 The signing team that actually applies is `C4SQMCY5WT`, set on the **target** in both configurations. Note there is a *second*, stale team — `YN8NVQ69WY` — still committed at the **project** level, alongside iOS leftovers from the extraction (`SDKROOT = iphoneos`, `IPHONEOS_DEPLOYMENT_TARGET = 17.0`). The target's macOS settings override all of it, so the build is correct, but a developer told to change "the" team will find two. A different developer must set their own team and, if desired, their own bundle id — there's no backend to re-register against.
 
 **Filesystem-synchronized groups** (Xcode 16 `PBXFileSystemSynchronizedRootGroup`): new files added anywhere under `OpenCaptions/` are picked up **automatically** — never hand-edit `project.pbxproj` to add a file. No source-file references live in the pbxproj — only build settings (the Info.plist / entitlements / bridging-header / header-search paths, plus the bundle id, signing teams, deployment target, and four `INFOPLIST_KEY_*` values that include user-facing copy).
+
+### Xcode MCP (preferred)
+
+**Prefer the Xcode MCP (`xcrun mcpbridge`) over shell commands and the generic Read/Write/Edit/Grep/Glob tools for anything touching this Xcode project, whenever it's connected** — building, running, editing/reading Xcode-tracked source, diagnosing errors, managing schemes/build settings, and rendering SwiftUI previews. It drives the actual running Xcode process (same build system, same live editor state as what's on screen), so results can't diverge from a stale on-disk copy while Xcode has unsaved edits open. **Never shell out to `xcodebuild` directly** — use `BuildProject`/`GetBuildLog` instead.
+
+| Task | Use | Notes |
+|---|---|---|
+| Build | `BuildProject`, `GetBuildLog` | Replaces `xcodebuild` entirely |
+| Run / stop | `RunProject`, `StopProject` | Cmd+R / Cmd+. equivalents |
+| Debug | `InvokeDebuggerCommand`, `GetConsoleOutput` | Shares the same lldb session as Xcode's own debug console |
+| Read/edit source | `XcodeRead`, `XcodeWrite`, `XcodeUpdate`, `XcodeGrep`, `XcodeGlob`, `XcodeLS` | Sees unsaved editor state a plain filesystem read would miss; prefer over Read/Edit/Grep/Glob for files inside the Xcode project |
+| Diagnose | `XcodeListNavigatorIssues`, `XcodeRefreshCodeIssuesInFile`, `GetCrashIssueLogs`, `GetTopCrashIssues`, `GetFieldPerformanceIssueLogs`, `GetTopFieldPerformanceIssues` | Live compiler diagnostics as Xcode sees them, not a re-parsed build log |
+| Schemes / destinations | `XcodeListSchemes`, `XcodeSwitchScheme`, `XcodeListRunDestinations`, `XcodeSwitchRunDestination` | Single scheme: **`OpenCaptions`** |
+| Build settings / config | `GetTargetBuildSettings`, `UpdateTargetBuildSetting`, `AddEntitlement`, `AddInfoPlist` | Never hand-edit `project.pbxproj`, entitlements, or Info.plist directly |
+| SwiftUI previews | `RenderPreview` | Renders an actual snapshot instead of guessing from source |
+
+**Fall back to the standard tools** (Read/Write/Edit/Grep/Glob/Bash) when the Xcode MCP server isn't connected this session, or for anything genuinely outside Xcode's project scope (`docs/`, `.github/`, `CLAUDE.md` itself, git operations).
+
+**No documentation lookup is exposed through this MCP server** — `mcpbridge` exposes no framework/API documentation-search tool over this interface. For Apple framework/API docs, use WebSearch instead.
+
+**Setup** (per-developer — this is **local MCP scope, not in a committed `.mcp.json`**, so a teammate without it configured simply gets the fallback path above, not an error):
+1. Requires Xcode 26.3+ (`mcpbridge` ships inside Xcode.app). If `xcrun mcpbridge` can't find the binary, check `xcode-select -p` points at the Xcode.app itself, not Command Line Tools: `sudo xcode-select -s /Applications/Xcode*.app`.
+2. In Xcode: Settings (⌘,) → Intelligence → Model Context Protocol → enable **"Xcode Tools"**.
+3. `claude mcp add xcode xcrun mcpbridge`
+4. Xcode must be open with `OpenCaptions.xcodeproj` loaded — `mcpbridge` bridges into that live process via XPC; it is not a standalone server.
+5. If the server connects mid-session, restart the Claude Code session to pick up its tool list.
 
 ### Credentials (git-ignored)
 
