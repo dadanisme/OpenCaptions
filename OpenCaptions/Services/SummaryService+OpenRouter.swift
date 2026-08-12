@@ -28,7 +28,7 @@ extension SummaryService {
     /// Pinned — there is deliberately no user-facing model picker. Google's fast,
     /// low-cost model, and one OpenRouter serves from both Google Vertex and Google
     /// AI Studio, so `allow_fallbacks` below has somewhere to go.
-    private static let model = "google/gemini-3.1-flash-lite"
+    private static let model = "deepseek/deepseek-v4-flash"
     private static let endpoint = "https://openrouter.ai/api/v1/chat/completions"
 
     /// Statuses worth another attempt: rate-limited upstream (429), no provider
