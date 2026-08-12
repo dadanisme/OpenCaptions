@@ -15,7 +15,7 @@ import Foundation
 
 @Observable
 @MainActor
-final class FluidAudioModelManager {
+final class FluidAudioModelManager: OnDeviceEngineModelManaging {
 
     /// The two on-device engines, each with its own download state.
     static let parakeet = FluidAudioModelManager(engine: .parakeet)
@@ -34,16 +34,9 @@ final class FluidAudioModelManager {
         }
     }
 
-    enum Status: Equatable {
-        case unknown
-        case notDownloaded
-        case downloading(Double)
-        case ready
-        case failed(String)
-    }
-
     let engine: Engine
-    private(set) var status: Status = .unknown
+    var modelTitle: String { engine.modelTitle }
+    private(set) var status: OnDeviceModelStatus = .unknown
 
     private init(engine: Engine) {
         self.engine = engine

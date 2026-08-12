@@ -15,6 +15,9 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
     case parakeet
     /// On-device FluidAudio Nemotron 560 ms — offline, English-only, no diarization.
     case nemotron
+    /// On-device Apple Speech `SpeechAnalyzer` (macOS 26+) — offline, English-only, no
+    /// diarization.
+    case appleSpeech
     /// Cloud Soniox `stt-async-v5` — diarized, multi-language.
     case soniox
     /// On-device Apple Core AI Parakeet TDT — offline, English-only, no diarization,
@@ -32,6 +35,7 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
         switch self {
         case .parakeet: return "Offline (Parakeet)"
         case .nemotron: return "Offline (Nemotron)"
+        case .appleSpeech: return "Offline (Apple Speech)"
         case .soniox: return "Cloud (Soniox)"
         case .coreAIParakeet: return "Offline (Parakeet, Core AI)"
         }
@@ -40,7 +44,7 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
     /// SF Symbol shown next to the menu item.
     var systemImage: String {
         switch self {
-        case .parakeet, .nemotron, .coreAIParakeet: return "cpu"
+        case .parakeet, .nemotron, .appleSpeech, .coreAIParakeet: return "cpu"
         case .soniox: return "cloud"
         }
     }
@@ -52,11 +56,21 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
     var isOnDevice: Bool { self != .soniox }
 
     /// Whether this engine's on-device model is already downloaded. Always `true`
-    /// for cloud Soniox, which has no model.
+    /// for cloud Soniox, which has no model. `@MainActor`-isolated because the
+    /// `.appleSpeech` branch reads the cached status off the `@MainActor` singleton —
+    /// `AssetInventory` has no synchronous check, unlike FluidAudio's file-existence one.
+    /// All 3 call sites (`RetranscriptionManager`, `FileImportManager`,
+    /// `MacSessionDetailView+Retranscription`) are already `@MainActor`-isolated.
+    @MainActor
     var isModelDownloaded: Bool {
         switch self {
         case .parakeet: return FluidAudioModelLoader.isParakeetDownloaded()
         case .nemotron: return FluidAudioModelLoader.isNemotronDownloaded()
+        case .appleSpeech:
+            if #available(macOS 26.0, *) {
+                return AppleSpeechModelManager.shared.status == .ready
+            }
+            return false
         case .soniox: return true
         // Stub has no model of its own yet to download — see the case's doc comment.
         case .coreAIParakeet: return true
@@ -65,10 +79,19 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
 
     /// Cases to actually offer in a picker — unlike `allCases`, excludes
     /// `.coreAIParakeet` unless `CoreAIPluginLoader` reports the plugin loadable
-    /// (macOS 27+ AND the dylib is embedded). Below that, `.coreAIParakeet` has NO
-    /// trace anywhere in the UI, per #47's own requirement.
+    /// (macOS 27+ AND the dylib is embedded), and excludes `.appleSpeech` below
+    /// macOS 26 for the same reason `MacTranscriptionEngineKind.allCases` does.
+    /// Below their respective floors, neither case has any trace anywhere in the UI.
     static var availableCases: [RetranscriptionEngineKind] {
-        allCases.filter { $0 != .coreAIParakeet || CoreAIPluginLoader.isAvailable }
+        allCases.filter { kind in
+            switch kind {
+            case .coreAIParakeet: return CoreAIPluginLoader.isAvailable
+            case .appleSpeech:
+                if #available(macOS 26.0, *) { return true }
+                return false
+            default: return true
+            }
+        }
     }
 }
 
@@ -87,6 +110,17 @@ enum PostSessionRetranscriptionFactory {
         switch kind {
         case .parakeet: return ParakeetPostSessionEngine()
         case .nemotron: return NemotronPostSessionEngine()
+        case .appleSpeech:
+            // The `.appleSpeech` case exists at compile time regardless of OS, so Swift's
+            // exhaustiveness check requires a branch here unconditionally; the stale-selection
+            // fallback in `LiveSessionStore.transcriptionEngineKind` means this `else` is only
+            // ever reached in theory (a downgraded OS after the selection was made).
+            if #available(macOS 26.0, *) {
+                return SpeechAnalyzerPostSessionEngine()
+            }
+            return SonioxAsyncPostSessionEngine(
+                context: VocabularyStore.shared.sonioxContext(userName: userName)
+            )
         case .soniox:
             return SonioxAsyncPostSessionEngine(
                 context: VocabularyStore.shared.sonioxContext(userName: userName)

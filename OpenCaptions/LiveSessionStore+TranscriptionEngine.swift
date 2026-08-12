@@ -2,18 +2,19 @@
 //  LiveSessionStore+TranscriptionEngine.swift
 //  OpenCaptions
 //
-//  The three-way LIVE transcription engine selection (Soniox / Nemotron / Parakeet)
+//  The LIVE transcription engine selection (Soniox / Nemotron / Parakeet / Apple Speech)
 //  — the global Settings preference that replaced the old binary Offline Mode
-//  toggle. See docs/2026-08-12-macos-transcription-engine-selector.md. Also holds
-//  the independent RE-TRANSCRIPTION (batch/post-session/import) engine override
-//  added in #47 — see the "Re-transcription (batch) engine" section below.
+//  toggle. See docs/2026-08-12-macos-transcription-engine-selector.md and
+//  docs/2026-08-12-macos-speechanalyzer-engine.md. Also holds the independent
+//  RE-TRANSCRIPTION (batch/post-session/import) engine override added in #47 —
+//  see the "Re-transcription (batch) engine" section below.
 //
 
 import Foundation
 
 extension LiveSessionStore {
 
-    /// UserDefaults key (String) for the three-way transcription engine selection —
+    /// UserDefaults key (String) for the transcription engine selection —
     /// `MacTranscriptionEngineKind.rawValue`. Read at session start by
     /// `MacTranscriptionViewModel.start`, by `MacSessionDetailView` to gate cloud
     /// summary generation, and by `RetranscriptionEngineKind.forCurrentMode` for
@@ -26,17 +27,29 @@ extension LiveSessionStore {
     /// with no actor affinity of its own.
     nonisolated static let transcriptionEngineKindKey = "opencaptions.transcriptionEngine.kind"
 
-    /// The current three-way transcription engine selection, decoded from
+    /// The current transcription engine selection, decoded from
     /// `transcriptionEngineKindKey`. Falls back to `.soniox` for an unset/invalid
     /// raw value so a corrupted default never silently routes a session on-device.
+    /// Also falls back to `.soniox` when the decoded value is `.appleSpeech` but the OS has
+    /// since dropped below macOS 26 (a previously-valid selection becoming stale — macOS
+    /// doesn't downgrade in normal use, but this is the same defensive fallback as the
+    /// unset/invalid case above, and it's the single choke point both live-session start
+    /// (`MacTranscriptionViewModel.start()`) and `RetranscriptionEngineKind.forCurrentMode`
+    /// read through, so neither needs its own separate fix).
     /// `nonisolated`: a plain `UserDefaults` read with no MainActor state involved,
     /// so it stays callable from the same variety of contexts the old raw
     /// `UserDefaults.standard.bool(forKey: offlineModeKey)` read was (e.g.
     /// `RetranscriptionEngineKind.forCurrentMode`, a nonisolated static var).
     nonisolated static var transcriptionEngineKind: MacTranscriptionEngineKind {
-        MacTranscriptionEngineKind(
-            rawValue: UserDefaults.standard.string(forKey: transcriptionEngineKindKey) ?? ""
-        ) ?? .soniox
+        let kind =
+            MacTranscriptionEngineKind(
+                rawValue: UserDefaults.standard.string(forKey: transcriptionEngineKindKey) ?? ""
+            ) ?? .soniox
+        if kind == .appleSpeech {
+            if #available(macOS 26.0, *) { return kind }
+            return .soniox
+        }
+        return kind
     }
 
     /// One-time migration from the deleted binary `offlineModeKey`
@@ -96,6 +109,7 @@ extension LiveSessionStore {
         case .soniox: return .soniox
         case .parakeet: return .parakeet
         case .nemotron: return .nemotron
+        case .appleSpeech: return .appleSpeech
         }
     }
 }
