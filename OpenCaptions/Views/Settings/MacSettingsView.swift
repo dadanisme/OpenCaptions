@@ -218,7 +218,7 @@ struct MacSettingsView: View {
             }
             MacMarkdownExportRow()
         }
-        Section("Transcription Engine") {
+        Section("AI Models") {
             LabeledContent {
                 Picker("", selection: $selectedEngine) {
                     ForEach(MacTranscriptionEngineKind.allCases) { kind in
@@ -241,9 +241,7 @@ struct MacSettingsView: View {
                     Text(manager.engine.modelTitle)
                 }
             }
-        }
-        retranscriptionEngineSection
-        Section("Summary Model") {
+            retranscriptionEngineRow
             LabeledContent {
                 Picker("", selection: $summaryProvider) {
                     ForEach(SummaryProviderKind.allCases) { kind in

@@ -7,7 +7,10 @@
 //  picker in MacSettingsView itself. Split out to keep that file under its
 //  line budget, mirroring MacSessionDetailView+Retranscription.swift's split
 //  of the same concern on the session-detail side. See #47 /
-//  docs/2026-08-12-macos-coreai-plugin-skeleton.md.
+//  docs/2026-08-12-macos-coreai-plugin-skeleton.md. Renders as a bare row
+//  (no Section of its own) so it can sit inside MacSettingsView's merged
+//  "AI Models" section, alongside the Transcription Engine and Summary Model
+//  rows.
 //
 
 import SwiftUI
@@ -19,20 +22,18 @@ extension MacSettingsView {
     /// already do, so an override control would be pure clutter for every user
     /// who can't reach a different outcome from it.
     @ViewBuilder
-    var retranscriptionEngineSection: some View {
+    var retranscriptionEngineRow: some View {
         if #available(macOS 27.0, *) {
-            Section("Re-transcription Engine") {
-                LabeledContent {
-                    Picker("", selection: retranscriptionOverrideBinding) {
-                        Text("Same as Transcription Engine").tag(RetranscriptionEngineKind?.none)
-                        ForEach(RetranscriptionEngineKind.availableCases) { kind in
-                            Text(kind.displayName).tag(RetranscriptionEngineKind?.some(kind))
-                        }
+            LabeledContent {
+                Picker("", selection: retranscriptionOverrideBinding) {
+                    Text("Same as Transcription Engine").tag(RetranscriptionEngineKind?.none)
+                    ForEach(RetranscriptionEngineKind.availableCases) { kind in
+                        Text(kind.displayName).tag(RetranscriptionEngineKind?.some(kind))
                     }
-                    .labelsHidden()
-                } label: {
-                    SettingsInfoTip.label("Re-transcription Engine", tip: retranscriptionEngineFootnote)
                 }
+                .labelsHidden()
+            } label: {
+                SettingsInfoTip.label("Re-transcription Engine", tip: retranscriptionEngineFootnote)
             }
         }
     }
