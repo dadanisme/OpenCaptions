@@ -55,7 +55,7 @@ final class RetranscriptionManager {
     /// error surfacing).
     func startAutomatic(sessionID: PersistentIdentifier, container: ModelContainer) {
         guard UserDefaults.standard.bool(forKey: LiveSessionStore.retranscriptionAutoKey) else { return }
-        launch(sessionID: sessionID, kind: .forCurrentMode, context: container.mainContext, interactive: false)
+        launch(sessionID: sessionID, kind: LiveSessionStore.retranscriptionEngineKind, context: container.mainContext, interactive: false)
     }
 
     // MARK: - Core

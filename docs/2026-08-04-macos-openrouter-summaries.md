@@ -3,7 +3,11 @@
 **Date:** 2026-08-04 · **Scope:** Open Captions only · **Closes:** #29
 **Related:** `docs/2026-07-24-macos-native-gemini-summary.md` (**the transport this
 replaces** — now historical), `docs/2026-07-29-macos-speaker-auto-naming.md` (rides on
-the same response), `docs/2026-07-10-macos-offline-mode.md` (the offline gate, untouched)
+the same response), `docs/2026-07-10-macos-offline-mode.md` (the offline gate, untouched),
+`docs/2026-08-12-macos-foundation-models-summaries.md` (**partially supersedes this
+note's "no provider abstraction" framing below** — adds a second, on-device provider
+and a real Settings picker; everything else here about the OpenRouter transport itself
+— retry/fallback, schema casing, the traps — is still accurate and current)
 
 ## Context
 
@@ -30,6 +34,13 @@ against OpenRouter's model list before wiring: it advertises `structured_outputs
 Studio** — which is what makes provider fallback more than a decoration. A picker would
 mean persisting a preference, validating that the chosen model supports structured
 output, and a Settings surface; out of scope.
+
+> **2026-08-12 update:** #45 reverses the "no picker" half of this decision — a real
+> Settings → General → Summary Model picker now exists, choosing between this
+> OpenRouter transport and a new on-device Apple Foundation Models one. It's a second
+> *provider*, not a second *model* for this same transport — everything below about
+> OpenRouter's retry/fallback/schema-casing behavior is unchanged and still describes
+> the `.openRouter` case exactly. See `docs/2026-08-12-macos-foundation-models-summaries.md`.
 
 **Key stays build-time**, following `GEMINI_API_KEY` exactly:
 `Config.xcconfig` → `OpenCaptions-Info.plist` → `Bundle.main.infoDictionary`. Both

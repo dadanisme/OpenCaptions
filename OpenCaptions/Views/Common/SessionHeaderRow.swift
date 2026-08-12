@@ -24,9 +24,10 @@ struct SessionHeaderRow: View {
                     HStack(spacing: 4) {
                         Text(session.sessionDate, format: .dateTime.month().day().hour().minute())
                             .appScaledFont(.caption)
+                        SessionWorkspaceLabel(session: session)
                         SessionSpeakersLine(session: session)
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tertiary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")

@@ -153,7 +153,7 @@ struct TranscriptionsScreen: View {
                         .help("Import an audio or video file")
                     }
                     ToolbarItem(placement: .primaryAction) {
-                        workspaceFilterMenu
+                        WorkspaceFilterMenu(filter: $workspaceFilter, workspaces: workspaces)
                     }
                 }
                 // Audio covers m4a/mp3/wav/aiff/caf; movie covers mp4/mov/etc. — the
@@ -261,14 +261,7 @@ struct TranscriptionsScreen: View {
     /// applied — used by `filteredSessions` and (to attribute the empty state
     /// correctly) by `listContent`.
     private var workspaceFilteredSessions: [TranscriptionSession] {
-        switch workspaceFilter {
-        case .all:
-            return sessions
-        case .unassigned:
-            return sessions.filter { $0.workspace == nil }
-        case .workspace(let id):
-            return sessions.filter { $0.workspace?.persistentModelID == id }
-        }
+        sessions.filter { workspaceFilter.matches($0.workspace) }
     }
 
     /// The sessions currently shown, after `workspaceFilter` and `searchText`
@@ -383,34 +376,6 @@ struct TranscriptionsScreen: View {
         await searchController.search(query, container: modelContext.container)
         guard !Task.isCancelled else { return }
         refreshDisplayedSessions()
-    }
-
-    private var workspaceFilterMenu: some View {
-        Menu {
-            Button {
-                workspaceFilter = .all
-            } label: {
-                filterLabel("All Workspaces", isSelected: workspaceFilter == .all)
-            }
-            Button {
-                workspaceFilter = .unassigned
-            } label: {
-                filterLabel("Unassigned", isSelected: workspaceFilter == .unassigned)
-            }
-            if !workspaces.isEmpty {
-                Divider()
-                ForEach(workspaces) { workspace in
-                    Button {
-                        workspaceFilter = .workspace(workspace.persistentModelID)
-                    } label: {
-                        filterLabel(workspace.name, isSelected: workspaceFilter == .workspace(workspace.persistentModelID))
-                    }
-                }
-            }
-        } label: {
-            Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
-        }
-        .help("Filter by workspace")
     }
 
     /// The row's right-click "Workspace" submenu — assigns or clears which
@@ -562,15 +527,6 @@ enum ContentRoute: Hashable {
     /// Transcriptions search hit matched transcript text rather than title,
     /// description, or summary. See `MacSessionDetailView.scrollToLineID`.
     case sessionLine(TranscriptionSession, PersistentIdentifier)
-}
-
-/// How the Transcriptions list is narrowed by workspace. Identifies a workspace
-/// by `PersistentIdentifier` rather than holding the `Workspace` itself, since
-/// `Workspace` has no `Equatable` conformance to compare `@State` against.
-private enum WorkspaceFilter: Hashable {
-    case all
-    case unassigned
-    case workspace(PersistentIdentifier)
 }
 
 /// A matching row's subtitle content — see

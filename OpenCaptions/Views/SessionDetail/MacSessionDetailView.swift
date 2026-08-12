@@ -3,7 +3,8 @@
 //  OpenCaptions
 //
 //  Saved-session detail: AI summary + full transcript, with a toolbar action
-//  to (re)generate the summary via the cloud function.
+//  to (re)generate the summary via whichever provider is selected in Settings
+//  → General → Summary Model (OpenRouter or on-device Apple Foundation Models).
 //
 
 import AppKit
@@ -18,11 +19,12 @@ struct MacSessionDetailView: View {
     /// `private`: the row that reads it lives in the `MacSessionDetailView+Playback`
     /// extension (a separate file).
     @Environment(\.appTextScale) var appTextScale
-    /// The three-way transcription engine selection. An on-device engine (Nemotron
-    /// or Parakeet) disables cloud AI summary GENERATION (there's no on-device
-    /// summarizer) — existing summaries stay visible.
-    @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
-    private var isOffline: Bool { selectedEngine.isOnDevice }
+    /// The two-way summary provider selection (OpenRouter / Apple Foundation
+    /// Models). Gates summary GENERATION — independent of the Transcription Engine
+    /// choice, since which model transcribed a session has no bearing on which
+    /// model can summarize it. Existing summaries stay visible regardless.
+    @AppStorage(LiveSessionStore.summaryProviderKindKey) private var summaryProvider: SummaryProviderKind = .openRouter
+    private var summaryAvailable: Bool { summaryProvider.isAvailable }
     let session: TranscriptionSession
     /// Set only when opened via a Transcriptions search hit that matched
     /// transcript text rather than title/description/summary (see
@@ -146,8 +148,8 @@ struct MacSessionDetailView: View {
                     } label: {
                         Label("Re-summarize", systemImage: "sparkles")
                     }
-                    // Summary generation is a cloud call — unavailable while offline.
-                    .disabled(isOffline || summaryVM.isLoading || session.lines.isEmpty)
+                    // Unavailable when the selected Summary Model can't run right now.
+                    .disabled(!summaryAvailable || summaryVM.isLoading || session.lines.isEmpty)
 
                     // Re-transcribe the recording for higher accuracy (offline/cloud).
                     retranscribeMenu
@@ -255,8 +257,8 @@ struct MacSessionDetailView: View {
     /// Generates the summary on first appear when the session has a transcript
     /// but no summary yet. Runs once per appearance so a failure doesn't loop.
     private func autoSummarizeIfNeeded() async {
-        // Never fire the cloud summarizer automatically while offline.
-        guard !isOffline,
+        // Never fire the summarizer automatically when the selected provider can't run.
+        guard summaryAvailable,
               !didAutoSummarize,
               !summaryVM.isLoading,
               !session.lines.isEmpty,
@@ -359,12 +361,13 @@ struct MacSessionDetailView: View {
             }
         } else if session.summaryParagraphs.isEmpty && session.summaryKeyPoints.isEmpty {
             centered {
-                if isOffline {
-                    // No on-device summarizer — generation needs the cloud.
+                // Only reachable when Foundation Models is selected but unavailable —
+                // OpenRouter has no static gate, so `summaryAvailable` is always true for it.
+                if let reason = summaryProvider.unavailableReason {
                     ContentUnavailableView {
-                        Label("Summary Unavailable Offline", systemImage: "wifi.slash")
+                        Label("Summary Unavailable", systemImage: "sparkles")
                     } description: {
-                        Text("Summaries need an internet connection. Select Soniox as the Transcription Engine in Settings to generate one.")
+                        Text("Apple Intelligence isn't available right now (\(reason)). Select OpenRouter as the Summary Model in Settings to generate one.")
                     }
                 } else {
                     ContentUnavailableView {
