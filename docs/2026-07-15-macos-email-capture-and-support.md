@@ -1,5 +1,12 @@
 # macOS: Email capture + marketing consent, and a Support section
 
+> **Historical — superseded.** The email-capture/marketing-consent half was removed entirely
+> with the rest of the account system (`docs/2026-08-10-remove-accounts-and-firestore.md`,
+> #33). The Support section this note also describes has since moved into a segmented-Picker
+> Settings pane with no signed-in-email diagnostics
+> (`docs/2026-08-10-macos-settings-navsection.md`) — nothing below reflects the current
+> Settings structure. Kept for historical context only.
+
 **Date:** 2026-07-15 · **Scope:** OpenCaptions (native macOS) only
 
 Two related additions to the macOS Settings scene (`MacSettingsView`, Cmd+,).

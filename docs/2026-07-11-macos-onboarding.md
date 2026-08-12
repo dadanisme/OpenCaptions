@@ -1,5 +1,10 @@
 # macOS Onboarding & Offline Guest Mode (OpenCaptions)
 
+> **Historical — superseded by `docs/2026-08-10-remove-accounts-and-firestore.md`.** The
+> sign-in-vs-offline-guest onboarding flow described below was replaced by a pure
+> Cloud-vs-Offline accuracy/privacy choice with no sign-in step (#33). Kept for historical
+> context only.
+
 **Date:** 2026-07-11 · **Target:** `OpenCaptions`
 
 ## Summary

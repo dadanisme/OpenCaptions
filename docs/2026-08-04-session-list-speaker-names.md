@@ -1,9 +1,9 @@
 # macOS: speaker names on every session list row
 
 **Date:** 2026-08-04 · **Scope:** Open Captions only · **Closes:** #27
-**Related:** `docs/2026-06-02-home-screen-derived-fields.md` (referenced by
-`TranscriptionSession+Derived.swift` — not carried over from the pre-extraction
-repo, so treat this note as the current source of truth for that file),
+**Related:** the pre-extraction design note `2026-06-02-home-screen-derived-fields.md`
+(referenced by `TranscriptionSession+Derived.swift` — never carried over into this repo;
+treat this note as the current source of truth for that file instead),
 `docs/2026-07-29-macos-speaker-auto-naming.md` (why speaker names can arrive
 after a session is first saved)
 **Status:** implemented. No test target — verified by re-reading every edited

@@ -1,5 +1,10 @@
 # macOS Auth (Apple + Email) & Per-User Data Scoping
 
+> **Historical — superseded by `docs/2026-08-10-remove-accounts-and-firestore.md`.** Sign in
+> with Apple/email and per-user data scoping described below were removed entirely (#33) — the
+> app is now fully local-only, with no accounts and no uid scoping. Kept for historical context
+> only.
+
 **Date:** 2026-07-05
 **Scope:** macOS Sign in with Apple and per-user data scoping
 **Target:** `OpenCaptions` (standalone native macOS app)

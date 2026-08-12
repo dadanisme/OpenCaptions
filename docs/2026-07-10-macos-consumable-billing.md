@@ -1,5 +1,9 @@
 # macOS Consumable-Hours Billing (rate limiting + minute metering)
 
+> **Historical — superseded.** RevenueCat and the whole consumable-hours billing model
+> described below were removed entirely (commit `73cf54d`) — all transcription is now free
+> and unmetered. See CLAUDE.md's Metering section. Kept for historical context only.
+
 **Date:** 2026-07-10
 **Topic:** macOS: rate limiting, consumable-hours billing, and per-provider BYOK
 **Type:** Implementation. Adds the consumable-minutes billing model to Open Captions.
