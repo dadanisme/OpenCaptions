@@ -16,7 +16,10 @@ struct ActionItemsScreen: View {
     @Environment(\.modelContext) private var modelContext
     /// All sessions, newest first.
     @Query(sort: \TranscriptionSession.sessionDate, order: .reverse) private var sessions: [TranscriptionSession]
+    @Query(sort: \Workspace.name) private var workspaces: [Workspace]
     @State private var path: [ContentRoute] = []
+    /// Narrows the rollup to one workspace, sessions with none, or everything.
+    @State private var workspaceFilter: WorkspaceFilter = .all
 
     /// Only sessions that actually produced action items. Sessions stay in
     /// newest-first order; items within each are sorted by their summary order.
@@ -24,10 +27,23 @@ struct ActionItemsScreen: View {
         sessions.filter { !$0.actionItems.isEmpty }
     }
 
+    /// `sessionsWithItems` further narrowed by `workspaceFilter` — what
+    /// `content` actually renders. Kept separate from `sessionsWithItems` so
+    /// the empty state can distinguish "no action items at all" from "the
+    /// workspace filter excludes every session that has some".
+    private var filteredSessionsWithItems: [TranscriptionSession] {
+        sessionsWithItems.filter { workspaceFilter.matches($0.workspace) }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             content
                 .navigationTitle("Action Items")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        WorkspaceFilterMenu(filter: $workspaceFilter, workspaces: workspaces)
+                    }
+                }
                 .navigationDestination(for: ContentRoute.self) { route in
                     switch route {
                     case .session(let session):
@@ -47,12 +63,18 @@ struct ActionItemsScreen: View {
                 systemImage: "checklist",
                 description: Text("Action items from your session summaries will appear here.")
             )
+        } else if filteredSessionsWithItems.isEmpty {
+            ContentUnavailableView(
+                "No Matching Sessions",
+                systemImage: "line.3.horizontal.decrease.circle",
+                description: Text("No sessions match this workspace filter.")
+            )
         } else {
             List {
                 // Headerless `Section` per session: it keeps the group spacing but
                 // renders the title as a plain scrolling row (not a `header:`, which
                 // macOS pins to the top).
-                ForEach(sessionsWithItems) { session in
+                ForEach(filteredSessionsWithItems) { session in
                     Section {
                         SessionHeaderRow(session: session, onOpen: { open(session) })
                         ForEach(sortedItems(of: session)) { item in
