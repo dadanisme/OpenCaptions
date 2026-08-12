@@ -25,7 +25,18 @@ let package = Package(
     products: [
         .library(name: "CoreAIPlugin", type: .dynamic, targets: ["CoreAIPlugin"])
     ],
+    dependencies: [
+        // No release tag covers the Parakeet TDT support (added in #136, after the
+        // 0.2.0 tag) — pinned to a revision instead of a version range.
+        .package(url: "https://github.com/apple/coreai-models", revision: "25a093b9fb05c99d90bd2d4ddbca44d95cbc6af8")
+    ],
     targets: [
-        .target(name: "CoreAIPlugin", path: "Sources/CoreAIPlugin")
+        .target(
+            name: "CoreAIPlugin",
+            dependencies: [
+                .product(name: "CoreAISpeech", package: "coreai-models")
+            ],
+            path: "Sources/CoreAIPlugin"
+        )
     ]
 )
