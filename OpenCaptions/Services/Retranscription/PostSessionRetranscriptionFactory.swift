@@ -25,8 +25,14 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
     /// export has no streaming path, so this never appears in the LIVE picker
     /// (`MacTranscriptionEngineKind`) — see `LiveSessionStore.retranscriptionEngineKind`
     /// for why re-transcription needed its own, independent engine choice once this
-    /// case existed. Currently a stub (#47) — real model wiring is a follow-up.
+    /// case existed. Real transcription via coreai-kit now runs (#47).
     case coreAIParakeet
+    /// On-device Apple Core AI Nemotron 3.5 ASR Streaming — offline, no diarization,
+    /// macOS 27+ only. Unlike `.coreAIParakeet`, this model is genuinely streaming
+    /// (cache-aware KV/conv state, no fixed encoder bucket), so it's ALSO reachable
+    /// from the LIVE picker (`MacTranscriptionEngineKind.coreAINemotron`) — see
+    /// docs/2026-08-12-macos-coreai-nemotron-streaming.md (issue #55).
+    case coreAINemotron
 
     var id: String { rawValue }
 
@@ -38,13 +44,14 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
         case .appleSpeech: return "Offline (Apple Speech)"
         case .soniox: return "Cloud (Soniox)"
         case .coreAIParakeet: return "Offline (Parakeet, Core AI)"
+        case .coreAINemotron: return "Offline (Nemotron 3.5, Core AI)"
         }
     }
 
     /// SF Symbol shown next to the menu item.
     var systemImage: String {
         switch self {
-        case .parakeet, .nemotron, .appleSpeech, .coreAIParakeet: return "cpu"
+        case .parakeet, .nemotron, .appleSpeech, .coreAIParakeet, .coreAINemotron: return "cpu"
         case .soniox: return "cloud"
         }
     }
@@ -72,20 +79,23 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
             }
             return false
         case .soniox: return true
-        // Stub has no model of its own yet to download — see the case's doc comment.
+        // The Parakeet-via-Core-AI plugin downloads/loads lazily on first use, with no
+        // separate Settings download step (batch-only, so there's no live-session
+        // fail-fast reason to pre-flight it) — see the case's doc comment.
         case .coreAIParakeet: return true
+        case .coreAINemotron: return CoreAIPluginLoader.isNemotronModelDownloaded()
         }
     }
 
     /// Cases to actually offer in a picker — unlike `allCases`, excludes
-    /// `.coreAIParakeet` unless `CoreAIPluginLoader` reports the plugin loadable
-    /// (macOS 27+ AND the dylib is embedded), and excludes `.appleSpeech` below
-    /// macOS 26 for the same reason `MacTranscriptionEngineKind.allCases` does.
-    /// Below their respective floors, neither case has any trace anywhere in the UI.
+    /// `.coreAIParakeet`/`.coreAINemotron` unless `CoreAIPluginLoader` reports the
+    /// plugin loadable (macOS 27+ AND the dylib is embedded), and excludes `.appleSpeech`
+    /// below macOS 26 for the same reason `MacTranscriptionEngineKind.allCases` does.
+    /// Below their respective floors, none of the three has any trace anywhere in the UI.
     static var availableCases: [RetranscriptionEngineKind] {
         allCases.filter { kind in
             switch kind {
-            case .coreAIParakeet: return CoreAIPluginLoader.isAvailable
+            case .coreAIParakeet, .coreAINemotron: return CoreAIPluginLoader.isAvailable
             case .appleSpeech:
                 if #available(macOS 26.0, *) { return true }
                 return false
@@ -126,6 +136,7 @@ enum PostSessionRetranscriptionFactory {
                 context: VocabularyStore.shared.sonioxContext(userName: userName)
             )
         case .coreAIParakeet: return CoreAIParakeetPostSessionEngine()
+        case .coreAINemotron: return CoreAINemotronPostSessionEngine()
         }
     }
 }

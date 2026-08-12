@@ -43,10 +43,11 @@ struct MacSettingsView: View {
     /// re-processed automatically; the engine follows the Transcription Engine
     /// selection below. Read by `RetranscriptionManager`.
     @AppStorage(LiveSessionStore.retranscriptionAutoKey) private var autoRetranscribe = false
-    /// The three-way transcription engine selection — Soniox (cloud), Nemotron or
-    /// Parakeet (on-device). Read at session start by `MacTranscriptionViewModel.start`.
-    /// Selecting an on-device engine whose model isn't downloaded yet shows a Download
-    /// control in place of the picker.
+    /// The transcription engine selection — Soniox (cloud), Nemotron or Parakeet
+    /// (on-device FluidAudio), or Core AI Nemotron (on-device, macOS 27+). Read at
+    /// session start by `MacTranscriptionViewModel.start`. Selecting an on-device
+    /// engine whose model isn't downloaded yet shows a Download control in place
+    /// of the picker.
     @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
     /// Explicit override for the RE-TRANSCRIPTION (batch/post-session/import) engine,
     /// independent of `selectedEngine` above — empty means "follow it" (the default
@@ -204,7 +205,7 @@ struct MacSettingsView: View {
                 Toggle("", isOn: $autoRetranscribe).labelsHidden()
                     .disabled(!saveSessionAudio)
             } label: {
-                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows your selected Transcription Engine: on-device (English only, no speaker labels) when Nemotron or Parakeet is selected, or cloud Soniox (speaker labels) otherwise. You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows your selected Transcription Engine: on-device (English only, no speaker labels) when an on-device engine is selected, or cloud Soniox (speaker labels) otherwise. You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
             }
             LabeledContent {
                 // Disabled for an on-device engine: on-device transcription produces

@@ -10,8 +10,9 @@
 //  current selection points at, unlike the old binary Offline Mode row, which
 //  downloaded both on-device models together as a single unit. `manager` is the
 //  shared `OnDeviceEngineModelManaging` existential so this one view works for
-//  every on-device engine's download mechanism (FluidAudio or Apple's
-//  `AssetInventory`) without knowing which backs the current selection.
+//  every on-device engine's download mechanism (FluidAudio, Apple's
+//  `AssetInventory`, or the dlopen'd Core AI plugin) without knowing which backs
+//  the current selection.
 //
 
 import SwiftUI

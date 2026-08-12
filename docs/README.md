@@ -68,6 +68,7 @@ When adding a new note, add a row here too.
 | 2026-08-12 | [macos-coreai-plugin-skeleton](2026-08-12-macos-coreai-plugin-skeleton.md) | Isolates Core AI Parakeet behind a dlopen'd sibling SPM package, gated to macOS 27+; splits the batch engine choice from the live one (#47). Real transcription via coreai-kit now runs, chunked to work around a fixed-bucket truncation bug. | Current |
 | 2026-08-12 | [macos-speechanalyzer-spike](2026-08-12-macos-speechanalyzer-spike.md) | Spike: confirms Apple's `Speech`/`SpeechAnalyzer` (macOS 26+) gates cleanly with `if #available`, no plugin isolation needed (#53). | Current |
 | 2026-08-12 | [macos-speechanalyzer-engine](2026-08-12-macos-speechanalyzer-engine.md) | Adds Apple's on-device `SpeechAnalyzer` as a 4th Transcription Engine option, gated behind macOS 26+ (#53). | Current |
+| 2026-08-12 | [macos-coreai-nemotron-streaming](2026-08-12-macos-coreai-nemotron-streaming.md) | Adds genuinely-streaming Nemotron 3.5 ASR via Apple Core AI, reachable from both the live picker and batch re-transcription — the first Core AI engine live capture can use (#55). | Current |
 
 ## Two cross-links that don't resolve
 
