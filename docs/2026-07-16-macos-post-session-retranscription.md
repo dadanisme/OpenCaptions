@@ -13,8 +13,9 @@ referenced by `TranscriptionSession.audioFileName` — see
 session** for higher accuracy without re-recording.
 
 This feature adds a pluggable **post-session** engine platform mirroring the live
-`RealtimeTranscriptionEngine` platform (`docs/2026-06-24-transcription-engine-abstraction.md`),
-plus a manual trigger and an automatic-after-recording option.
+`RealtimeTranscriptionEngine` platform (design note `2026-06-24-transcription-engine-abstraction.md`
+from the pre-extraction repo, never carried over into this one — treat `RealtimeTranscriptionEngine`'s
+current source as ground truth instead), plus a manual trigger and an automatic-after-recording option.
 
 ## Decisions
 

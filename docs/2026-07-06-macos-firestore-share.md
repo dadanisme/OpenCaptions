@@ -1,5 +1,9 @@
 # macOS Firestore share-to-web
 
+> **Historical — superseded by `docs/2026-08-10-remove-accounts-and-firestore.md`.** Firestore
+> live-session mirroring and password-protected share-to-web were removed entirely (#33) when
+> the backend was dropped. Kept for historical context only.
+
 Adds the "Share Session" feature to Open Captions (`OpenCaptions/`):
 live Firestore mirroring, a finished-session share link, and password protection.
 Before this, the app recorded, transcribed, saved locally, and

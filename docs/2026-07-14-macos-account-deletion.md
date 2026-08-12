@@ -1,5 +1,9 @@
 # macOS Account Deletion (OpenCaptions)
 
+> **Historical — superseded by `docs/2026-08-10-remove-accounts-and-firestore.md`.** Account
+> deletion is moot — there is no account system left to delete an account from (#33). Kept for
+> historical context only.
+
 **Date:** 2026-07-14
 **Status:** Implemented
 

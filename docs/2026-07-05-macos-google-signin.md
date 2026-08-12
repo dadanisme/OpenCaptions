@@ -1,5 +1,9 @@
 # macOS Google Sign-In + committed personal signing identity
 
+> **Historical — superseded by `docs/2026-08-10-remove-accounts-and-firestore.md`.** Google
+> Sign-In was removed entirely (#33) along with the rest of the account system. Kept for
+> historical context only.
+
 **Date:** 2026-07-05
 **Target:** OpenCaptions (standalone native macOS app)
 **Related:** `docs/2026-07-05-macos-auth-and-scoping.md`
