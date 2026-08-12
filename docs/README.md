@@ -65,6 +65,7 @@ When adding a new note, add a row here too.
 | 2026-08-12 | [coreai-parakeet-spike](2026-08-12-coreai-parakeet-spike.md) | Spike: evaluates Apple Core AI's Parakeet export against FluidAudio (#44); recommends deferring. | Current |
 | 2026-08-12 | [macos-transcription-engine-selector](2026-08-12-macos-transcription-engine-selector.md) | Replaces the binary Offline Mode toggle with a three-way Soniox/Nemotron/Parakeet picker (#35). | Current |
 | 2026-08-12 | [macos-foundation-models-summaries](2026-08-12-macos-foundation-models-summaries.md) | Adds an on-device summary provider via Apple Foundation Models, a Summary Model selector, and decouples summary availability from the Transcription Engine setting (#45). | Current |
+| 2026-08-12 | [macos-coreai-plugin-skeleton](2026-08-12-macos-coreai-plugin-skeleton.md) | Isolates Core AI Parakeet behind a dlopen'd sibling SPM package, gated to macOS 27+; splits the batch engine choice from the live one (#47). Real transcription via coreai-kit now runs, chunked to work around a fixed-bucket truncation bug. | Current |
 
 ## Two cross-links that don't resolve
 

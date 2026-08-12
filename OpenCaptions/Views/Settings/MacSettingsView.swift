@@ -48,6 +48,14 @@ struct MacSettingsView: View {
     /// Selecting an on-device engine whose model isn't downloaded yet shows a Download
     /// control in place of the picker.
     @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
+    /// Explicit override for the RE-TRANSCRIPTION (batch/post-session/import) engine,
+    /// independent of `selectedEngine` above — empty means "follow it" (the default
+    /// for every existing user). Only ever shown to the user on macOS 27+, where
+    /// Core AI Parakeet (batch-only, can't run live) makes an override meaningful;
+    /// see `LiveSessionStore.retranscriptionEngineKind`. Not `private`: read from
+    /// `MacSettingsView+Retranscription.swift`, which builds the section that
+    /// binds it (kept in its own file per CLAUDE.md's line-budget convention).
+    @AppStorage(LiveSessionStore.retranscriptionEngineOverrideKey) var retranscriptionOverrideRaw = ""
 
     /// Whether the current selection routes transcription on-device — on-device
     /// transcription produces no speaker labels, which is what the speaker-naming
@@ -234,6 +242,7 @@ struct MacSettingsView: View {
                 }
             }
         }
+        retranscriptionEngineSection
         Section("Summary Model") {
             LabeledContent {
                 Picker("", selection: $summaryProvider) {
