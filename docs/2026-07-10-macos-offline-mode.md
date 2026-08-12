@@ -1,5 +1,15 @@
 # macOS Offline Mode: binary online/offline, Nemotron-backed
 
+> **⚠️ HISTORICAL — superseded 2026-08-12.** The binary Offline Mode toggle this
+> note introduces was replaced by a three-way Transcription Engine picker
+> (Soniox/Nemotron/Parakeet) — the same shape this note itself replaced a day
+> earlier (see **`docs/2026-07-10-macos-on-device-engines.md`**, which stays
+> current for the underlying engine implementations). See
+> **`docs/2026-08-12-macos-transcription-engine-selector.md`**. Decisions 4
+> (Firestore sync of the preference) and the Firestore-rules **Risk** section
+> below are additionally stale on their own terms — `docs/2026-08-10-remove-accounts-and-firestore.md`
+> removed Firestore sync of local preferences entirely.
+
 **Date:** 2026-07-10
 **Builds on:** `docs/2026-07-10-macos-on-device-engines.md`
 

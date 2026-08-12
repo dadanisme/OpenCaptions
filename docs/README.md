@@ -34,7 +34,7 @@ When adding a new note, add a row here too.
 | 2026-07-10 | [macos-consumable-billing](2026-07-10-macos-consumable-billing.md) | Adds RevenueCat consumable-minute billing that gates and meters cloud Soniox sessions. | **Historical** → removed wholesale, commit `73cf54d` (see CLAUDE.md's Metering section) |
 | 2026-07-10 | [macos-distribution](2026-07-10-macos-distribution.md) | Decides on Mac App Store distribution, the signing team, and three consumable minute-pack IAP products. | Current |
 | 2026-07-10 | [macos-global-hotkeys](2026-07-10-macos-global-hotkeys.md) | Adds system-wide Carbon `RegisterEventHotKey` shortcuts for start/stop, pause/resume, and captions toggle. | Current |
-| 2026-07-10 | [macos-offline-mode](2026-07-10-macos-offline-mode.md) | Collapses the 3-way engine picker into one binary Offline Mode toggle running on-device Nemotron. | Current |
+| 2026-07-10 | [macos-offline-mode](2026-07-10-macos-offline-mode.md) | Collapses the 3-way engine picker into one binary Offline Mode toggle running on-device Nemotron. | **Historical** → [2026-08-12-macos-transcription-engine-selector](2026-08-12-macos-transcription-engine-selector.md) |
 | 2026-07-10 | [macos-on-device-engines](2026-07-10-macos-on-device-engines.md) | Adds selectable on-device Parakeet TDT v2 and Nemotron 560ms engines via FluidAudio. | Current |
 | 2026-07-10 | [macos-question-highlight](2026-07-10-macos-question-highlight.md) | Highlights question-ending sentences in transcripts via sentence scanning and a selection-color tint. | Current |
 | 2026-07-11 | [macos-onboarding](2026-07-11-macos-onboarding.md) | Adds a first-run wizard with a sign-in-vs-offline mode choice and an account-free offline guest mode. | **Historical** → [2026-08-10-remove-accounts-and-firestore](2026-08-10-remove-accounts-and-firestore.md) |
@@ -63,6 +63,7 @@ When adding a new note, add a row here too.
 | 2026-08-10 | [macos-transcriptions-search](2026-08-10-macos-transcriptions-search.md) | Adds a `.searchable` field filtering sessions by title/description/summary plus a transcript-line scan. | Current |
 | 2026-08-10 | [remove-accounts-and-firestore](2026-08-10-remove-accounts-and-firestore.md) | Removes the whole account/Firestore backend (#33); the app becomes fully local-only. | Current |
 | 2026-08-12 | [coreai-parakeet-spike](2026-08-12-coreai-parakeet-spike.md) | Spike: evaluates Apple Core AI's Parakeet export against FluidAudio (#44); recommends deferring. | Current |
+| 2026-08-12 | [macos-transcription-engine-selector](2026-08-12-macos-transcription-engine-selector.md) | Replaces the binary Offline Mode toggle with a three-way Soniox/Nemotron/Parakeet picker (#35). | Current |
 
 ## Two cross-links that don't resolve
 

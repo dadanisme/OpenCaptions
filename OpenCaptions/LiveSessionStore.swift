@@ -66,8 +66,9 @@ final class LiveSessionStore {
 
     /// UserDefaults key (Bool) for AUTOMATIC re-transcription after a recording is
     /// saved. When on, the just-saved session is re-processed automatically; the
-    /// engine FOLLOWS Offline Mode (Parakeet offline / Soniox cloud) — there's no engine
-    /// choice. Bound to `MacSettingsView`'s toggle and read by `RetranscriptionManager`.
+    /// engine FOLLOWS the Transcription Engine selection (`transcriptionEngineKindKey`)
+    /// — there's no separate engine choice here. Bound to `MacSettingsView`'s toggle
+    /// and read by `RetranscriptionManager`.
     /// Requires saved session audio — with `sessionAudioKey` off there's no `.m4a` to
     /// re-process. The MANUAL re-transcribe menu is independent of this key. Default
     /// `false` (registered in `OpenCaptionsApp`).
@@ -80,18 +81,12 @@ final class LiveSessionStore {
     /// `MacSettingsView`'s toggle and read by `SummaryViewModel` at apply time.
     /// Gates only whether the prediction is APPLIED — the request the model receives is
     /// identical either way, so toggling this never changes the summary text itself.
-    /// Diarization is cloud-only, so this has no effect in Offline Mode. Default
-    /// `true` (registered in `OpenCaptionsApp`) — it must be registered, since a raw
+    /// Diarization is cloud-only, so this has no effect with an on-device engine
+    /// selected. Default `true` (registered in `OpenCaptionsApp`) — it must be
+    /// registered, since a raw
     /// `UserDefaults.bool` read of an unregistered key returns `false` and would ship
     /// the feature silently off. See docs/2026-07-29-macos-speaker-auto-naming.md.
     static let speakerNamingAutoKey = "opencaptions.speakerNaming.auto"
-
-    /// UserDefaults key for the Offline Mode toggle (Bool). Off → Soniox (cloud);
-    /// on → on-device Nemotron transcription with no network. Read at session start
-    /// by `MacTranscriptionViewModel.start` and by `MacSessionDetailView` to gate
-    /// cloud summary generation. Bound to the toggle in Settings → Recording.
-    /// Default `false` (registered in `OpenCaptionsApp`).
-    static let offlineModeKey = "opencaptions.offlineMode.enabled"
 
     /// UserDefaults key for the user's custom vocabulary — the terms biased into
     /// recognition. Holds JSON-encoded `[VocabularyTerm]` as `Data`, so it is

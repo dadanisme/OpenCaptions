@@ -51,7 +51,7 @@ struct MacOnboardingDownloadStep: View {
                 .frame(maxWidth: 360)
 
             Label(
-                "You can switch to cloud transcription anytime from Settings → General → Offline Mode.",
+                "You can switch to cloud transcription anytime from Settings → General → Transcription Engine.",
                 systemImage: "info.circle"
             )
             .appScaledFont(.caption)

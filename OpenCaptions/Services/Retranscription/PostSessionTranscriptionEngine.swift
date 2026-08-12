@@ -8,6 +8,7 @@
 //  incremental tokens, it takes a finished audio file and returns the full ordered
 //  token list in a single async call. Concrete engines:
 //    • `ParakeetPostSessionEngine` — on-device FluidAudio Parakeet TDT v2 (offline, free, English-only, no diarization)
+//    • `NemotronPostSessionEngine` — on-device FluidAudio Nemotron 560 ms (offline, free, English-only, no diarization)
 //    • `SonioxAsyncPostSessionEngine` — cloud Soniox `stt-async-v5` (diarized, billable)
 //
 //  Adding a provider = add a `PostSessionTranscriptionEngine` conformer and a
@@ -91,7 +92,7 @@ enum PostSessionEngineError: LocalizedError {
         case .audioUnavailable:
             return "This session has no saved audio to re-transcribe."
         case .modelNotDownloaded:
-            return "The offline model isn't downloaded yet. Download it from Settings → General → Offline Mode, then try again."
+            return "The offline model isn't downloaded yet. Download it from Settings → General → Transcription Engine, then try again."
         case .missingAPIKey:
             return "Add a Soniox API key in Settings → API Keys, then try again."
         case .emptyResult:
