@@ -64,6 +64,7 @@ When adding a new note, add a row here too.
 | 2026-08-10 | [remove-accounts-and-firestore](2026-08-10-remove-accounts-and-firestore.md) | Removes the whole account/Firestore backend (#33); the app becomes fully local-only. | Current |
 | 2026-08-12 | [coreai-parakeet-spike](2026-08-12-coreai-parakeet-spike.md) | Spike: evaluates Apple Core AI's Parakeet export against FluidAudio (#44); recommends deferring. | Current |
 | 2026-08-12 | [macos-transcription-engine-selector](2026-08-12-macos-transcription-engine-selector.md) | Replaces the binary Offline Mode toggle with a three-way Soniox/Nemotron/Parakeet picker (#35). | Current |
+| 2026-08-12 | [macos-foundation-models-summaries](2026-08-12-macos-foundation-models-summaries.md) | Adds an on-device summary provider via Apple Foundation Models, a Summary Model selector, and decouples summary availability from the Transcription Engine setting (#45). | Current |
 
 ## Two cross-links that don't resolve
 
