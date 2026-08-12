@@ -4,7 +4,7 @@
 //
 //  Standalone native macOS app entry point. Fully local-only: no accounts, no
 //  cloud database. The transcription flow (record → transcript → save →
-//  summarize) uses Soniox (or on-device Nemotron in Offline Mode) + SwiftData +
+//  summarize) uses Soniox (or an on-device engine, Nemotron/Parakeet) + SwiftData +
 //  OpenRouter for AI summaries. No Analytics.
 //
 
@@ -36,6 +36,12 @@ struct OpenCaptionsApp: App {
     }()
 
     init() {
+        // One-time migration from the deleted binary Offline Mode key to the new
+        // three-way transcription engine selection. Must run before `register`
+        // below reads/sets defaults, so a migrated value is never mistaken for
+        // "unset". See `LiveSessionStore+TranscriptionEngine.swift`.
+        LiveSessionStore.migrateOfflineModeKeyIfNeeded()
+
         // Opt-in defaults for preferences the user hasn't set yet. Registering
         // (rather than only defaulting the @AppStorage) means `LiveSessionStore`'s
         // raw `UserDefaults` reads also see these before Settings is ever opened —
@@ -46,7 +52,7 @@ struct OpenCaptionsApp: App {
             LiveSessionStore.transcriptTextSizeKey: TranscriptTextSize.defaultMultiplier,
             LiveSessionStore.appTextSizeKey: TranscriptTextSize.defaultMultiplier,
             LiveSessionStore.sessionAudioKey: true,
-            LiveSessionStore.offlineModeKey: false,
+            LiveSessionStore.transcriptionEngineKindKey: MacTranscriptionEngineKind.soniox.rawValue,
             LiveSessionStore.retranscriptionAutoKey: false,
             LiveSessionStore.speakerNamingAutoKey: true,
         ])

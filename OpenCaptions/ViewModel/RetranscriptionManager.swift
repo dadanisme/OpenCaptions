@@ -51,7 +51,8 @@ final class RetranscriptionManager {
 
     /// Starts automatic re-transcription for a just-saved session when the user's
     /// "Automatically re-transcribe after each session" preference is on. The
-    /// engine follows Offline Mode. Background, silent (no error surfacing).
+    /// engine follows the Transcription Engine selection. Background, silent (no
+    /// error surfacing).
     func startAutomatic(sessionID: PersistentIdentifier, container: ModelContainer) {
         guard UserDefaults.standard.bool(forKey: LiveSessionStore.retranscriptionAutoKey) else { return }
         launch(sessionID: sessionID, kind: .forCurrentMode, context: container.mainContext, interactive: false)
@@ -91,7 +92,7 @@ final class RetranscriptionManager {
             if interactive { errorBySession[sessionID] = PostSessionEngineError.audioUnavailable.localizedDescription }
             return
         }
-        if kind == .parakeet, !FluidAudioModelLoader.isParakeetDownloaded() {
+        if !kind.isModelDownloaded {
             if interactive { errorBySession[sessionID] = PostSessionEngineError.modelNotDownloaded.localizedDescription }
             return
         }

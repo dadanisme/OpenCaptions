@@ -158,10 +158,14 @@ struct MacOnboardingView: View {
 
     /// Persists the capture choice and chosen mode, then marks onboarding
     /// complete. Writing the gate flag flips the app gate (`OpenCaptionsApp`)
-    /// to the main UI.
+    /// to the main UI. Onboarding's Mode step stays a binary cloud/offline
+    /// choice — offline maps to Nemotron, the same on-device engine the old
+    /// binary Offline Mode toggle ran live; Parakeet remains selectable only
+    /// from the full three-way picker in Settings → General.
     private func complete() {
         UserDefaults.standard.set(source.rawValue, forKey: LiveSessionStore.audioSourceKey)
-        UserDefaults.standard.set(mode == .offline, forKey: LiveSessionStore.offlineModeKey)
+        let kind: MacTranscriptionEngineKind = mode == .offline ? .nemotron : .soniox
+        UserDefaults.standard.set(kind.rawValue, forKey: LiveSessionStore.transcriptionEngineKindKey)
         UserDefaults.standard.set(true, forKey: LiveSessionStore.hasCompletedOnboardingKey)
     }
 }

@@ -18,9 +18,11 @@ struct MacSessionDetailView: View {
     /// `private`: the row that reads it lives in the `MacSessionDetailView+Playback`
     /// extension (a separate file).
     @Environment(\.appTextScale) var appTextScale
-    /// Offline Mode disables cloud AI summary GENERATION (there's no on-device
-    /// summarizer). Existing summaries stay visible.
-    @AppStorage(LiveSessionStore.offlineModeKey) private var isOffline = false
+    /// The three-way transcription engine selection. An on-device engine (Nemotron
+    /// or Parakeet) disables cloud AI summary GENERATION (there's no on-device
+    /// summarizer) — existing summaries stay visible.
+    @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
+    private var isOffline: Bool { selectedEngine.isOnDevice }
     let session: TranscriptionSession
     /// Set only when opened via a Transcriptions search hit that matched
     /// transcript text rather than title/description/summary (see
@@ -362,7 +364,7 @@ struct MacSessionDetailView: View {
                     ContentUnavailableView {
                         Label("Summary Unavailable Offline", systemImage: "wifi.slash")
                     } description: {
-                        Text("Summaries need an internet connection. Turn off Offline Mode in Settings to generate one.")
+                        Text("Summaries need an internet connection. Select Soniox as the Transcription Engine in Settings to generate one.")
                     }
                 } else {
                     ContentUnavailableView {

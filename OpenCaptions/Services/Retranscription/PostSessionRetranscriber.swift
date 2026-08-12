@@ -36,8 +36,8 @@ enum PostSessionRetranscriber {
         replaceTranscript(with: lines, in: session, context: context)
 
         // Regenerate the summary from the fresh transcript. It's a cloud call, so skip
-        // it in Offline Mode — the (now-cleared) summary can be generated later.
-        if !UserDefaults.standard.bool(forKey: LiveSessionStore.offlineModeKey) {
+        // it for an on-device engine — the (now-cleared) summary can be generated later.
+        if !kind.isOnDevice {
             await SummaryViewModel().generateSummary(session: session, context: context)
         }
     }

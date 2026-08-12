@@ -40,14 +40,19 @@ struct MacSettingsView: View {
     /// at record time via the same UserDefaults key.
     @AppStorage(LiveSessionStore.sessionAudioKey) private var saveSessionAudio = true
     /// Automatic re-transcription after recording. When on, a saved session is
-    /// re-processed automatically; the engine follows Offline Mode (Parakeet offline /
-    /// Soniox cloud). Read by `RetranscriptionManager`.
+    /// re-processed automatically; the engine follows the Transcription Engine
+    /// selection below. Read by `RetranscriptionManager`.
     @AppStorage(LiveSessionStore.retranscriptionAutoKey) private var autoRetranscribe = false
-    /// Offline Mode. Off → cloud Soniox (diarized); on → on-device Nemotron with no
-    /// network. Read at session start by `MacTranscriptionViewModel.start` and used to
-    /// gate cloud summary generation. Can only be turned on once both on-device models
-    /// are downloaded.
-    @AppStorage(LiveSessionStore.offlineModeKey) private var offlineModeEnabled = false
+    /// The three-way transcription engine selection — Soniox (cloud), Nemotron or
+    /// Parakeet (on-device). Read at session start by `MacTranscriptionViewModel.start`
+    /// and used to gate cloud summary generation. Selecting an on-device engine whose
+    /// model isn't downloaded yet shows a Download control in place of the picker.
+    @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
+
+    /// Whether the current selection routes transcription on-device — the same
+    /// gate three other rows below key off (they used to read the old binary
+    /// Offline Mode toggle directly).
+    private var isOffline: Bool { selectedEngine.isOnDevice }
     /// Automatic speaker naming from the summary pass. When on, a generated summary
     /// also names the diarized speakers it recognises. Read by `SummaryViewModel`.
     @AppStorage(LiveSessionStore.speakerNamingAutoKey) private var autoNameSpeakers = true
@@ -161,12 +166,12 @@ struct MacSettingsView: View {
         .formStyle(.grouped)
     }
 
-    /// Offline transcription needs its on-device files present before it can be
-    /// turned on. Observing the managers' `status` keeps the gate live as the
-    /// download completes.
-    private var offlineFilesReady: Bool {
-        FluidAudioModelManager.nemotron.status == .ready
-            && FluidAudioModelManager.parakeet.status == .ready
+    /// Whether the SELECTED engine is usable right now — always true for cloud
+    /// Soniox; for an on-device engine, whether its own model has finished
+    /// downloading. Per-model, not "both models" — the picker only ever needs the
+    /// one model the current selection points at.
+    private var selectedEngineReady: Bool {
+        !selectedEngine.isOnDevice || selectedEngine.modelManager?.status == .ready
     }
 
     @ViewBuilder
@@ -185,64 +190,67 @@ struct MacSettingsView: View {
                 Toggle("", isOn: $autoRetranscribe).labelsHidden()
                     .disabled(!saveSessionAudio)
             } label: {
-                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows Offline Mode: on-device Parakeet when Offline Mode is on (English only, no speaker labels), or cloud Soniox when it's off (speaker labels). You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
+                SettingsInfoTip.label("Automatically re-transcribe after each session", tip: "After each session is saved, re-process it for higher accuracy. It follows your selected Transcription Engine: on-device (English only, no speaker labels) when Nemotron or Parakeet is selected, or cloud Soniox (speaker labels) otherwise. You can also re-transcribe any saved session manually from its ⋯ menu. Requires saved session audio.")
             }
             LabeledContent {
-                // Disabled in Offline Mode: on-device transcription produces no
+                // Disabled for an on-device engine: on-device transcription produces no
                 // speaker labels and skips summary generation, so there is
                 // nothing to name — an enabled-but-inert toggle would read as a
                 // broken feature (same reasoning as the re-transcription toggle
                 // above).
                 Toggle("", isOn: $autoNameSpeakers).labelsHidden()
-                    .disabled(offlineModeEnabled)
+                    .disabled(isOffline)
             } label: {
                 SettingsInfoTip.label("Name speakers automatically from the summary", tip: speakerNamingFootnote)
             }
             MacMarkdownExportRow()
         }
-        Section("Offline Mode") {
-            if offlineFilesReady {
-                // Files are on disk — plain on/off toggle. `Toggle`'s label is
-                // itself a tap target on macOS, which would fight the info tip's
-                // own tap; putting the switch in a `LabeledContent` value slot
-                // instead (same shape as the download-control branch below)
-                // keeps the tip and the switch as two separate, unambiguous
-                // controls.
+        Section("Transcription Engine") {
+            LabeledContent {
+                Picker("", selection: $selectedEngine) {
+                    ForEach(MacTranscriptionEngineKind.allCases) { kind in
+                        Text(kind.displayName).tag(kind)
+                    }
+                }
+                .labelsHidden()
+            } label: {
+                SettingsInfoTip.label("Transcription Engine", tip: transcriptionEngineFootnote)
+            }
+            if !selectedEngineReady, let manager = selectedEngine.modelManager {
+                // Selected on-device model isn't downloaded yet — offer the
+                // Download control (or progress) right below the picker rather
+                // than blocking the selection itself; the picker stays usable so
+                // switching back to Soniox (or another already-downloaded engine)
+                // needs no extra step.
                 LabeledContent {
-                    Toggle("", isOn: $offlineModeEnabled).labelsHidden()
-                } label: { offlineModeLabel }
-            } else {
-                // Not downloaded yet — the row's action is Download (or progress),
-                // not a toggle. It flips to the toggle above once the files land.
-                LabeledContent { MacOfflineDownloadControl() } label: { offlineModeLabel }
+                    MacOfflineDownloadControl(manager: manager)
+                } label: {
+                    Text(manager.engine.modelTitle)
+                }
             }
         }
     }
 
-    /// Label + info tip shared by the Offline Mode row's two states (toggle vs.
-    /// download control).
-    private var offlineModeLabel: some View {
-        SettingsInfoTip.label("Enable Offline Mode", tip: offlineModeFootnote)
-    }
-
     /// Explanatory text shown in the automatic speaker-naming row's info tip.
     private var speakerNamingFootnote: String {
-        if offlineModeEnabled {
-            return "Unavailable in Offline Mode — on-device transcription doesn't separate speakers, and AI summaries don't run offline."
+        if isOffline {
+            return "Unavailable for an on-device engine — on-device transcription doesn't separate speakers, and AI summaries don't run offline."
         }
         return autoNameSpeakers
             ? "When a summary is generated, speakers who introduce themselves or are addressed by name are renamed for you — \"Speaker 1\" becomes \"Ramdan\". Uncertain speakers keep their generic label, and you can always correct a name from Edit Speakers."
             : "Speakers keep their generic \"Speaker 1\" labels. You can name them yourself any time from a session's Edit Speakers."
     }
 
-    /// Explanatory text shown in the Offline Mode row's info tip.
-    private var offlineModeFootnote: String {
-        if !offlineFilesReady {
-            return "Download the offline files to enable Offline Mode. It's a one-time download kept on this Mac."
+    /// Explanatory text shown in the Transcription Engine row's info tip.
+    private var transcriptionEngineFootnote: String {
+        guard selectedEngine.isOnDevice else {
+            return "Transcribe in the cloud with speaker labels. Requires an internet connection."
         }
-        return offlineModeEnabled
-            ? "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. AI summaries aren't available offline. Applies to your next session."
-            : "Transcribe in the cloud with speaker labels. Requires an internet connection. Applies to your next session."
+        guard selectedEngineReady else {
+            let modelTitle = selectedEngine.modelManager?.engine.modelTitle ?? selectedEngine.displayName
+            return "Download the \(modelTitle) to enable it. It's a one-time download kept on this Mac."
+        }
+        return "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. AI summaries aren't available. Applies to your next session."
     }
 
     @ViewBuilder

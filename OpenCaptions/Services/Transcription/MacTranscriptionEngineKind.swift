@@ -6,11 +6,9 @@
 //  `RealtimeTranscriptionEngine` for a chosen kind. Cloud Soniox (diarized) plus two on-device
 //  engines: Parakeet TDT v2 and Nemotron 560 ms.
 //
-//  This is no longer a user-facing picker (the engine selector was replaced with a binary
-//  Offline Mode toggle): `MacTranscriptionViewModel.start()` now selects `.nemotron` when Offline
-//  Mode is on and `.soniox` when off. The `.parakeet` case is retained for its `modelManager`
-//  (its download card + the offline-enable gate) and as the entry point for the upcoming offline
-//  re-transcribe feature; it isn't built for live transcription today.
+//  User-facing again via the three-way Settings picker (Soniox / Nemotron / Parakeet) —
+//  see docs/2026-08-12-macos-transcription-engine-selector.md. `MacTranscriptionViewModel.start()`
+//  resolves the selected case straight from `LiveSessionStore.transcriptionEngineKind`.
 //
 
 import Foundation

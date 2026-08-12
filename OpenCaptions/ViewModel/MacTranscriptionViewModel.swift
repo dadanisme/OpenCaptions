@@ -128,20 +128,18 @@ final class MacTranscriptionViewModel {
         isPreparingEngine = false
         serviceGeneration += 1
 
-        // Offline Mode (Settings → Recording) picks the engine: on → on-device Nemotron,
-        // off → cloud Soniox. Binary by design — there's no free engine selector. Parakeet
-        // is downloaded alongside Nemotron but reserved for a future offline re-transcribe.
-        let isOffline = UserDefaults.standard.bool(forKey: LiveSessionStore.offlineModeKey)
-        let kind: MacTranscriptionEngineKind = isOffline ? .nemotron : .soniox
+        // Transcription Engine (Settings → General) picks the engine directly — Soniox
+        // (cloud) or one of the two on-device engines, Nemotron or Parakeet.
+        let kind = LiveSessionStore.transcriptionEngineKind
 
-        // On-device engines need their CoreML model pre-downloaded (from Settings → Recording).
+        // On-device engines need their CoreML model pre-downloaded (from Settings → General).
         // Fail fast with a hint instead of blocking here on a multi-hundred-MB fetch. No audio /
         // recording resources are open yet at this point, so there's nothing to tear down.
         if let manager = kind.modelManager {
             manager.refreshStatus()
             if manager.status != .ready {
                 isRunning = false
-                errorMessage = "Offline transcription needs the on-device model. Open Settings → General → Offline Mode to download it, then try again."
+                errorMessage = "\(kind.displayName) needs its on-device model. Open Settings → General → Transcription Engine to download it, then try again."
                 return
             }
         }

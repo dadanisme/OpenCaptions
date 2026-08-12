@@ -18,7 +18,7 @@ struct MacOnboardingModeStep: View {
             MacOnboardingHeader(
                 systemImage: "arrow.triangle.branch",
                 title: "How should Open Captions transcribe?",
-                subtitle: "Both are free and unmetered. You can switch anytime in Settings → General → Offline Mode."
+                subtitle: "Both are free and unmetered. You can switch anytime in Settings → General → Transcription Engine."
             )
 
             VStack(spacing: 12) {

@@ -172,7 +172,7 @@ struct VocabularyScreen: View {
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Applies to your next session — a session already running keeps the vocabulary it started with.")
-                Text("Cloud transcription only. Offline Mode transcribes on-device and doesn't support term biasing yet.")
+                Text("Cloud transcription only. On-device engines transcribe locally and don't support term biasing yet.")
             }
             .appScaledFont(.caption)
             .foregroundStyle(.secondary)

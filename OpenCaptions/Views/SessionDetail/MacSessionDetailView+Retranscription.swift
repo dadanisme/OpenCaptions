@@ -16,15 +16,15 @@ extension MacSessionDetailView {
 
     // MARK: - Menu
 
-    /// The "Re-transcribe" action, shown when the session has saved audio. No
-    /// engine choice — it follows Offline Mode (Parakeet offline / Soniox cloud).
-    /// Disabled while a run is in flight for this session, or when the offline model is
-    /// missing while Offline Mode is on.
+    /// The "Re-transcribe" action, shown when the session has saved audio. No engine
+    /// choice — it follows the global Transcription Engine selection (Settings →
+    /// General). Disabled while a run is in flight for this session, or when the
+    /// selected engine is on-device and its model isn't downloaded.
     @ViewBuilder
     var retranscribeMenu: some View {
         if session.audioFileName != nil {
             let kind = RetranscriptionEngineKind.forCurrentMode
-            let offlineModelMissing = kind == .parakeet && !FluidAudioModelLoader.isParakeetDownloaded()
+            let offlineModelMissing = !kind.isModelDownloaded
             // Disabled while a re-transcription OR a file import is filling in this
             // session — both drive PostSessionRetranscriber.run over it, so they must
             // never overlap (which would corrupt the transcript).
@@ -37,8 +37,8 @@ extension MacSessionDetailView {
             }
             .disabled(running || offlineModelMissing)
             .help(offlineModelMissing
-                ? "Download the offline model in Settings → General → Offline Mode"
-                : (kind == .parakeet
+                ? "Download the offline model in Settings → General → Transcription Engine"
+                : (kind.isOnDevice
                     ? "Re-transcribe offline on this Mac (English only)"
                     : "Re-transcribe in the cloud with speaker labels"))
         }
@@ -126,13 +126,12 @@ struct RetranscriptionModifier: ViewModifier {
     /// re-transcribing a diarized session offline.
     static func confirmMessage(for kind: RetranscriptionEngineKind, session: TranscriptionSession) -> String {
         var parts = ["This replaces the current transcript and summary for this session. It runs in the background — you can leave this window."]
-        switch kind {
-        case .parakeet:
+        if kind.isOnDevice {
             parts.append("It runs offline on this Mac (English only).")
             if session.lines.contains(where: { $0.speakerId > 0 }) {
                 parts.append("Speaker labels will be removed — offline re-transcription produces a single unlabeled transcript.")
             }
-        case .soniox:
+        } else {
             parts.append("It runs in the cloud with speaker labels.")
         }
         return parts.joined(separator: " ")

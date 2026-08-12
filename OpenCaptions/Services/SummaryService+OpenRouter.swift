@@ -16,8 +16,8 @@
 //  `ogmo-cf/summarizeTranscript.ts` Cloud Function; `SummaryAPIResponse` (and
 //  everything downstream of it) is unchanged by either migration.
 //
-//  The offline-mode gate lives upstream (the session-detail auto-summarize and
-//  `PostSessionRetranscriber` both skip generation when Offline Mode is on), so
+//  The on-device gate lives upstream (the session-detail auto-summarize and
+//  `PostSessionRetranscriber` both skip generation for an on-device engine), so
 //  this file always assumes network is available.
 //
 

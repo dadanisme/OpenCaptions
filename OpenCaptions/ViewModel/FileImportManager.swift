@@ -10,8 +10,8 @@
 //  create the session) and DELEGATES the actual transcription — line
 //  building and summary regeneration — to the shared
 //  `PostSessionRetranscriber.run`, so imported and re-transcribed sessions can't drift.
-//  The engine follows Offline Mode (Parakeet on-device / Soniox cloud), exactly like
-//  re-transcription. Progress/errors are `@Observable` so the session-list spinner and
+//  The engine follows the Transcription Engine selection (on-device / Soniox cloud),
+//  exactly like re-transcription. Progress/errors are `@Observable` so the session-list spinner and
 //  the session-detail banner can render them. Mirrors `RetranscriptionManager`.
 //
 //  The session is created UP FRONT (before the transcode) so it appears in the list
@@ -101,7 +101,7 @@ final class FileImportManager {
         }
 
         let kind = RetranscriptionEngineKind.forCurrentMode
-        if kind == .parakeet, !FluidAudioModelLoader.isParakeetDownloaded() {
+        if !kind.isModelDownloaded {
             errorMessage = PostSessionEngineError.modelNotDownloaded.localizedDescription
             return
         }
