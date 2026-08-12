@@ -22,6 +22,17 @@ enum SessionSummaryError: LocalizedError {
     case badRequest(String)
     case serverError(String)
     case networkError(String)
+    /// The Foundation Models provider is selected but not actually usable right now
+    /// (pre-macOS 26, Apple Intelligence off, device ineligible, or the OS-managed
+    /// model still downloading). Settings hides/disables the option once this is
+    /// true, so hitting this at generation time means the OS state changed after
+    /// the picker was last shown.
+    case onDeviceUnavailable(String)
+    /// The on-device 4096-token context window (instructions + transcript + output,
+    /// combined) was exceeded. No truncation/chunking — this session is simply too
+    /// long to summarize on-device. The detail, when available, names the actual
+    /// measured token count — see `SummaryService+FoundationModels.contextOverflowDetail`.
+    case onDeviceContextExceeded(String?)
 
     var errorDescription: String? {
         switch self {
@@ -40,6 +51,11 @@ enum SessionSummaryError: LocalizedError {
             return "Server error: \(message)"
         case .networkError(let message):
             return "Network error: \(message)"
+        case .onDeviceUnavailable(let reason):
+            return "Apple Intelligence isn't available (\(reason)). Switch to OpenRouter as the Summary Model in Settings → General."
+        case .onDeviceContextExceeded(let detail):
+            let suffix = detail.map { " (\($0))" } ?? ""
+            return "This session is too long to summarize on-device\(suffix). Switch to OpenRouter as the Summary Model in Settings → General, or re-summarize after switching."
         }
     }
 
@@ -52,6 +68,8 @@ enum SessionSummaryError: LocalizedError {
         case .badRequest: return "badRequest"
         case .serverError: return "serverError"
         case .networkError: return "networkError"
+        case .onDeviceUnavailable: return "onDeviceUnavailable"
+        case .onDeviceContextExceeded: return "onDeviceContextExceeded"
         }
     }
 }
@@ -99,7 +117,15 @@ final class SummaryService {
         }
 
         let transcript = ConversationFormatter.buildTranscript(from: transcriptionSession)
-        return try await callSummarizeAPI(transcript: transcript, language: language)
+        switch LiveSessionStore.summaryProviderKind {
+        case .openRouter:
+            return try await callSummarizeAPI(transcript: transcript, language: language)
+        case .foundationModels:
+            guard #available(macOS 26, *) else {
+                throw SessionSummaryError.onDeviceUnavailable("requires macOS 26 or later")
+            }
+            return try await callFoundationModelsAPI(transcript: transcript, language: language)
+        }
     }
 
     func saveStructuredSummary(_ response: SummaryAPIResponse, to session: TranscriptionSession, context: ModelContext) {

@@ -35,9 +35,12 @@ enum PostSessionRetranscriber {
         guard !lines.isEmpty else { throw PostSessionEngineError.emptyResult }
         replaceTranscript(with: lines, in: session, context: context)
 
-        // Regenerate the summary from the fresh transcript. It's a cloud call, so skip
-        // it for an on-device engine — the (now-cleared) summary can be generated later.
-        if !kind.isOnDevice {
+        // Regenerate the summary from the fresh transcript, when the selected Summary
+        // Model can actually run — independent of `kind` (the retranscription engine):
+        // which engine re-transcribed the audio has no bearing on which model can
+        // summarize the result. The (now-cleared) summary can be generated later
+        // when unavailable now.
+        if LiveSessionStore.summaryProviderKind.isAvailable {
             await SummaryViewModel().generateSummary(session: session, context: context)
         }
     }

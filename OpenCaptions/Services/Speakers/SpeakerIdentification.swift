@@ -36,6 +36,13 @@ struct SpeakerIdentification: Decodable {
 struct SpeakerPredictions: Decodable {
     let identifications: [SpeakerIdentification]
 
+    /// Direct construction from already-validated identifications — used by the
+    /// Foundation Models transport, whose guided generation guarantees well-typed
+    /// values with no decode step, so the lenient-decode protection below doesn't apply.
+    init(identifications: [SpeakerIdentification]) {
+        self.identifications = identifications
+    }
+
     init(from decoder: Decoder) throws {
         // `try?` absorbs "not an array at all"; `Lenient` absorbs a bad element
         // while keeping its well-formed siblings.
