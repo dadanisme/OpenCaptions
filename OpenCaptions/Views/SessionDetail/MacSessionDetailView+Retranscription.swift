@@ -16,14 +16,16 @@ extension MacSessionDetailView {
 
     // MARK: - Menu
 
-    /// The "Re-transcribe" action, shown when the session has saved audio. No engine
-    /// choice — it follows the global Transcription Engine selection (Settings →
-    /// General). Disabled while a run is in flight for this session, or when the
-    /// selected engine is on-device and its model isn't downloaded.
+    /// The "Re-transcribe" action, shown when the session has saved audio. No
+    /// per-session engine choice — it uses `LiveSessionStore.retranscriptionEngineKind`
+    /// (Settings → General → Re-transcription Engine, or the live Transcription
+    /// Engine selection when no override is set). Disabled while a run is in flight
+    /// for this session, or when the selected engine is on-device and its model
+    /// isn't downloaded.
     @ViewBuilder
     var retranscribeMenu: some View {
         if session.audioFileName != nil {
-            let kind = RetranscriptionEngineKind.forCurrentMode
+            let kind = LiveSessionStore.retranscriptionEngineKind
             let offlineModelMissing = !kind.isModelDownloaded
             // Disabled while a re-transcription OR a file import is filling in this
             // session — both drive PostSessionRetranscriber.run over it, so they must

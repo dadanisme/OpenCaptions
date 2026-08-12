@@ -10,3 +10,4 @@ build/
 
 # SwiftPM (resolved on build)
 .swiftpm/
+.build/

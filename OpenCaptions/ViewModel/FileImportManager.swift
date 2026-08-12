@@ -100,7 +100,7 @@ final class FileImportManager {
             return
         }
 
-        let kind = RetranscriptionEngineKind.forCurrentMode
+        let kind = LiveSessionStore.retranscriptionEngineKind
         if !kind.isModelDownloaded {
             errorMessage = PostSessionEngineError.modelNotDownloaded.localizedDescription
             return

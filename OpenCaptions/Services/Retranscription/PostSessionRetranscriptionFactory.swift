@@ -17,6 +17,13 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
     case nemotron
     /// Cloud Soniox `stt-async-v5` — diarized, multi-language.
     case soniox
+    /// On-device Apple Core AI Parakeet TDT — offline, English-only, no diarization,
+    /// macOS 27+ only (see `CoreAIPluginLoader`). Batch/post-session ONLY: Core AI's
+    /// export has no streaming path, so this never appears in the LIVE picker
+    /// (`MacTranscriptionEngineKind`) — see `LiveSessionStore.retranscriptionEngineKind`
+    /// for why re-transcription needed its own, independent engine choice once this
+    /// case existed. Currently a stub (#47) — real model wiring is a follow-up.
+    case coreAIParakeet
 
     var id: String { rawValue }
 
@@ -26,13 +33,14 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
         case .parakeet: return "Offline (Parakeet)"
         case .nemotron: return "Offline (Nemotron)"
         case .soniox: return "Cloud (Soniox)"
+        case .coreAIParakeet: return "Offline (Parakeet, Core AI)"
         }
     }
 
     /// SF Symbol shown next to the menu item.
     var systemImage: String {
         switch self {
-        case .parakeet, .nemotron: return "cpu"
+        case .parakeet, .nemotron, .coreAIParakeet: return "cpu"
         case .soniox: return "cloud"
         }
     }
@@ -50,18 +58,17 @@ enum RetranscriptionEngineKind: String, CaseIterable, Identifiable {
         case .parakeet: return FluidAudioModelLoader.isParakeetDownloaded()
         case .nemotron: return FluidAudioModelLoader.isNemotronDownloaded()
         case .soniox: return true
+        // Stub has no model of its own yet to download — see the case's doc comment.
+        case .coreAIParakeet: return true
         }
     }
 
-    /// Re-transcription doesn't offer its own engine choice — it FOLLOWS the global
-    /// Transcription Engine selection (Settings → General). Single source of truth
-    /// for both the manual menu and the automatic path.
-    static var forCurrentMode: RetranscriptionEngineKind {
-        switch LiveSessionStore.transcriptionEngineKind {
-        case .soniox: return .soniox
-        case .parakeet: return .parakeet
-        case .nemotron: return .nemotron
-        }
+    /// Cases to actually offer in a picker — unlike `allCases`, excludes
+    /// `.coreAIParakeet` unless `CoreAIPluginLoader` reports the plugin loadable
+    /// (macOS 27+ AND the dylib is embedded). Below that, `.coreAIParakeet` has NO
+    /// trace anywhere in the UI, per #47's own requirement.
+    static var availableCases: [RetranscriptionEngineKind] {
+        allCases.filter { $0 != .coreAIParakeet || CoreAIPluginLoader.isAvailable }
     }
 }
 
@@ -84,6 +91,7 @@ enum PostSessionRetranscriptionFactory {
             return SonioxAsyncPostSessionEngine(
                 context: VocabularyStore.shared.sonioxContext(userName: userName)
             )
+        case .coreAIParakeet: return CoreAIParakeetPostSessionEngine()
         }
     }
 }
