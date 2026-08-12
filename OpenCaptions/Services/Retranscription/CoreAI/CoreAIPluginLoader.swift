@@ -10,6 +10,11 @@
 //  `#available(macOS 27.0, *)`: below that, the dylib is never even looked
 //  up, so there's no trace of Core AI on an older OS.
 //
+//  Two factories share one dlopen'd handle (see `loadHandle()`): the
+//  original Parakeet plugin (batch-only) and the Nemotron streaming plugin
+//  added in issue #55, which backs BOTH live capture and batch
+//  re-transcription — see CoreAIPluginProtocol+Nemotron.swift.
+//
 
 import Foundation
 
@@ -55,20 +60,7 @@ enum CoreAIPluginLoader {
     /// per-transcription, so there's no reason to share one across concurrent
     /// re-transcriptions.
     static func makePlugin() throws -> any CoreAITranscriptionPlugin {
-        guard #available(macOS 27.0, *) else { throw LoadError.unavailable }
-
-        let handle: UnsafeMutableRawPointer
-        if let cached = cachedHandle {
-            handle = cached
-        } else {
-            guard let opened = dlopen(pluginURL.path, RTLD_NOW | RTLD_LOCAL) else {
-                let message = dlerror().map { String(cString: $0) } ?? "unknown dlopen error"
-                throw LoadError.dlopenFailed(message)
-            }
-            cachedHandle = opened
-            handle = opened
-        }
-
+        let handle = try loadHandle()
         guard let symbol = dlsym(handle, "makeCoreAITranscriptionPlugin") else {
             throw LoadError.symbolNotFound
         }
@@ -80,5 +72,44 @@ enum CoreAIPluginLoader {
             throw LoadError.symbolNotFound
         }
         return plugin
+    }
+
+    /// Loads (or reuses) the Nemotron streaming plugin. Unlike `makePlugin()`, callers keep the
+    /// returned instance around for a session's lifetime — the plugin itself caches the
+    /// compiled model behind it (see `CoreAINemotronPlugin.ModelCache`), so a fresh instance
+    /// here is cheap either way.
+    static func makeNemotronPlugin() throws -> any CoreAINemotronTranscriptionPlugin {
+        let handle = try loadHandle()
+        guard let symbol = dlsym(handle, "makeCoreAINemotronTranscriptionPlugin") else {
+            throw LoadError.symbolNotFound
+        }
+        typealias FactoryFunction = @convention(c) () -> UnsafeMutableRawPointer
+        let factory = unsafeBitCast(symbol, to: FactoryFunction.self)
+        let raw = factory()
+        let instance = Unmanaged<AnyObject>.fromOpaque(raw).takeRetainedValue()
+        guard let plugin = instance as? CoreAINemotronTranscriptionPlugin else {
+            throw LoadError.symbolNotFound
+        }
+        return plugin
+    }
+
+    /// Cheap, nonisolated disk check — no network, no model load beyond what dlopen itself
+    /// costs (cached after the first call). Lets `RetranscriptionEngineKind.isModelDownloaded`
+    /// answer synchronously without going through the @MainActor `CoreAINemotronModelManager`.
+    static func isNemotronModelDownloaded() -> Bool {
+        (try? makeNemotronPlugin())?.isModelDownloaded() ?? false
+    }
+
+    /// Shared dlopen — both factories above link against the same dylib, so one handle (cached
+    /// after the first call, per the type's own doc comment) serves either symbol lookup.
+    private static func loadHandle() throws -> UnsafeMutableRawPointer {
+        guard #available(macOS 27.0, *) else { throw LoadError.unavailable }
+        if let cached = cachedHandle { return cached }
+        guard let opened = dlopen(pluginURL.path, RTLD_NOW | RTLD_LOCAL) else {
+            let message = dlerror().map { String(cString: $0) } ?? "unknown dlopen error"
+            throw LoadError.dlopenFailed(message)
+        }
+        cachedHandle = opened
+        return opened
     }
 }

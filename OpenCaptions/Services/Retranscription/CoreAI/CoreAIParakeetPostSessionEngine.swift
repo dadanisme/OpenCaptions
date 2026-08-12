@@ -8,10 +8,11 @@
 //  `RetranscriptionEngineKind.availableCases` hides `.coreAIParakeet` everywhere
 //  below that, so this engine is never constructed on an older OS.
 //
-//  STUB (#47): the plugin returns a canned transcript rather than running the
-//  real Core AI model. Token splitting mirrors `NemotronPostSessionEngine`'s
-//  approach — the plugin reports only a final transcript string, no per-word
-//  timing, so timestamps are evenly distributed across the file's duration.
+//  Real transcription via coreai-kit's `KitParakeetModel` runs in the plugin
+//  itself (see CoreAIParakeetPlugin.swift). Token splitting mirrors
+//  `NemotronPostSessionEngine`'s approach — the plugin reports only a final
+//  transcript string, no per-word timing, so timestamps are evenly
+//  distributed across the file's duration.
 //
 
 import AVFoundation
