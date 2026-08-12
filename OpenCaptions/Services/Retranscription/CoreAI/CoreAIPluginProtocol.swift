@@ -30,5 +30,5 @@ import Foundation
     /// Transcribes the audio file at `audioFileURL` and calls `completion`
     /// exactly once, with either the transcript text or an error — never both nil.
     @objc(transcribeAudioFileURL:completion:)
-    func transcribe(audioFileURL: URL, completion: @escaping (String?, Error?) -> Void)
+    func transcribe(audioFileURL: URL, completion: @escaping @Sendable (String?, Error?) -> Void)
 }

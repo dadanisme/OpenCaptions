@@ -1,12 +1,22 @@
 {
-  "originHash" : "1549855e47b670b5a4615bae90c43cc1c2fefd28e9734e2eb6b3a1846afd40a0",
+  "originHash" : "7a4d632cceeae57269f231bf848f0999269f415911db7f91d78f1ae9a8c779ef",
   "pins" : [
+    {
+      "identity" : "coreai-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/john-rocky/coreai-kit",
+      "state" : {
+        "revision" : "8c70bac4bf9f3a0c9e0dbe63e4487cd6ea9762fa",
+        "version" : "0.3.0"
+      }
+    },
     {
       "identity" : "coreai-models",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/coreai-models",
+      "location" : "https://github.com/john-rocky/coreai-models",
       "state" : {
-        "revision" : "25a093b9fb05c99d90bd2d4ddbca44d95cbc6af8"
+        "revision" : "bd8dcf78bd7abd27a90d1fbe1f93482b2c2368cf",
+        "version" : "0.2.1-zoo"
       }
     },
     {

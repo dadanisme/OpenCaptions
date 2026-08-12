@@ -26,17 +26,26 @@ let package = Package(
         .library(name: "CoreAIPlugin", type: .dynamic, targets: ["CoreAIPlugin"])
     ],
     dependencies: [
-        // No release tag covers the Parakeet TDT support (added in #136, after the
-        // 0.2.0 tag) — pinned to a revision instead of a version range.
-        .package(url: "https://github.com/apple/coreai-models", revision: "25a093b9fb05c99d90bd2d4ddbca44d95cbc6af8")
+        // Community wrapper around Core AI (john-rocky/coreai-kit) — its `KitTranscriber`
+        // owns model download/caching itself (Application Support/CoreAIKit/Models), so this
+        // replaces the apple/coreai-models CoreAISpeech dependency this package started with:
+        // no export/hosting pipeline of our own needed, at the cost of depending on a solo
+        // maintainer's fork of coreai-models internally (see catalog entry for Parakeet).
+        .package(url: "https://github.com/john-rocky/coreai-kit", exact: "0.3.0")
     ],
     targets: [
         .target(
             name: "CoreAIPlugin",
             dependencies: [
-                .product(name: "CoreAISpeech", package: "coreai-models")
+                .product(name: "CoreAIKit", package: "coreai-kit")
             ],
-            path: "Sources/CoreAIPlugin"
+            path: "Sources/CoreAIPlugin",
+            // Swift 6's region-based isolation checker chokes on a `Task { }` inside an
+            // @objc protocol conformance's completion-handler method ("pattern that the
+            // region-based isolation checker does not understand how to check" — a beta
+            // toolchain bug, not a real data race here; the boundary crossing is a single
+            // completion call handed to withCheckedThrowingContinuation on the app side).
+            swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]
 )
