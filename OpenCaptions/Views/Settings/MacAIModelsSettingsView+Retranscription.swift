@@ -1,21 +1,20 @@
 //
-//  MacSettingsView+Retranscription.swift
+//  MacAIModelsSettingsView+Retranscription.swift
 //  OpenCaptions
 //
 //  The "Re-transcription Engine" Settings row — an override for the batch/
 //  post-session/import engine, independent of the live Transcription Engine
-//  picker in MacSettingsView itself. Split out to keep that file under its
-//  line budget, mirroring MacSessionDetailView+Retranscription.swift's split
-//  of the same concern on the session-detail side. See #47 /
+//  picker in MacAIModelsSettingsView itself. Split out to keep that file under
+//  its line budget, mirroring MacSessionDetailView+Retranscription.swift's split
+//  of the same concern on the session-detail side. See #47 / #58 /
 //  docs/2026-08-12-macos-coreai-plugin-skeleton.md. Renders as a bare row
-//  (no Section of its own) so it can sit inside MacSettingsView's merged
-//  "AI Models" section, alongside the Transcription Engine and Summary Model
-//  rows.
+//  (no Section of its own) so it can sit inside MacAIModelsSettingsView's
+//  "Transcription" section, right below the Transcription Engine row.
 //
 
 import SwiftUI
 
-extension MacSettingsView {
+extension MacAIModelsSettingsView {
 
     /// Only rendered on macOS 27+: below that, `RetranscriptionEngineKind
     /// .availableCases` never offers anything the live picker above can't

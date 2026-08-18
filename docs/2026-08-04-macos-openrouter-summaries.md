@@ -7,7 +7,9 @@ the same response), `docs/2026-07-10-macos-offline-mode.md` (the offline gate, u
 `docs/2026-08-12-macos-foundation-models-summaries.md` (**partially supersedes this
 note's "no provider abstraction" framing below** — adds a second, on-device provider
 and a real Settings picker; everything else here about the OpenRouter transport itself
-— retry/fallback, schema casing, the traps — is still accurate and current)
+— retry/fallback, schema casing, the traps — is still accurate and current),
+`docs/2026-08-18-macos-openrouter-model-picker.md` (**supersedes the "Model pinned"
+line below** — the model is now a user-facing picker)
 
 ## Context
 
@@ -41,6 +43,14 @@ output, and a Settings surface; out of scope.
 > *provider*, not a second *model* for this same transport — everything below about
 > OpenRouter's retry/fallback/schema-casing behavior is unchanged and still describes
 > the `.openRouter` case exactly. See `docs/2026-08-12-macos-foundation-models-summaries.md`.
+
+> **2026-08-18 update:** #58 reverses the **"Model pinned ... no user-facing picker"**
+> line below too — the model is now a user-facing Settings picker
+> (`OpenRouterModelKind`, Settings → **AI Models**, a new top-level tab; the section
+> also moved out of General entirely). The model this note pinned to
+> (`google/gemini-3.1-flash-lite`) is itself long stale by then — by #58 the actual
+> pinned constant read `deepseek/deepseek-v4-flash`, changed at some undocumented point
+> between this note and #58. See `docs/2026-08-18-macos-openrouter-model-picker.md`.
 
 **Key stays build-time**, following `GEMINI_API_KEY` exactly:
 `Config.xcconfig` → `OpenCaptions-Info.plist` → `Bundle.main.infoDictionary`. Both

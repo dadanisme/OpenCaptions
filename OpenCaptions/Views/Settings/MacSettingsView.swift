@@ -44,30 +44,17 @@ struct MacSettingsView: View {
     /// selection below. Read by `RetranscriptionManager`.
     @AppStorage(LiveSessionStore.retranscriptionAutoKey) private var autoRetranscribe = false
     /// The transcription engine selection — Soniox (cloud), Nemotron or Parakeet
-    /// (on-device FluidAudio), or Core AI Nemotron (on-device, macOS 27+). Read at
-    /// session start by `MacTranscriptionViewModel.start`. Selecting an on-device
-    /// engine whose model isn't downloaded yet shows a Download control in place
-    /// of the picker.
+    /// (on-device FluidAudio), or Apple Speech (on-device, macOS 26+). Read here
+    /// only to compute `isOffline` for the speaker-naming toggle below; the
+    /// picker itself now lives in `MacAIModelsSettingsView`, which declares its
+    /// own `@AppStorage` onto the same key.
     @AppStorage(LiveSessionStore.transcriptionEngineKindKey) private var selectedEngine: MacTranscriptionEngineKind = .soniox
-    /// Explicit override for the RE-TRANSCRIPTION (batch/post-session/import) engine,
-    /// independent of `selectedEngine` above — empty means "follow it" (the default
-    /// for every existing user). Only ever shown to the user on macOS 27+, where
-    /// Core AI Parakeet (batch-only, can't run live) makes an override meaningful;
-    /// see `LiveSessionStore.retranscriptionEngineKind`. Not `private`: read from
-    /// `MacSettingsView+Retranscription.swift`, which builds the section that
-    /// binds it (kept in its own file per CLAUDE.md's line-budget convention).
-    @AppStorage(LiveSessionStore.retranscriptionEngineOverrideKey) var retranscriptionOverrideRaw = ""
 
     /// Whether the current selection routes transcription on-device — on-device
     /// transcription produces no speaker labels, which is what the speaker-naming
     /// toggle below keys off. (Summary availability used to key off this too; it now
-    /// keys off `summaryProvider` instead — see `LiveSessionStore+SummaryProvider.swift`.)
+    /// keys off `SummaryProviderKind` instead — see `LiveSessionStore+SummaryProvider.swift`.)
     private var isOffline: Bool { selectedEngine.isOnDevice }
-    /// The two-way summary provider selection — OpenRouter (cloud) or Apple
-    /// Foundation Models (on-device, macOS 26+). Independent of `selectedEngine`
-    /// above: which model transcribed a session has no bearing on which model can
-    /// summarize it.
-    @AppStorage(LiveSessionStore.summaryProviderKindKey) private var summaryProvider: SummaryProviderKind = .openRouter
     /// Automatic speaker naming from the summary pass. When on, a generated summary
     /// also names the diarized speakers it recognises. Read by `SummaryViewModel`.
     @AppStorage(LiveSessionStore.speakerNamingAutoKey) private var autoNameSpeakers = true
@@ -75,7 +62,7 @@ struct MacSettingsView: View {
     @State private var tab: Tab = .general
 
     private enum Tab: Hashable {
-        case general, shortcuts, support, apiKeys
+        case general, aiModels, shortcuts, support, apiKeys
     }
 
     var body: some View {
@@ -102,6 +89,7 @@ struct MacSettingsView: View {
     private var tabContent: some View {
         switch tab {
         case .general: generalPane
+        case .aiModels: MacAIModelsSettingsView()
         case .shortcuts: MacHotKeysSettingsView()
         case .support: MacSupportSettingsView()
         case .apiKeys: MacAPIKeysSettingsView()
@@ -111,6 +99,7 @@ struct MacSettingsView: View {
     private var tabSwitcher: some View {
         Picker("View", selection: $tab) {
             Label("General", systemImage: "gearshape").tag(Tab.general)
+            Label("AI Models", systemImage: "sparkles").tag(Tab.aiModels)
             Label("Shortcuts", systemImage: "keyboard").tag(Tab.shortcuts)
             Label("Support", systemImage: "questionmark.circle").tag(Tab.support)
             Label("API Keys", systemImage: "key.fill").tag(Tab.apiKeys)
@@ -176,21 +165,13 @@ struct MacSettingsView: View {
             }
 
             captionsSections
-            recordingSections
+            sessionsSection
         }
         .formStyle(.grouped)
     }
 
-    /// Whether the SELECTED engine is usable right now — always true for cloud
-    /// Soniox; for an on-device engine, whether its own model has finished
-    /// downloading. Per-model, not "both models" — the picker only ever needs the
-    /// one model the current selection points at.
-    private var selectedEngineReady: Bool {
-        !selectedEngine.isOnDevice || selectedEngine.modelManager?.status == .ready
-    }
-
     @ViewBuilder
-    private var recordingSections: some View {
+    private var sessionsSection: some View {
         Section("Sessions") {
             LabeledContent {
                 Toggle("", isOn: $saveSessionAudio).labelsHidden()
@@ -219,50 +200,6 @@ struct MacSettingsView: View {
             }
             MacMarkdownExportRow()
         }
-        Section("AI Models") {
-            LabeledContent {
-                Picker("", selection: $selectedEngine) {
-                    ForEach(MacTranscriptionEngineKind.allCases) { kind in
-                        Text(kind.displayName).tag(kind)
-                    }
-                }
-                .labelsHidden()
-            } label: {
-                SettingsInfoTip.label("Transcription Engine", tip: transcriptionEngineFootnote)
-            }
-            if !selectedEngineReady, let manager = selectedEngine.modelManager {
-                // Selected on-device model isn't downloaded yet — offer the
-                // Download control (or progress) right below the picker rather
-                // than blocking the selection itself; the picker stays usable so
-                // switching back to Soniox (or another already-downloaded engine)
-                // needs no extra step.
-                LabeledContent {
-                    MacOfflineDownloadControl(manager: manager)
-                } label: {
-                    Text(manager.modelTitle)
-                }
-            }
-            retranscriptionEngineRow
-            LabeledContent {
-                Picker("", selection: $summaryProvider) {
-                    ForEach(SummaryProviderKind.allCases) { kind in
-                        Text(kind.displayName).tag(kind)
-                    }
-                }
-                .labelsHidden()
-            } label: {
-                SettingsInfoTip.label("Summary Model", tip: summaryProviderFootnote)
-            }
-            if let reason = summaryProvider.unavailableReason {
-                // Nothing to download here — the OS manages Apple Intelligence's own
-                // model, so this is a plain explanation, not a Download control.
-                LabeledContent {
-                    Text(reason).foregroundStyle(.secondary)
-                } label: {
-                    Text("Apple Intelligence")
-                }
-            }
-        }
     }
 
     /// Explanatory text shown in the automatic speaker-naming row's info tip.
@@ -273,31 +210,6 @@ struct MacSettingsView: View {
         return autoNameSpeakers
             ? "When a summary is generated, speakers who introduce themselves or are addressed by name are renamed for you — \"Speaker 1\" becomes \"Ramdan\". Uncertain speakers keep their generic label, and you can always correct a name from Edit Speakers."
             : "Speakers keep their generic \"Speaker 1\" labels. You can name them yourself any time from a session's Edit Speakers."
-    }
-
-    /// Explanatory text shown in the Transcription Engine row's info tip.
-    private var transcriptionEngineFootnote: String {
-        guard selectedEngine.isOnDevice else {
-            return "Transcribe in the cloud with speaker labels. Requires an internet connection."
-        }
-        guard selectedEngineReady else {
-            let modelTitle = selectedEngine.modelManager?.modelTitle ?? selectedEngine.displayName
-            return "Download the \(modelTitle) to enable it. It's a one-time download kept on this Mac."
-        }
-        return "Transcribe entirely on this Mac (English only) — no internet needed and your audio never leaves your device. Applies to your next session."
-    }
-
-    /// Explanatory text shown in the Summary Model row's info tip.
-    private var summaryProviderFootnote: String {
-        switch summaryProvider {
-        case .openRouter:
-            return "Summarize in the cloud with your OpenRouter key. Requires an internet connection. Independent of your Transcription Engine choice above."
-        case .foundationModels:
-            if let reason = summaryProvider.unavailableReason {
-                return "Summarize entirely on this Mac using Apple Intelligence — no internet needed and your transcript never leaves your device. Currently unavailable: \(reason)"
-            }
-            return "Summarize entirely on this Mac using Apple Intelligence — no internet needed and your transcript never leaves your device. Very long sessions may be too long to fit; switch back to OpenRouter for those."
-        }
     }
 
     @ViewBuilder

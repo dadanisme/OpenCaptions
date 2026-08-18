@@ -25,10 +25,6 @@ import Foundation
 
 extension SummaryService {
 
-    /// Pinned — there is deliberately no user-facing model picker. Google's fast,
-    /// low-cost model, and one OpenRouter serves from both Google Vertex and Google
-    /// AI Studio, so `allow_fallbacks` below has somewhere to go.
-    private static let model = "deepseek/deepseek-v4-flash"
     private static let endpoint = "https://openrouter.ai/api/v1/chat/completions"
 
     /// Statuses worth another attempt: rate-limited upstream (429), no provider
@@ -122,7 +118,8 @@ extension SummaryService {
 
     private static func requestBody(transcript: String, language: String) -> [String: Any] {
         [
-            "model": model,
+            // User-selectable — see Settings → AI Models and `OpenRouterModelKind`.
+            "model": LiveSessionStore.openRouterModelKind.modelID,
             "messages": [
                 ["role": "system", "content": systemInstruction(language: language)],
                 ["role": "user", "content": transcript]

@@ -54,6 +54,7 @@ struct OpenCaptionsApp: App {
             LiveSessionStore.sessionAudioKey: true,
             LiveSessionStore.transcriptionEngineKindKey: MacTranscriptionEngineKind.soniox.rawValue,
             LiveSessionStore.summaryProviderKindKey: SummaryProviderKind.openRouter.rawValue,
+            LiveSessionStore.openRouterModelKindKey: OpenRouterModelKind.deepseekFlash.rawValue,
             LiveSessionStore.retranscriptionAutoKey: false,
             LiveSessionStore.speakerNamingAutoKey: true,
         ])
