@@ -117,6 +117,7 @@ struct CaptionsOverlayView: View {
                 .padding(6)
                 .allowsHitTesting(false)
         }
+        .modifier(WindowDragBackground())
     }
 
     /// True until the first token lands (no committed lines and no partial).
@@ -193,6 +194,26 @@ private struct ResizeGrip: View {
             }
         }
         .frame(width: 11, height: 11)
+    }
+}
+
+/// Makes the whole strip draggable via SwiftUI's `WindowDragGesture` (macOS
+/// 15+), which recognizes the drag at the SwiftUI gesture layer rather than
+/// riding on `NSPanel.isMovableByWindowBackground`'s AppKit-level background
+/// mouseDown handling — the panel's resize edges (owned by the window, outside
+/// this content view) are unaffected either way. `allowsWindowActivationEvents`
+/// lets the drag work while the panel sits non-key, matching
+/// `becomesKeyOnlyIfNeeded`. Below macOS 15, dragging still relies solely on
+/// `isMovableByWindowBackground`.
+private struct WindowDragBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content
+                .gesture(WindowDragGesture())
+                .allowsWindowActivationEvents()
+        } else {
+            content
+        }
     }
 }
 
