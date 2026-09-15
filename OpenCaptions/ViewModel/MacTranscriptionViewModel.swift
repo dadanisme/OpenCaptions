@@ -198,7 +198,7 @@ final class MacTranscriptionViewModel {
     @MainActor
     func stop() async -> PersistentIdentifier? {
         let hadContent = !finalLines.textLines.isEmpty || finalLines.flushedLineCount > 0
-            || !partialLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || hasPartial
         isRunning = false
         isPaused = false
         audioLevel = 0.0

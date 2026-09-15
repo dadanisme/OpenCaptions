@@ -70,6 +70,7 @@ When adding a new note, add a row here too.
 | 2026-08-12 | [macos-speechanalyzer-engine](2026-08-12-macos-speechanalyzer-engine.md) | Adds Apple's on-device `SpeechAnalyzer` as a 4th Transcription Engine option, gated behind macOS 26+ (#53). | Current |
 | 2026-08-12 | [macos-coreai-nemotron-streaming](2026-08-12-macos-coreai-nemotron-streaming.md) | Adds genuinely-streaming Nemotron 3.5 ASR via Apple Core AI, reachable from both the live picker and batch re-transcription — the first Core AI engine live capture can use (#55). | Current |
 | 2026-08-18 | [macos-openrouter-model-picker](2026-08-18-macos-openrouter-model-picker.md) | Adds a user-facing OpenRouter model picker (20 models, 8 providers, tiered Flagship/Standard/Lite/Budget) and moves the AI Models section out of General into its own Settings tab (#58). | Current |
+| 2026-09-15 | [macos-token-spacing-is-authoritative](2026-09-15-macos-token-spacing-is-authoritative.md) | States the rule the finalized path already followed — the transcript is the verbatim concatenation of the engine's token texts — and fixes the three paths that broke it, curing words glued together as text finalizes. | Current |
 
 ## Two cross-links that don't resolve
 
