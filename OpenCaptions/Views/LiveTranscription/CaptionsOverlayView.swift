@@ -122,7 +122,7 @@ struct CaptionsOverlayView: View {
 
     /// True until the first token lands (no committed lines and no partial).
     private var isEmpty: Bool {
-        viewModel.finalLines.ids.isEmpty && viewModel.partialLine.isEmpty
+        viewModel.finalLines.ids.isEmpty && !viewModel.hasPartial
     }
 
     /// Scrolls the newest content to the bottom: the live partial if present, else

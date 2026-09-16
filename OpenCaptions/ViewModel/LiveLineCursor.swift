@@ -73,6 +73,12 @@ struct LiveLineCursor {
     /// without sentence punctuation.
     mutating func noteEndpoint() { didSeeEndpoint = true }
 
+    /// Records a whitespace-only token joining the open bubble. Such a token is a
+    /// separator, not content: it starts no bubble or paragraph, closes no sentence,
+    /// and must NOT consume a pending endpoint the way `place()` does — the next
+    /// real token is still the one that lands on the break.
+    mutating func noteSeparator() { didEndWithWhitespace = true }
+
     /// Whether the dominant source app must be re-read for this token instead of
     /// inherited from the open bubble. True when a bubble is about to open — nothing
     /// to inherit, or a speaker change starting one — and at a natural break. A

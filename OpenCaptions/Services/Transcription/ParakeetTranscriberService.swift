@@ -202,8 +202,14 @@ final class ParakeetTranscriberService: RealtimeTranscriptionEngine {
             emittedConfirmed = confirmed
         }
 
+        // Emit the volatile tail with the SAME leading separator it will carry when it
+        // graduates (`confirmed + " " + volatileText` above), so the view model can
+        // join partial and final by plain concatenation instead of guessing a space.
+        // Without this the partial reads "…confirmedvolatile" the moment the view
+        // model stops injecting one of its own.
+        let partialText = confirmed.isEmpty ? volatileText : " " + volatileText
         let partials = volatileText.isEmpty
-            ? [] : [FluidAudioStreamBridge.token(text: volatileText, isFinal: false)]
+            ? [] : [FluidAudioStreamBridge.token(text: partialText, isFinal: false)]
         guard !finals.isEmpty || !partials.isEmpty else { return }
         onTokens?(finals, partials)
     }

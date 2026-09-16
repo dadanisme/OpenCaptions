@@ -76,14 +76,26 @@ struct KeyPointsScreen: View {
                 ForEach(filteredSessionsWithKeyPoints) { session in
                     Section {
                         SessionHeaderRow(session: session, onOpen: { open(session) })
-                        // Key points are plain strings with no stable identity, so
-                        // key on the array offset (matches the detail-view summary).
-                        ForEach(Array(session.summaryKeyPoints.enumerated()), id: \.offset) { _, point in
-                            KeyPointRow(text: point)
+                        ForEach(keyPoints(of: session)) { entry in
+                            KeyPointRow(text: entry.text)
                         }
                     }
                 }
             }
+        }
+    }
+
+    /// This session's key points, each carrying an id unique across the WHOLE
+    /// list. Key points are plain `[String]` with no identity of their own, and
+    /// keying them on the bare array offset is what broke this screen: a macOS
+    /// `List` flattens its sections into one identified collection, so offset
+    /// `0` of every session resolved to the same row and every group rendered
+    /// the FIRST session's key points (a longer group showing the first group it
+    /// was long enough to out-reach). Pairing the offset with the session's
+    /// `PersistentIdentifier` makes the ids collision-free again.
+    private func keyPoints(of session: TranscriptionSession) -> [KeyPointEntry] {
+        session.summaryKeyPoints.enumerated().map { offset, text in
+            KeyPointEntry(id: .init(session: session.persistentModelID, offset: offset), text: text)
         }
     }
 
@@ -92,4 +104,16 @@ struct KeyPointsScreen: View {
     private func open(_ session: TranscriptionSession) {
         path = [.session(session)]
     }
+}
+
+/// One key point plus the session it came from, so the rollup's rows stay
+/// distinguishable across sessions (see `KeyPointsScreen.keyPoints(of:)`).
+private struct KeyPointEntry: Identifiable {
+    struct ID: Hashable {
+        let session: PersistentIdentifier
+        let offset: Int
+    }
+
+    let id: ID
+    let text: String
 }
