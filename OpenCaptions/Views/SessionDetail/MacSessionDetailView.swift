@@ -2,9 +2,11 @@
 //  MacSessionDetailView.swift
 //  OpenCaptions
 //
-//  Saved-session detail: AI summary + full transcript, with a toolbar action
-//  to (re)generate the summary via whichever provider is selected in Settings
-//  → General → Summary Model (OpenRouter or on-device Apple Foundation Models).
+//  Saved-session detail: AI summary + full transcript + a Chat tab for asking
+//  questions about the session, with a toolbar action to (re)generate the
+//  summary. The summary and the chat each use whichever provider is selected in
+//  Settings → AI Models (Summary Model / Chat Model — two independent pickers,
+//  each OpenRouter or on-device Apple Foundation Models).
 //
 
 import AppKit
@@ -25,6 +27,12 @@ struct MacSessionDetailView: View {
     /// model can summarize it. Existing summaries stay visible regardless.
     @AppStorage(LiveSessionStore.summaryProviderKindKey) private var summaryProvider: SummaryProviderKind = .openRouter
     private var summaryAvailable: Bool { summaryProvider.isAvailable }
+    /// The two-way Chat provider selection (OpenRouter / Apple Foundation Models).
+    /// Gates asking a NEW question — an existing conversation stays readable either
+    /// way. Independent of `summaryProvider` above. Not `private`: the Chat tab's
+    /// own empty state and input bar live in the `MacSessionDetailView+Chat`
+    /// extension (a separate file).
+    @AppStorage(LiveSessionStore.chatProviderKindKey) var chatProvider: ChatProviderKind = .openRouter
     let session: TranscriptionSession
     /// Set only when opened via a Transcriptions search hit that matched
     /// transcript text rather than title/description/summary (see
@@ -38,11 +46,27 @@ struct MacSessionDetailView: View {
     @Query(sort: \Workspace.name) private var workspaces: [Workspace]
 
     @State private var summaryVM = SummaryViewModel()
+    /// Drives the Chat tab's conversation. Not `private`: the chat message list +
+    /// input bar live in the `MacSessionDetailView+Chat` extension (a separate
+    /// file). `@State` here rather than on the tab view, so switching tabs doesn't
+    /// discard an in-flight answer; the conversation itself is persisted on
+    /// `session.chatMessages`, so even closing and reopening the session restores
+    /// the same chat history.
+    @State var chatVM = SessionChatViewModel()
+    /// The chat message the pointer is currently over — drives its hover-revealed
+    /// copy button. Not `private`: read/written by `MacSessionDetailView+Chat`.
+    /// Lives here rather than in each row because a `ForEach` row can't own
+    /// `@State` that the sibling rows need to see (only one button shows at a time).
+    @State var hoveredChatMessageID: PersistentIdentifier?
+    /// The chat message copied most recently, if that copy was within the last
+    /// ~1.5 s — swaps its copy icon for a checkmark as confirmation, then clears
+    /// itself. Not `private`: same reason as `hoveredChatMessageID` above.
+    @State var copiedChatMessageID: PersistentIdentifier?
     /// Audio playback + playhead for the synced transcript. Not `private`: the
     /// player UI + synced transcript live in the `MacSessionDetailView+Playback`
     /// extension (a separate file).
     @State var playback = PlaybackViewModel()
-    /// Selected tab (Summary / Transcript) — defaults to `.transcript` when
+    /// Selected tab (Summary / Transcript / Chat) — defaults to `.transcript` when
     /// opened via `scrollToLineID` (set in `init`). Not `private`: the top
     /// `tabSwitcher` pill lives in the `MacSessionDetailView+Playback`
     /// extension (a separate file).
@@ -76,7 +100,7 @@ struct MacSessionDetailView: View {
     /// stepped by `MacSessionDetailView+Find`'s `stepMatch(by:)`.
     @State var currentMatchIndex: Int = 0
 
-    enum Tab: Hashable { case summary, transcript }
+    enum Tab: Hashable { case summary, transcript, chat }
 
     init(session: TranscriptionSession, scrollToLineID: PersistentIdentifier? = nil) {
         self.session = session
@@ -102,12 +126,13 @@ struct MacSessionDetailView: View {
             switch tab {
             case .summary: summaryTab
             case .transcript: transcriptTab
+            case .chat: chatTab
             }
         }
         .navigationTitle(session.sessionTitle)
         .navigationSubtitle(session.sessionDate.formatted(date: .abbreviated, time: .shortened))
         .toolbar {
-            // Summary/Transcript switcher — centered, matching `MacSettingsView`'s
+            // Summary/Transcript/Chat switcher — centered, matching `MacSettingsView`'s
             // tab switcher. Explicit `id`: this and Settings' switcher are
             // structurally identical `ToolbarItem`s on the same NSWindow/NSToolbar
             // (swapped as the sidebar destination changes), so without a stable
@@ -150,6 +175,16 @@ struct MacSessionDetailView: View {
                     }
                     // Unavailable when the selected Summary Model can't run right now.
                     .disabled(!summaryAvailable || summaryVM.isLoading || session.lines.isEmpty)
+
+                    // Discards this session's persisted Chat conversation. Separate
+                    // from the summary actions above: clearing the chat never
+                    // touches the summary, and vice versa.
+                    Button {
+                        chatVM.clear(session: session, context: modelContext)
+                    } label: {
+                        Label("Clear Chat", systemImage: "bubble.left.and.bubble.right.fill")
+                    }
+                    .disabled(chatVM.messages.isEmpty)
 
                     // Re-transcribe the recording for higher accuracy (offline/cloud).
                     retranscribeMenu
@@ -215,6 +250,10 @@ struct MacSessionDetailView: View {
         .task(id: session.persistentModelID) {
             playback.load(fileName: session.audioFileName)
             seekToSearchTargetIfNeeded()
+            // Restore this session's persisted Chat conversation. Keyed on the
+            // session id like the playback load above, so opening a different
+            // session swaps the thread rather than leaving the previous one shown.
+            chatVM.load(session: session)
         }
         .onDisappear { playback.stop() }
         // Floating player pill docked at the bottom (only when a recording is
@@ -432,7 +471,9 @@ struct MacSessionDetailView: View {
         }
     }
 
-    private func centered(@ViewBuilder _ body: () -> some View) -> some View {
+    /// Not `private`: also used by `chatTab` in the `MacSessionDetailView+Chat`
+    /// extension (a separate file), and Swift `private` doesn't cross files.
+    func centered(@ViewBuilder _ body: () -> some View) -> some View {
         VStack { Spacer(); body(); Spacer() }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

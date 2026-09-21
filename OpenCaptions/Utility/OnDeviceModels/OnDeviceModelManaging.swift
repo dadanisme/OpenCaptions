@@ -5,9 +5,8 @@
 //  Shared readiness surface for an on-device engine's model/asset lifecycle, so
 //  `MacTranscriptionEngineKind.modelManager` and the Settings UI (`MacOfflineDownloadControl`,
 //  `MacSettingsView`) can treat every on-device engine the same regardless of which download
-//  mechanism backs it. `FluidAudioModelManager` (Parakeet/Nemotron, file-existence-backed),
-//  `AppleSpeechModelManager` (Apple Speech, `AssetInventory`-backed), and
-//  `CoreAINemotronModelManager` (Core AI Nemotron, dlopen'd-plugin-backed) all conform.
+//  mechanism backs it. `FluidAudioModelManager` (Parakeet/Nemotron, file-existence-backed)
+//  and `AppleSpeechModelManager` (Apple Speech, `AssetInventory`-backed) both conform.
 //
 
 import Foundation

@@ -195,6 +195,7 @@ extension MacSessionDetailView {
         Picker("View", selection: $tab) {
             Label("Summary", systemImage: "sparkles").tag(Tab.summary)
             Label("Transcript", systemImage: "text.alignleft").tag(Tab.transcript)
+            Label("Chat", systemImage: "bubble.left.and.bubble.right").tag(Tab.chat)
         }
         .pickerStyle(.segmented)
         .labelsHidden()
@@ -204,11 +205,12 @@ extension MacSessionDetailView {
     // MARK: - Bottom player pill
 
     /// The bottom-anchored floating player pill, shown only when a recording is
-    /// loaded. Capped + centered so it stays a floating pill on wide windows
-    /// rather than stretching edge to edge.
+    /// loaded and NOT on the Chat tab (which docks its own input bar in the same
+    /// place — the two would overlap). Capped + centered so it stays a floating
+    /// pill on wide windows rather than stretching edge to edge.
     @ViewBuilder
     var bottomBar: some View {
-        if playback.isAvailable {
+        if playback.isAvailable, tab != .chat {
             playerBar
                 .frame(maxWidth: 700)
                 .padding(.horizontal)

@@ -10,17 +10,21 @@
 //  for that historical shape — never edit it again after this ships; a future
 //  schema change gets its own new VersionedSchema + migration stage instead.
 //
-//  TranscriptionLine and ActionItem are UNCHANGED by this migration, so they
-//  are referenced by their real top-level types in `models` below rather than
-//  duplicated here — a model only needs a versioned copy where its shape
-//  actually differs from the current one. SwiftData resolves relationships
-//  within a single VersionedSchema's model graph by entity name (the
-//  unqualified type name, e.g. "TranscriptionSession"), not Swift type
-//  identity — that's what lets TranscriptionLine's/ActionItem's real
-//  `@Relationship(inverse:)` declarations (which necessarily reference the
-//  current top-level `TranscriptionSession`) still resolve correctly against
-//  this file's nested `TranscriptionSession` when SwiftData builds the V1
-//  model graph.
+//  TranscriptionLine and ActionItem are UNCHANGED by every migration so far,
+//  but they are still nested here rather than referenced by their real
+//  top-level types. That is a CORRECTION: this file used to reference the real
+//  types, on the theory that SwiftData resolves relationships within a schema's
+//  model graph by entity name. It does not resolve INVERSES that way — the real
+//  `TranscriptionLine.session` declares `@Relationship(inverse: \TranscriptionSession.lines)`
+//  against the LIVE `TranscriptionSession`, which is not in this graph, so
+//  building this schema traps with "Fatal error: Inverse Relationship does not
+//  exist" (`SwiftData/SchemaEntity.swift:609`). V2 hit exactly that when the
+//  Chat tab's V2→V3 migration first made a frozen schema get built for real;
+//  V1 carried the same latent bug, unnoticed only because no V1 store has
+//  needed migrating on a machine that would have surfaced it. A frozen schema
+//  must nest EVERY model it references, so both ends of each relationship live
+//  in the same VersionedSchema. Field shapes are untouched — this changes which
+//  Swift types declare the graph, never what is on disk.
 //
 
 import Foundation
@@ -53,8 +57,10 @@ enum OpenCaptionsSchemaV1: VersionedSchema {
         var hasPassword: Bool = false
         @Relationship(inverse: \OpenCaptionsSchemaV1.Workspace.sessions)
         var workspace: OpenCaptionsSchemaV1.Workspace?
-        @Relationship(deleteRule: .cascade) var actionItems: [ActionItem] = []
-        @Relationship(deleteRule: .cascade) var lines: [TranscriptionLine] = []
+        @Relationship(deleteRule: .cascade)
+        var actionItems: [OpenCaptionsSchemaV1.ActionItem] = []
+        @Relationship(deleteRule: .cascade)
+        var lines: [OpenCaptionsSchemaV1.TranscriptionLine] = []
 
         init(
             sessionDate: Date = Date(), sessionTitle: String = "", shortDescription: String? = nil,
@@ -83,6 +89,54 @@ enum OpenCaptionsSchemaV1: VersionedSchema {
             self.name = name
             self.userId = userId
             self.createdAt = createdAt
+        }
+    }
+
+    /// Mirrors `OpenCaptions/Model/TranscriptionLine.swift` — identical to the
+    /// live shape, nested only so this graph owns both ends of the
+    /// session↔line relationship (see the file header).
+    @Model
+    final class TranscriptionLine {
+        var text: String
+        var speakerId: Int
+        var speakerName: String
+        var startMs: Int
+        var endMs: Int
+        var timestamp: Date
+        var sourceAppBundleID: String?
+
+        @Relationship(inverse: \OpenCaptionsSchemaV1.TranscriptionSession.lines)
+        var session: OpenCaptionsSchemaV1.TranscriptionSession?
+
+        init(
+            text: String, speakerId: Int, speakerName: String, startMs: Int, endMs: Int,
+            sourceAppBundleID: String? = nil, timestamp: Date = Date()
+        ) {
+            self.text = text
+            self.speakerId = speakerId
+            self.speakerName = speakerName
+            self.startMs = startMs
+            self.endMs = endMs
+            self.sourceAppBundleID = sourceAppBundleID
+            self.timestamp = timestamp
+        }
+    }
+
+    /// Mirrors `OpenCaptions/Model/ActionItem.swift`. Nested for the same
+    /// reason as `TranscriptionLine` above.
+    @Model
+    final class ActionItem {
+        var text: String
+        var isCompleted: Bool
+        var sortOrder: Int = 0
+
+        @Relationship(inverse: \OpenCaptionsSchemaV1.TranscriptionSession.actionItems)
+        var session: OpenCaptionsSchemaV1.TranscriptionSession?
+
+        init(text: String, isCompleted: Bool = false, sortOrder: Int = 0) {
+            self.text = text
+            self.isCompleted = isCompleted
+            self.sortOrder = sortOrder
         }
     }
 }

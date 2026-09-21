@@ -1,5 +1,10 @@
 # Spike: Apple Core AI's Parakeet export vs. FluidAudio
 
+> **Historical.** Superseded by `docs/2026-09-16-macos-remove-coreai.md` — Apple Core AI
+> was removed from the app entirely (package, plugin loader, both batch engines, the live
+> streaming engine, and the build phase). Kept for the design rationale and the
+> platform-floor findings, which are still accurate about Core AI itself.
+
 **Date:** 2026-08-12 · **Scope:** Research spike, no app code changed · **Closes:** #44
 **Related:** #35 (Offline Mode → per-model selector — this spike's recommendation feeds
 directly into it), `docs/2026-07-10-macos-on-device-engines.md` (the current FluidAudio

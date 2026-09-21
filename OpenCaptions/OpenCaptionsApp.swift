@@ -22,7 +22,7 @@ struct OpenCaptionsApp: App {
     @AppStorage(LiveSessionStore.hasCompletedOnboardingKey) private var hasCompletedOnboarding = false
 
     let sharedModelContainer: ModelContainer = {
-        let schema = Schema(versionedSchema: OpenCaptionsSchemaV2.self)
+        let schema = Schema(versionedSchema: OpenCaptionsSchemaV3.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
             return try ModelContainer(
@@ -31,7 +31,7 @@ struct OpenCaptionsApp: App {
                 configurations: [config]
             )
         } catch {
-            fatalError("Could not create ModelContainer (schema v1→v2 migration failed): \(error)")
+            fatalError("Could not create ModelContainer (schema migration failed): \(error)")
         }
     }()
 
@@ -54,6 +54,7 @@ struct OpenCaptionsApp: App {
             LiveSessionStore.sessionAudioKey: true,
             LiveSessionStore.transcriptionEngineKindKey: MacTranscriptionEngineKind.soniox.rawValue,
             LiveSessionStore.summaryProviderKindKey: SummaryProviderKind.openRouter.rawValue,
+            LiveSessionStore.chatProviderKindKey: ChatProviderKind.openRouter.rawValue,
             LiveSessionStore.openRouterModelKindKey: OpenRouterModelKind.deepseekFlash.rawValue,
             LiveSessionStore.retranscriptionAutoKey: false,
             LiveSessionStore.speakerNamingAutoKey: true,
