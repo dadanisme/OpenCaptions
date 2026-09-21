@@ -1,5 +1,10 @@
 # macOS: Core AI Parakeet isolation-plugin skeleton (#47)
 
+> **Historical.** Superseded by `docs/2026-09-16-macos-remove-coreai.md` — Apple Core AI
+> was removed from the app entirely (package, plugin loader, both batch engines, the live
+> streaming engine, and the build phase). Kept for the design rationale and the
+> platform-floor findings, which are still accurate about Core AI itself.
+
 **Date:** 2026-08-12 · **Scope:** Open Captions + a new sibling `CoreAIPlugin` SPM package
 **Related:** `docs/2026-08-12-coreai-parakeet-spike.md` (#44 — the spike this issue revisits,
 specifically the deferred macOS-27.0-floor question), `docs/2026-08-12-macos-transcription-engine-selector.md`

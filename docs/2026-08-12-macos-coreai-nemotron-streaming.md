@@ -1,5 +1,10 @@
 # macOS: streaming Nemotron ASR via Apple Core AI, live + batch (#55)
 
+> **Historical.** Superseded by `docs/2026-09-16-macos-remove-coreai.md` — Apple Core AI
+> was removed from the app entirely (package, plugin loader, both batch engines, the live
+> streaming engine, and the build phase). Kept for the design rationale and the
+> platform-floor findings, which are still accurate about Core AI itself.
+
 **Date:** 2026-08-12 · **Scope:** `CoreAIPlugin` sibling package + `OpenCaptions`
 **Related:** `docs/2026-08-12-macos-coreai-plugin-skeleton.md` (#47 — the dlopen'd-sibling-package
 architecture this reuses unchanged), `docs/2026-08-12-macos-transcription-engine-selector.md`

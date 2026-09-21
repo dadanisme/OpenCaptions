@@ -56,6 +56,13 @@ final class TranscriptionSession {
     @Relationship(deleteRule: .cascade)
     var lines: [TranscriptionLine] = []
 
+    /// This session's persisted Chat tab conversation. Empty until the first
+    /// question is asked; cleared entirely by the "Clear Chat" action. Not
+    /// mirrored to the markdown export — the export is a projection of the
+    /// session itself, and a Q&A thread about it isn't part of that record.
+    @Relationship(deleteRule: .cascade)
+    var chatMessages: [ChatMessage] = []
+
     init(sessionDate: Date = Date(), sessionTitle: String = "", shortDescription: String? = nil) {
         self.sessionDate = sessionDate
         self.sessionTitle = sessionTitle.isEmpty ? "Session \(DateFormatter.localizedString(from: sessionDate, dateStyle: .short, timeStyle: .short))" : sessionTitle
